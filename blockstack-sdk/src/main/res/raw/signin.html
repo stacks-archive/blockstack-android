@@ -22,8 +22,17 @@ function handlePendingSignIn(authResponseToken) {
   blockstack.handlePendingSignIn(authResponseToken)
   .then(function(userData) {
     var userDataString = JSON.stringify(userData)
-    console.log(userDataString)
     android.signInSuccess(userDataString)
+  })
+}
+
+function putFile(path, content, optionsString, uniqueIdentifier) {
+  var options = JSON.stringify(optionsString)
+  console.log('putFile: ' + uniqueIdentifier)
+  blockstack.putFile(path, content, options)
+  .then(function(result) {
+    console.log(result)
+    android.putFileResult(result, uniqueIdentifier)
   })
 }
 </script>

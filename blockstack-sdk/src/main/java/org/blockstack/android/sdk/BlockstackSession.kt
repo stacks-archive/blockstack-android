@@ -8,6 +8,7 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import org.json.JSONObject
+import java.util.*
 
 /**
  * Created by larry on 3/25/18.
@@ -18,6 +19,8 @@ class BlockstackSession(context: Context) {
     private val TAG = BlockstackSession::class.qualifiedName
     private var userData: JSONObject? = null
     private var signInCallback: ((JSONObject) -> Unit)? = null
+    private val putFileCallbacks = HashMap<String, ((String) -> Unit)>()
+
     init {
         Log.d(TAG, context.toString())
     }
@@ -47,6 +50,24 @@ class BlockstackSession(context: Context) {
         })
     }
 
+    fun getFile() {
+
+    }
+
+    fun putFile(path: String, content: String, callback: ((String) -> Unit)) {
+        Log.d(TAG, "putFile")
+        val uniqueIdentifier = addPutFileCallback(callback)
+        val javascript = "putFile('${path}', '${content}', '{}', '${uniqueIdentifier}')"
+        webView.evaluateJavascript(javascript, { result: String ->
+
+        })
+    }
+
+    private fun addPutFileCallback(callback: (String) -> Unit): String {
+        val uniqueIdentifier = UUID.randomUUID().toString()
+        putFileCallbacks.put(uniqueIdentifier, callback)
+        return uniqueIdentifier
+    }
 
     private class JavascriptInterfaceObject(session: BlockstackSession) {
         private val session = session
@@ -59,8 +80,15 @@ class BlockstackSession(context: Context) {
             Log.d(session.TAG, session.userData.toString() )
             session.signInCallback?.invoke(userData)
         }
-    }
 
+        @JavascriptInterface
+        fun putFileResult(readURL: String, uniqueIdentifier: String) {
+            Log.d(session.TAG, "putFileResult" )
+            session.putFileCallbacks[uniqueIdentifier]?.invoke(readURL)
+            session.putFileCallbacks.remove(uniqueIdentifier)
+        }
+
+    }
 
 }
 

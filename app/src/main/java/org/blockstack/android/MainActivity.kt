@@ -2,15 +2,11 @@ package org.blockstack.android
 
 import android.content.Intent
 import android.os.Bundle
-import android.provider.AlarmClock.EXTRA_MESSAGE
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.appcompat.R.id.message
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewAnimationUtils
 import android.widget.Button
 
 
@@ -33,6 +29,17 @@ class MainActivity : AppCompatActivity() {
         btn.setOnClickListener { view: View ->
             blockstackSession().redirectUserToSignIn({ userData: JSONObject ->
                 Log.d(TAG, "signed in!")
+                runOnUiThread {
+                    btn.visibility = View.GONE
+                }
+
+            })
+        }
+
+        val putFileButton: Button = findViewById<Button>(R.id.putFileButton) as Button
+        putFileButton.setOnClickListener { view: View ->
+            blockstackSession().putFile("/test.json", "hello", {readURL: String ->
+                Log.d(TAG, "File stored at: ${readURL}")
             })
         }
     }
