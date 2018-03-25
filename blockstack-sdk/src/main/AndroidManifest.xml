@@ -3,7 +3,6 @@
     package="org.blockstack.android.sdk">
 
     <application>
-        <activity android:name=".BlockstackSignInActivity"></activity>
     </application>
 
 </manifest>

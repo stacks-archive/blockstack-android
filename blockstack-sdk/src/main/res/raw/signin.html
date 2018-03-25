@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Blockstack Sign In</title>
+<script src="blockstack.js"></script>
+<script>
+var host = 'http://192.168.188.88:8777'
+var appDomain = host
+var redirectURI = host + '/redirect'
+var manifestURI = host + '/manifest.json'
+
+var transitPrivateKey = blockstack.generateAndStoreTransitKey()
+
+var scopes = [ 'store_write' ]
+
+function redirectToSignIn() {
+  var authRequest = blockstack.makeAuthRequest(transitPrivateKey, redirectURI, manifestURI, scopes, appDomain)
+  blockstack.redirectToSignInWithAuthRequest(authRequest)
+}
+
+function handlePendingSignIn(authResponseToken) {
+  blockstack.handlePendingSignIn(authResponseToken)
+  .then(function(userData) {
+    var userDataString = JSON.stringify(userData)
+    console.log(userDataString)
+    android.signInSuccess(userDataString)
+  })
+}
+</script>
+</head>
+<body>
+<p>Blockstack Sign In</p>
+</body>
+</html>
