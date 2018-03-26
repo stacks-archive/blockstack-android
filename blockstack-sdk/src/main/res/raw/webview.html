@@ -26,6 +26,16 @@ function handlePendingSignIn(authResponseToken) {
   })
 }
 
+function getFile(path, optionsString, uniqueIdentifier) {
+  var options = JSON.stringify(optionsString)
+  console.log('getFile: ' + uniqueIdentifier)
+  blockstack.getFile(path, options)
+  .then(function(result) {
+    console.log(result)
+    android.getFileResult(result, uniqueIdentifier)
+  })
+}
+
 function putFile(path, content, optionsString, uniqueIdentifier) {
   var options = JSON.stringify(optionsString)
   console.log('putFile: ' + uniqueIdentifier)

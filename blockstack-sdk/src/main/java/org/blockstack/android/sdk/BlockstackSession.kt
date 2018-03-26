@@ -19,7 +19,10 @@ class BlockstackSession(context: Context) {
     private val TAG = BlockstackSession::class.qualifiedName
     private var userData: JSONObject? = null
     private var signInCallback: ((JSONObject) -> Unit)? = null
+    private val getFileCallbacks = HashMap<String, ((String) -> Unit)>()
     private val putFileCallbacks = HashMap<String, ((String) -> Unit)>()
+
+
 
     init {
         Log.d(TAG, context.toString())
@@ -30,7 +33,7 @@ class BlockstackSession(context: Context) {
         webView.settings.domStorageEnabled = true
         webView.webViewClient = BlockstackWebViewClient(context)
         webView.addJavascriptInterface(JavascriptInterfaceObject(this),"android")
-        webView.loadUrl("file:///android_res/raw/signin.html")
+        webView.loadUrl("file:///android_res/raw/webview.html")
     }
 
     fun handlePendingSignIn(authResponse: String) {
@@ -46,12 +49,17 @@ class BlockstackSession(context: Context) {
         Log.d(TAG, "redirectUserToSignIn")
         val javascript = "redirectToSignIn()"
         webView.evaluateJavascript(javascript, { result: String ->
-
+            // no op
         })
     }
 
-    fun getFile() {
-
+    fun getFile(path: String, callback: ((String) -> Unit)) {
+        Log.d(TAG, "getFile")
+        val uniqueIdentifier = addGetFileCallback(callback)
+        val javascript = "getFile('${path}', '{}', '${uniqueIdentifier}')"
+        webView.evaluateJavascript(javascript, { result: String ->
+            // no op
+        })
     }
 
     fun putFile(path: String, content: String, callback: ((String) -> Unit)) {
@@ -59,13 +67,19 @@ class BlockstackSession(context: Context) {
         val uniqueIdentifier = addPutFileCallback(callback)
         val javascript = "putFile('${path}', '${content}', '{}', '${uniqueIdentifier}')"
         webView.evaluateJavascript(javascript, { result: String ->
-
+            // no op
         })
+    }
+
+    private fun addGetFileCallback(callback: (String) -> Unit): String {
+        val uniqueIdentifier = UUID.randomUUID().toString()
+        getFileCallbacks[uniqueIdentifier] = callback
+        return uniqueIdentifier
     }
 
     private fun addPutFileCallback(callback: (String) -> Unit): String {
         val uniqueIdentifier = UUID.randomUUID().toString()
-        putFileCallbacks.put(uniqueIdentifier, callback)
+        putFileCallbacks[uniqueIdentifier] = callback
         return uniqueIdentifier
     }
 
@@ -79,6 +93,13 @@ class BlockstackSession(context: Context) {
             session.userData = userData
             Log.d(session.TAG, session.userData.toString() )
             session.signInCallback?.invoke(userData)
+        }
+
+        @JavascriptInterface
+        fun getFileResult(content: String, uniqueIdentifier: String) {
+            Log.d(session.TAG, "putFileResult" )
+            session.getFileCallbacks[uniqueIdentifier]?.invoke(content)
+            session.getFileCallbacks.remove(uniqueIdentifier)
         }
 
         @JavascriptInterface

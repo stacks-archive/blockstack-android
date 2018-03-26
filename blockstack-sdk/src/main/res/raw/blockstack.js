@@ -212,7 +212,8 @@ function handlePendingSignIn() {
           appPrivateKey: appPrivateKey,
           coreSessionToken: coreSessionToken,
           authResponseToken: authResponseToken,
-          hubUrl: hubUrl
+          hubUrl: hubUrl,
+          did: tokenPayload.iss
         };
         var profileURL = tokenPayload.profile_url;
         if ((userData.profile === null || userData.profile === undefined) && profileURL !== undefined && profileURL !== null) {

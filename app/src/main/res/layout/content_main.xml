@@ -8,19 +8,50 @@
     tools:context="org.blockstack.android.MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <Button
-        android:id="@+id/putFileButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Put File"
-        tools:layout_editor_absoluteX="148dp"
-        tools:layout_editor_absoluteY="279dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp">
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sign in with Blockstack"
-        tools:layout_editor_absoluteX="90dp"
-        tools:layout_editor_absoluteY="231dp" />
+        <Button
+            android:id="@+id/button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign in with Blockstack"
+            tools:layout_editor_absoluteX="99dp"
+            tools:layout_editor_absoluteY="530dp" />
+
+        <TextView
+            android:id="@+id/userDataTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/putFileButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Put File"
+            tools:layout_editor_absoluteX="148dp"
+            tools:layout_editor_absoluteY="279dp" />
+
+        <TextView
+            android:id="@+id/readURLTextView"
+            android:layout_width="match_parent"
+            android:layout_height="37dp" />
+
+        <Button
+            android:id="@+id/getFileButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Get File" />
+
+        <TextView
+            android:id="@+id/fileContentsTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
 </android.support.constraint.ConstraintLayout>

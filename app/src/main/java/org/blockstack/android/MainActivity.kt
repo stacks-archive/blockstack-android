@@ -8,6 +8,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
+import android.widget.TextView
 
 
 import kotlinx.android.synthetic.main.activity_main.*
@@ -25,21 +26,42 @@ class MainActivity : AppCompatActivity() {
 
         blockstackSession() // initialize blockstack session
 
-        val btn: Button = findViewById<Button>(R.id.button) as Button
-        btn.setOnClickListener { view: View ->
+        val signInButton: Button = findViewById<Button>(R.id.button) as Button
+        val getFileButton: Button = findViewById<Button>(R.id.getFileButton) as Button
+        getFileButton.isEnabled = false
+        val putFileButton: Button = findViewById<Button>(R.id.putFileButton) as Button
+        putFileButton.isEnabled = false
+
+        val userDataTextView: TextView = findViewById<TextView>(R.id.userDataTextView) as TextView
+        val readURLTextView: TextView = findViewById<TextView>(R.id.readURLTextView) as TextView
+        val fileContentsTextView: TextView = findViewById<TextView>(R.id.fileContentsTextView) as TextView
+
+        signInButton.setOnClickListener { view: View ->
             blockstackSession().redirectUserToSignIn({ userData: JSONObject ->
                 Log.d(TAG, "signed in!")
                 runOnUiThread {
-                    btn.visibility = View.GONE
+                    userDataTextView.text = "Signed in as ${userData.get("did")}"
+                    signInButton.isEnabled = false
+                    getFileButton.isEnabled = true
+                    putFileButton.isEnabled = true
                 }
 
             })
         }
 
-        val putFileButton: Button = findViewById<Button>(R.id.putFileButton) as Button
+        getFileButton.setOnClickListener { view: View ->
+            fileContentsTextView.text = "Downloading..."
+            blockstackSession().getFile("message.txt", {contents: String ->
+                Log.d(TAG, "File contents: ${contents}")
+                fileContentsTextView.text = contents
+            })
+        }
+
         putFileButton.setOnClickListener { view: View ->
-            blockstackSession().putFile("/test.json", "hello", {readURL: String ->
+            readURLTextView.text = "Uploading..."
+            blockstackSession().putFile("message.txt", "Hello Android!", {readURL: String ->
                 Log.d(TAG, "File stored at: ${readURL}")
+                readURLTextView.text = "File stored at: ${readURL}"
             })
         }
     }
