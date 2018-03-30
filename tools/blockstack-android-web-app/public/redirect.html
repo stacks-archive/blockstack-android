@@ -3,7 +3,13 @@
 <head>
   <title>Hello, Blockstack!</title>
   <script>
-  window.location="myblockstackapp:token"
+  function getParameterByName(name) {
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+  }
+
+  var authResponse = getParameterByName('authResponse')
+  window.location="myblockstackapp:" + authResponse
   </script>
 <body>
 </body>
