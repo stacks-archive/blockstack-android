@@ -4,14 +4,7 @@
 <title>Blockstack Sign In</title>
 <script src="blockstack.js"></script>
 <script>
-var host = 'https://flamboyant-darwin-d11c17.netlify.com'
-var appDomain = host
-var redirectURI = host + '/redirect'
-var manifestURI = host + '/manifest.json'
-
 var transitPrivateKey = blockstack.generateAndStoreTransitKey()
-
-var scopes = [ 'store_write' ]
 
 function redirectToSignIn(appDomain, redirectURI, manifestURI, scopes) {
   var authRequest = blockstack.makeAuthRequest(transitPrivateKey, redirectURI, manifestURI, scopes, appDomain)
