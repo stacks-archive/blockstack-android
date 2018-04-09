@@ -14,9 +14,11 @@ import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_main.*
 import org.blockstack.android.sdk.BlockstackSession
 import org.json.JSONObject
+import java.net.URI
 
 class MainActivity : AppCompatActivity() {
     private val TAG = MainActivity::class.qualifiedName
+
     private var _blockstackSession: BlockstackSession? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,8 +26,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        blockstackSession() // initialize blockstack session
-
+        val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
+        val redirectURI = URI("${appDomain}/redirect")
+        val manifestURI = URI("${appDomain}/manifest.json")
+        val scopes = arrayOf("store_write")
+        _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes)
+        
         val signInButton: Button = findViewById<Button>(R.id.button) as Button
         val getFileButton: Button = findViewById<Button>(R.id.getFileButton) as Button
         getFileButton.isEnabled = false
@@ -101,13 +107,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun blockstackSession() : BlockstackSession {
-        val localSession = _blockstackSession
-        if(localSession != null) {
-            return localSession
-        } else {
-            val session = BlockstackSession(this)
-            _blockstackSession = session
+        val session = _blockstackSession
+        if(session != null) {
             return session
+        } else {
+            throw IllegalStateException("No session.")
         }
     }
+
 }

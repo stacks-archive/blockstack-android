@@ -7,15 +7,24 @@ import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import org.json.JSONArray
 import org.json.JSONObject
+import java.net.URI
 import java.util.*
 
 /**
  * Created by larry on 3/25/18.
  */
 
-class BlockstackSession(context: Context) {
+class BlockstackSession(context: Context, appDomain: URI, redirectURI: URI,
+                        manifestURI: URI, scopes: Array<String>) {
     private val context = context
+    private val appDomain = appDomain
+    private val redirectURI = redirectURI
+    private val manifestURI = manifestURI
+    private val scopes = scopes
+
+
     private val TAG = BlockstackSession::class.qualifiedName
     private var userData: JSONObject? = null
     private var signInCallback: ((JSONObject) -> Unit)? = null
@@ -47,7 +56,8 @@ class BlockstackSession(context: Context) {
     fun redirectUserToSignIn(signInCallback: (JSONObject) -> Unit ) {
         this.signInCallback = signInCallback
         Log.d(TAG, "redirectUserToSignIn")
-        val javascript = "redirectToSignIn()"
+        val scopesString = JSONArray(scopes).toString()
+        val javascript = "redirectToSignIn('${appDomain}', '${redirectURI}', '${manifestURI}', ${scopesString})"
         webView.evaluateJavascript(javascript, { result: String ->
             // no op
         })
@@ -128,7 +138,7 @@ private class BlockstackWebViewClient(context: Context) : WebViewClient() {
         val customTabsIntent = CustomTabsIntent.Builder().build()
         // on redirect load the following with
         // TODO: handle lack of custom tabs support
-        customTabsIntent.launchUrl(context, Uri.parse("http://192.168.188.88:3000/auth?authRequest=${authRequestToken}"))
+        customTabsIntent.launchUrl(context, Uri.parse("https://browser.blockstack.org/auth?authRequest=${authRequestToken}"))
         Log.d(TAG,"here")
         return true
     }
