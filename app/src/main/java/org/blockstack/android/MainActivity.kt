@@ -12,12 +12,13 @@ import android.widget.TextView
 
 
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import org.blockstack.android.sdk.BlockstackSession
 import org.json.JSONObject
 import java.net.URI
 
 class MainActivity : AppCompatActivity() {
-    private val TAG = MainActivity::class.qualifiedName
+    private val TAG = MainActivity::class.java.simpleName
 
     private var _blockstackSession: BlockstackSession? = null
 
@@ -31,16 +32,9 @@ class MainActivity : AppCompatActivity() {
         val manifestURI = URI("${appDomain}/manifest.json")
         val scopes = arrayOf("store_write")
         _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes)
-        
-        val signInButton: Button = findViewById<Button>(R.id.button) as Button
-        val getFileButton: Button = findViewById<Button>(R.id.getFileButton) as Button
-        getFileButton.isEnabled = false
-        val putFileButton: Button = findViewById<Button>(R.id.putFileButton) as Button
-        putFileButton.isEnabled = false
 
-        val userDataTextView: TextView = findViewById<TextView>(R.id.userDataTextView) as TextView
-        val readURLTextView: TextView = findViewById<TextView>(R.id.readURLTextView) as TextView
-        val fileContentsTextView: TextView = findViewById<TextView>(R.id.fileContentsTextView) as TextView
+        getFileButton.isEnabled = false
+        putFileButton.isEnabled = false
 
         signInButton.setOnClickListener { view: View ->
             blockstackSession().redirectUserToSignIn({ userData: JSONObject ->
@@ -72,12 +66,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         Log.d(TAG, "onNewIntent")
@@ -94,16 +82,6 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 
     fun blockstackSession() : BlockstackSession {
