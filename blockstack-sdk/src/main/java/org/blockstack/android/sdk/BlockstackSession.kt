@@ -16,13 +16,8 @@ import java.util.*
  * Created by larry on 3/25/18.
  */
 
-class BlockstackSession(context: Context, appDomain: URI, redirectURI: URI,
-                        manifestURI: URI, scopes: Array<String>) {
-    private val context = context
-    private val appDomain = appDomain
-    private val redirectURI = redirectURI
-    private val manifestURI = manifestURI
-    private val scopes = scopes
+class BlockstackSession(context: Context, private val appDomain: URI, private val redirectURI: URI,
+                        private val manifestURI: URI, private val scopes: Array<String>) {
 
 
     private val TAG = BlockstackSession::class.qualifiedName
@@ -93,8 +88,7 @@ class BlockstackSession(context: Context, appDomain: URI, redirectURI: URI,
         return uniqueIdentifier
     }
 
-    private class JavascriptInterfaceObject(session: BlockstackSession) {
-        private val session = session
+    private class JavascriptInterfaceObject(private val session: BlockstackSession) {
 
         @JavascriptInterface
         fun signInSuccess(userDataString: String) {
@@ -123,8 +117,7 @@ class BlockstackSession(context: Context, appDomain: URI, redirectURI: URI,
 
 }
 
-private class BlockstackWebViewClient(context: Context) : WebViewClient() {
-    val context = context
+private class BlockstackWebViewClient(val context: Context) : WebViewClient() {
     private val TAG = BlockstackWebViewClient::class.qualifiedName
 
     override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
