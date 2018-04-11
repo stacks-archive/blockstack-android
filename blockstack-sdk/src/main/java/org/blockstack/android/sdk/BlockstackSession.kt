@@ -40,7 +40,8 @@ class BlockstackSession(context: Context, private val appDomain: URI, private va
         webView.loadUrl("file:///android_res/raw/webview.html")
     }
 
-    fun handlePendingSignIn(authResponse: String) {
+    fun handlePendingSignIn(authResponse: String, signInCallback: ((JSONObject) -> Unit)? = this.signInCallback) {
+        this.signInCallback = signInCallback
         Log.d(TAG, "handlePendingSignIn")
         val javascript = "handlePendingSignIn('${authResponse}')"
         webView.evaluateJavascript(javascript, { result: String ->
