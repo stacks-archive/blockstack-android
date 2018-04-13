@@ -27,14 +27,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        signInButton.isEnabled = false
+        getFileButton.isEnabled = false
+        putFileButton.isEnabled = false
+
         val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
         val redirectURI = URI("${appDomain}/redirect")
         val manifestURI = URI("${appDomain}/manifest.json")
         val scopes = arrayOf("store_write")
-        _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes)
 
-        getFileButton.isEnabled = false
-        putFileButton.isEnabled = false
+        _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
+                onLoadedCallback = {signInButton.isEnabled = true})
 
         signInButton.setOnClickListener { view: View ->
             blockstackSession().redirectUserToSignIn({ userData: JSONObject ->
@@ -53,7 +56,9 @@ class MainActivity : AppCompatActivity() {
             fileContentsTextView.text = "Downloading..."
             blockstackSession().getFile("message.txt", {contents: String ->
                 Log.d(TAG, "File contents: ${contents}")
-                fileContentsTextView.text = contents
+                runOnUiThread {
+                    fileContentsTextView.text = contents
+                }
             })
         }
 
@@ -61,7 +66,9 @@ class MainActivity : AppCompatActivity() {
             readURLTextView.text = "Uploading..."
             blockstackSession().putFile("message.txt", "Hello Android!", {readURL: String ->
                 Log.d(TAG, "File stored at: ${readURL}")
-                readURLTextView.text = "File stored at: ${readURL}"
+                runOnUiThread {
+                    readURLTextView.text = "File stored at: ${readURL}"
+                }
             })
         }
     }

@@ -35,9 +35,9 @@ class BlockstackSession(context: Context, private val appDomain: URI, private va
     init {
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
-        webView.webViewClient = BlockstackWebViewClient(context)
+        webView.webViewClient = BlockstackWebViewClient(context, onLoadedCallback)
         webView.addJavascriptInterface(JavascriptInterfaceObject(this),"android")
-        webView.loadUrl("file:///android_res/raw/webview.html")
+        webView.loadUrl(AUTH_URL_STRING)
     }
 
     fun handlePendingSignIn(authResponse: String, signInCallback: ((JSONObject) -> Unit)? = this.signInCallback) {
@@ -118,8 +118,15 @@ class BlockstackSession(context: Context, private val appDomain: URI, private va
 
 }
 
-private class BlockstackWebViewClient(val context: Context) : WebViewClient() {
+private class BlockstackWebViewClient(val context: Context, val onLoadedCallback: () -> Unit ) : WebViewClient() {
     private val TAG = BlockstackWebViewClient::class.qualifiedName
+
+    override fun onPageFinished(view: WebView?, url: String?) {
+        Log.d(TAG, "url loaded:" + url)
+        if (AUTH_URL_STRING == url) {
+            onLoadedCallback()
+        }
+    }
 
     override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
         // initially overriding a function that's deprecated in API 27 in order to support API 15
