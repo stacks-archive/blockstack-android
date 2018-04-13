@@ -9,18 +9,23 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
-import android.widget.ImageView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.GetFileOptions
 import org.blockstack.android.sdk.PutFileOptions
-import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.net.URI
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.async
+import org.blockstack.android.sdk.UserData
+import org.jetbrains.anko.coroutines.experimental.bg
+import java.net.URL
+
 
 class MainActivity : AppCompatActivity() {
     private val TAG = MainActivity::class.java.simpleName
+
     private val textFileName = "message.txt"
     private val imageFileName = "team.jpg"
 
@@ -48,24 +53,16 @@ class MainActivity : AppCompatActivity() {
         getImageFileButton.isEnabled = false
         putImageFileButton.isEnabled = false
 
-        val imageView: ImageView = findViewById<ImageView>(R.id.imageView) as ImageView
-
         signInButton.setOnClickListener { view: View ->
-            blockstackSession().redirectUserToSignIn({ userData: JSONObject ->
+            blockstackSession().redirectUserToSignIn { userData ->
                 Log.d(TAG, "signed in!")
                 runOnUiThread {
-                    userDataTextView.text = "Signed in as ${userData.get("did")}"
-                    signInButton.isEnabled = false
-                    getStringFileButton.isEnabled = true
-                    putStringFileButton.isEnabled = true
-                    putImageFileButton.isEnabled = true
-                    getImageFileButton.isEnabled = true
+                    onSignIn(userData)
                 }
-
-            })
+            }
         }
 
-        getStringFileButton.setOnClickListener { view: View ->
+        getStringFileButton.setOnClickListener { _ ->
             fileContentsTextView.text = "Downloading..."
 
             val options = GetFileOptions()
@@ -77,7 +74,7 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
-        putStringFileButton.setOnClickListener { view: View ->
+        putStringFileButton.setOnClickListener { _ ->
             readURLTextView.text = "Uploading..."
             val options = PutFileOptions()
             blockstackSession().putFile(textFileName, "Hello Android!", options,
@@ -89,7 +86,7 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
-        putImageFileButton.setOnClickListener { view: View ->
+        putImageFileButton.setOnClickListener { _ ->
             imageFileTextView.text = "Uploading..."
 
             val drawable: BitmapDrawable = resources.getDrawable(R.drawable.blockstackteam) as BitmapDrawable
@@ -110,7 +107,7 @@ class MainActivity : AppCompatActivity() {
                     })
         }
 
-        getImageFileButton.setOnClickListener { view: View ->
+        getImageFileButton.setOnClickListener { _ ->
             val options = GetFileOptions(decrypt = false)
             blockstackSession().getFile(imageFileName, options, {contents: Any ->
 
@@ -123,20 +120,57 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun onSignIn(userData: UserData) {
+        userDataTextView.text = "Signed in as ${userData.getDid()}"
+        showUserAvatar(userData.getAvatarImage())
+        signInButton.isEnabled = false
+
+        getStringFileButton.isEnabled = true
+        putStringFileButton.isEnabled = true
+        putImageFileButton.isEnabled = true
+        getImageFileButton.isEnabled = true
+    }
+
+    private fun showUserAvatar(avatarImage: String?) {
+        if (avatarImage != null) {
+            // use whatever suits your app architecture best to asynchronously load the avatar
+            // better use a image loading library than the code below
+            async(UI) {
+                val avatar = bg {
+                    try {
+                        BitmapDrawable.createFromStream(URL(avatarImage).openStream(), "src")
+                    } catch (e: Exception) {
+                        Log.d(TAG, e.toString())
+                        null
+                    }
+                }.await()
+                avatarView.setImageDrawable(avatar)
+            }
+        } else {
+            avatarView.setImageResource(R.drawable.default_avatar)
+        }
+    }
+
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         Log.d(TAG, "onNewIntent")
-        val response = intent?.dataString
-        Log.d(TAG, response)
-        if(response != null) {
-            val authResponseTokens = response.split(':')
 
-            if(authResponseTokens.size > 1) {
-                val authResponse = authResponseTokens[1]
-                Log.d(TAG, "authResponse: ${authResponse}")
-                blockstackSession().handlePendingSignIn(authResponse)
+        if (intent?.action == Intent.ACTION_MAIN) {
+            blockstackSession().loadUserData {
+                userData -> runOnUiThread {onSignIn(userData)}
             }
+        } else if (intent?.action == Intent.ACTION_VIEW) {
+            val response = intent?.dataString
+            Log.d(TAG, "response ${response}")
+            if (response != null) {
+                val authResponseTokens = response.split(':')
 
+                if (authResponseTokens.size > 1) {
+                    val authResponse = authResponseTokens[1]
+                    Log.d(TAG, "authResponse: ${authResponse}")
+                    blockstackSession().handlePendingSignIn(authResponse)
+                }
+            }
         }
 
     }
