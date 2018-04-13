@@ -13,6 +13,8 @@ import android.widget.TextView
 
 import kotlinx.android.synthetic.main.activity_main.*
 import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.GetFileOptions
+import org.blockstack.android.sdk.PutFileOptions
 import org.json.JSONObject
 import java.net.URI
 
@@ -57,7 +59,9 @@ class MainActivity : AppCompatActivity() {
 
         getFileButton.setOnClickListener { view: View ->
             fileContentsTextView.text = "Downloading..."
-            blockstackSession().getFile("message.txt", {contents: String ->
+
+            val options = GetFileOptions(false)
+            blockstackSession().getFile("message.txt", options, {contents: String ->
                 Log.d(TAG, "File contents: ${contents}")
                 fileContentsTextView.text = contents
             })
@@ -65,7 +69,9 @@ class MainActivity : AppCompatActivity() {
 
         putFileButton.setOnClickListener { view: View ->
             readURLTextView.text = "Uploading..."
-            blockstackSession().putFile("message.txt", "Hello Android!", {readURL: String ->
+            val options = PutFileOptions()
+            blockstackSession().putFile("message.txt", "Hello Android!", options,
+                    {readURL: String ->
                 Log.d(TAG, "File stored at: ${readURL}")
                 readURLTextView.text = "File stored at: ${readURL}"
             })
