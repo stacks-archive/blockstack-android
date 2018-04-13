@@ -73,7 +73,7 @@
             android:id="@+id/imageView"
             android:layout_width="match_parent"
             android:layout_height="100dp"
-            app:srcCompat="@color/colorAccent" />
+            app:srcCompat="@android:color/background_light" />
 
     </LinearLayout>
 
