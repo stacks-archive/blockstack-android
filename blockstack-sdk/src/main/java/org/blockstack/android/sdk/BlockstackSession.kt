@@ -3,6 +3,7 @@ package org.blockstack.android.sdk
 import android.content.Context
 import android.net.Uri
 import android.support.customtabs.CustomTabsIntent
+import android.util.Base64
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
@@ -12,21 +13,24 @@ import org.json.JSONObject
 import java.net.URI
 import java.util.*
 
+private val AUTH_URL_STRING = "file:///android_res/raw/webview.html"
+
 /**
  * Created by larry on 3/25/18.
  */
 
-class BlockstackSession(context: Context, private val appDomain: URI, private val redirectURI: URI,
-                        private val manifestURI: URI, private val scopes: Array<String>) {
-
+class BlockstackSession(private val context: Context,
+                        private val appDomain: URI,
+                        private val redirectURI: URI,
+                        private val manifestURI: URI,
+                        private val scopes: Array<String>,
+                        onLoadedCallback: () -> Unit = {}) {
 
     private val TAG = BlockstackSession::class.qualifiedName
     private var userData: JSONObject? = null
     private var signInCallback: ((JSONObject) -> Unit)? = null
-    private val getFileCallbacks = HashMap<String, ((String) -> Unit)>()
+    private val getFileCallbacks = HashMap<String, ((Any) -> Unit)>()
     private val putFileCallbacks = HashMap<String, ((String) -> Unit)>()
-
-
 
     init {
         Log.d(TAG, context.toString())
@@ -59,25 +63,51 @@ class BlockstackSession(context: Context, private val appDomain: URI, private va
         })
     }
 
-    fun getFile(path: String, callback: ((String) -> Unit)) {
-        Log.d(TAG, "getFile")
+    /* Public storage methods */
+
+    // getAppBucketUrl
+
+    // getUserAppFileUrl
+
+
+    fun getFile(path: String, options: GetFileOptions, callback: ((Any) -> Unit)) {
+        Log.d(TAG, "getFile: path: ${path} options: ${options}")
         val uniqueIdentifier = addGetFileCallback(callback)
-        val javascript = "getFile('${path}', '{}', '${uniqueIdentifier}')"
+        val javascript = "getFile('${path}', ${options}, '${uniqueIdentifier}')"
         webView.evaluateJavascript(javascript, { result: String ->
             // no op
         })
     }
 
-    fun putFile(path: String, content: String, callback: ((String) -> Unit)) {
-        Log.d(TAG, "putFile")
+    fun putFile(path: String, content: Any, options: PutFileOptions, callback: ((String) -> Unit)) {
+        Log.d(TAG, "putFile: path: ${path} options: ${options}")
+
+        val valid = content is String || content is ByteArray
+        if(!valid) {
+            throw IllegalArgumentException("putFile content only supports String or ByteArray")
+        }
+
+        val isBinary = content is ByteArray
+
         val uniqueIdentifier = addPutFileCallback(callback)
-        val javascript = "putFile('${path}', '${content}', '{}', '${uniqueIdentifier}')"
-        webView.evaluateJavascript(javascript, { result: String ->
-            // no op
-        })
+        if(isBinary) {
+            val contentString = Base64.encodeToString(content as ByteArray, Base64.NO_WRAP)
+            val javascript = "putFile('${path}', '${contentString}', ${options}, '${uniqueIdentifier}', true)"
+            webView.evaluateJavascript(javascript, { result: String ->
+                // no op
+            })
+        } else {
+            val javascript = "putFile('${path}', '${content}', ${options}, '${uniqueIdentifier}', false)"
+            webView.evaluateJavascript(javascript, { result: String ->
+                // no op
+            })
+        }
+
     }
 
-    private fun addGetFileCallback(callback: (String) -> Unit): String {
+
+
+    private fun addGetFileCallback(callback: (Any) -> Unit): String {
         val uniqueIdentifier = UUID.randomUUID().toString()
         getFileCallbacks[uniqueIdentifier] = callback
         return uniqueIdentifier
@@ -101,9 +131,15 @@ class BlockstackSession(context: Context, private val appDomain: URI, private va
         }
 
         @JavascriptInterface
-        fun getFileResult(content: String, uniqueIdentifier: String) {
+        fun getFileResult(content: String, uniqueIdentifier: String, isBinary: Boolean) {
             Log.d(session.TAG, "putFileResult" )
-            session.getFileCallbacks[uniqueIdentifier]?.invoke(content)
+
+            if (isBinary) {
+                val binaryContent: ByteArray = Base64.decode(content as String, Base64.DEFAULT)
+                session.getFileCallbacks[uniqueIdentifier]?.invoke(binaryContent)
+            } else {
+                session.getFileCallbacks[uniqueIdentifier]?.invoke(content)
+            }
             session.getFileCallbacks.remove(uniqueIdentifier)
         }
 
@@ -140,7 +176,6 @@ private class BlockstackWebViewClient(val context: Context, val onLoadedCallback
         // on redirect load the following with
         // TODO: handle lack of custom tabs support
         customTabsIntent.launchUrl(context, Uri.parse("https://browser.blockstack.org/auth?authRequest=${authRequestToken}"))
-        Log.d(TAG,"here")
         return true
     }
 }

@@ -3,6 +3,7 @@
 <head>
 <title>Blockstack Sign In</title>
 <script src="blockstack.js"></script>
+<script src="base64.js"></script>
 <script>
 var transitPrivateKey = blockstack.generateAndStoreTransitKey()
 
@@ -19,19 +20,32 @@ function handlePendingSignIn(authResponseToken) {
   })
 }
 
-function getFile(path, optionsString, uniqueIdentifier) {
-  var options = JSON.stringify(optionsString)
+function getFile(path, options, uniqueIdentifier) {
   console.log('getFile: ' + uniqueIdentifier)
   blockstack.getFile(path, options)
   .then(function(result) {
-    console.log(result)
-    android.getFileResult(result, uniqueIdentifier)
+    if(typeof result === "string") {
+        console.log('getFile: retrieved String')
+        var isBinary = false
+        android.getFileResult(result, uniqueIdentifier, isBinary)
+    } else {
+        console.log('getFile: retrieved binary file')
+        var isBinary = true
+        console.log('Base64 encoding binary file')
+        encodedResult = Base64.encode(result)
+        android.getFileResult(encodedResult, uniqueIdentifier, isBinary)
+    }
   })
 }
 
-function putFile(path, content, optionsString, uniqueIdentifier) {
-  var options = JSON.stringify(optionsString)
+function putFile(path, content, options, uniqueIdentifier, isBinary) {
   console.log('putFile: ' + uniqueIdentifier)
+
+  if(isBinary) {
+    console.log('Base64 decoding binary file')
+    content = Base64.decode(content)
+  }
+
   blockstack.putFile(path, content, options)
   .then(function(result) {
     console.log(result)

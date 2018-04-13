@@ -29,10 +29,10 @@
             android:layout_height="wrap_content" />
 
         <Button
-            android:id="@+id/putFileButton"
+            android:id="@+id/putStringFileButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Put File"
+            android:text="Put String File"
             tools:layout_editor_absoluteX="148dp"
             tools:layout_editor_absoluteY="279dp" />
 
@@ -42,15 +42,38 @@
             android:layout_height="37dp" />
 
         <Button
-            android:id="@+id/getFileButton"
+            android:id="@+id/getStringFileButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Get File" />
+            android:text="Get String File" />
 
         <TextView
             android:id="@+id/fileContentsTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/putImageFileButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Put Image File" />
+
+        <TextView
+            android:id="@+id/imageFileTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/getImageFileButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Get Image File" />
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            app:srcCompat="@color/colorAccent" />
 
     </LinearLayout>
 

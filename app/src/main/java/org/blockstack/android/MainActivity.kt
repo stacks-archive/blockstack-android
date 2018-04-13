@@ -1,24 +1,28 @@
 package org.blockstack.android
 
+
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
-import android.widget.Button
-import android.widget.TextView
-
-
+import android.widget.ImageView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.GetFileOptions
+import org.blockstack.android.sdk.PutFileOptions
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.net.URI
 
 class MainActivity : AppCompatActivity() {
     private val TAG = MainActivity::class.java.simpleName
+    private val textFileName = "message.txt"
+    private val imageFileName = "team.jpg"
 
     private var _blockstackSession: BlockstackSession? = null
 
@@ -28,8 +32,8 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         signInButton.isEnabled = false
-        getFileButton.isEnabled = false
-        putFileButton.isEnabled = false
+        getStringFileButton.isEnabled = false
+        putStringFileButton.isEnabled = false
 
         val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
         val redirectURI = URI("${appDomain}/redirect")
@@ -39,35 +43,81 @@ class MainActivity : AppCompatActivity() {
         _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
                 onLoadedCallback = {signInButton.isEnabled = true})
 
+        getStringFileButton.isEnabled = false
+        putStringFileButton.isEnabled = false
+        getImageFileButton.isEnabled = false
+        putImageFileButton.isEnabled = false
+
+        val imageView: ImageView = findViewById<ImageView>(R.id.imageView) as ImageView
+
         signInButton.setOnClickListener { view: View ->
             blockstackSession().redirectUserToSignIn({ userData: JSONObject ->
                 Log.d(TAG, "signed in!")
                 runOnUiThread {
                     userDataTextView.text = "Signed in as ${userData.get("did")}"
                     signInButton.isEnabled = false
-                    getFileButton.isEnabled = true
-                    putFileButton.isEnabled = true
+                    getStringFileButton.isEnabled = true
+                    putStringFileButton.isEnabled = true
+                    putImageFileButton.isEnabled = true
+                    getImageFileButton.isEnabled = true
                 }
 
             })
         }
 
-        getFileButton.setOnClickListener { view: View ->
+        getStringFileButton.setOnClickListener { view: View ->
             fileContentsTextView.text = "Downloading..."
-            blockstackSession().getFile("message.txt", {contents: String ->
-                Log.d(TAG, "File contents: ${contents}")
+
+            val options = GetFileOptions()
+            blockstackSession().getFile(textFileName, options, {content: Any ->
+                Log.d(TAG, "File contents: ${content as String}")
                 runOnUiThread {
-                    fileContentsTextView.text = contents
+                    fileContentsTextView.text = content as String
                 }
             })
         }
 
-        putFileButton.setOnClickListener { view: View ->
+        putStringFileButton.setOnClickListener { view: View ->
             readURLTextView.text = "Uploading..."
-            blockstackSession().putFile("message.txt", "Hello Android!", {readURL: String ->
+            val options = PutFileOptions()
+            blockstackSession().putFile(textFileName, "Hello Android!", options,
+                    {readURL: String ->
                 Log.d(TAG, "File stored at: ${readURL}")
+                        runOnUiThread {
+                            readURLTextView.text = "File stored at: ${readURL}"
+                        }
+            })
+        }
+
+        putImageFileButton.setOnClickListener { view: View ->
+            imageFileTextView.text = "Uploading..."
+
+            val drawable: BitmapDrawable = resources.getDrawable(R.drawable.blockstackteam) as BitmapDrawable
+
+            val bitmap = drawable.getBitmap()
+            val stream = ByteArrayOutputStream()
+
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+            val bitMapData = stream.toByteArray()
+
+            val options = PutFileOptions(false)
+            blockstackSession().putFile(imageFileName, bitMapData, options,
+                    {readURL: String ->
+                        Log.d(TAG, "File stored at: ${readURL}")
+                        runOnUiThread {
+                            imageFileTextView.text = "File stored at: ${readURL}"
+                        }
+                    })
+        }
+
+        getImageFileButton.setOnClickListener { view: View ->
+            val options = GetFileOptions(decrypt = false)
+            blockstackSession().getFile(imageFileName, options, {contents: Any ->
+
+                val imageByteArray = contents as ByteArray
+                val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
                 runOnUiThread {
-                    readURLTextView.text = "File stored at: ${readURL}"
+                    imageView.setImageBitmap(bitmap)
                 }
             })
         }
