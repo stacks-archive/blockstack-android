@@ -26,7 +26,7 @@ class BlockstackSession(private val context: Context,
     private val TAG = BlockstackSession::class.qualifiedName
     private var userData: JSONObject? = null
     private var signInCallback: ((JSONObject) -> Unit)? = null
-    private val getFileCallbacks = HashMap<String, ((String) -> Unit)>()
+    private val getFileCallbacks = HashMap<String, ((Any) -> Unit)>()
     private val putFileCallbacks = HashMap<String, ((String) -> Unit)>()
 
     init {
@@ -66,7 +66,7 @@ class BlockstackSession(private val context: Context,
     // getUserAppFileUrl
 
 
-    fun getFile(path: String, options: GetFileOptions, callback: ((String) -> Unit)) {
+    fun getFile(path: String, options: GetFileOptions, callback: ((Any) -> Unit)) {
         Log.d(TAG, "getFile: path: ${path} options: ${options}")
         val uniqueIdentifier = addGetFileCallback(callback)
         val javascript = "getFile('${path}', ${options}, '${uniqueIdentifier}')"
@@ -103,7 +103,7 @@ class BlockstackSession(private val context: Context,
 
 
 
-    private fun addGetFileCallback(callback: (String) -> Unit): String {
+    private fun addGetFileCallback(callback: (Any) -> Unit): String {
         val uniqueIdentifier = UUID.randomUUID().toString()
         getFileCallbacks[uniqueIdentifier] = callback
         return uniqueIdentifier
@@ -128,9 +128,15 @@ class BlockstackSession(private val context: Context,
         }
 
         @JavascriptInterface
-        fun getFileResult(content: String, uniqueIdentifier: String) {
+        fun getFileResult(content: String, uniqueIdentifier: String, isBinary: Boolean) {
             Log.d(session.TAG, "putFileResult" )
-            session.getFileCallbacks[uniqueIdentifier]?.invoke(content)
+
+            if (isBinary) {
+                val binaryContent: ByteArray = Base64.decode(content as String, Base64.DEFAULT)
+                session.getFileCallbacks[uniqueIdentifier]?.invoke(binaryContent)
+            } else {
+                session.getFileCallbacks[uniqueIdentifier]?.invoke(content)
+            }
             session.getFileCallbacks.remove(uniqueIdentifier)
         }
 

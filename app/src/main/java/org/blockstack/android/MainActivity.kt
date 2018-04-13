@@ -3,6 +3,7 @@ package org.blockstack.android
 import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -12,6 +13,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 
 
@@ -25,6 +27,8 @@ import java.net.URI
 
 class MainActivity : AppCompatActivity() {
     private val TAG = MainActivity::class.qualifiedName
+    private val textFileName = "message.txt"
+    private val imageFileName = "team.jpg"
 
     private var _blockstackSession: BlockstackSession? = null
 
@@ -56,6 +60,8 @@ class MainActivity : AppCompatActivity() {
         val fileContentsTextView: TextView = findViewById<TextView>(R.id.fileContentsTextView) as TextView
         val imageFileTextView: TextView = findViewById<TextView>(R.id.imageFileTextView) as TextView
 
+        val imageView: ImageView = findViewById<ImageView>(R.id.imageView) as ImageView
+
         signInButton.setOnClickListener { view: View ->
             blockstackSession().redirectUserToSignIn({ userData: JSONObject ->
                 Log.d(TAG, "signed in!")
@@ -75,10 +81,10 @@ class MainActivity : AppCompatActivity() {
             fileContentsTextView.text = "Downloading..."
 
             val options = GetFileOptions()
-            blockstackSession().getFile("message.txt", options, {contents: String ->
-                Log.d(TAG, "File contents: ${contents}")
+            blockstackSession().getFile(textFileName, options, {content: Any ->
+                Log.d(TAG, "File contents: ${content as String}")
                 runOnUiThread {
-                    fileContentsTextView.text = contents
+                    fileContentsTextView.text = content as String
                 }
             })
         }
@@ -86,7 +92,7 @@ class MainActivity : AppCompatActivity() {
         putStringFileButton.setOnClickListener { view: View ->
             readURLTextView.text = "Uploading..."
             val options = PutFileOptions()
-            blockstackSession().putFile("message.txt", "Hello Android!", options,
+            blockstackSession().putFile(textFileName, "Hello Android!", options,
                     {readURL: String ->
                 Log.d(TAG, "File stored at: ${readURL}")
                         runOnUiThread {
@@ -107,13 +113,25 @@ class MainActivity : AppCompatActivity() {
             val bitMapData = stream.toByteArray()
 
             val options = PutFileOptions(false)
-            blockstackSession().putFile("team2.jpg", bitMapData, options,
+            blockstackSession().putFile(imageFileName, bitMapData, options,
                     {readURL: String ->
                         Log.d(TAG, "File stored at: ${readURL}")
                         runOnUiThread {
                             imageFileTextView.text = "File stored at: ${readURL}"
                         }
                     })
+        }
+
+        getImageFileButton.setOnClickListener { view: View ->
+            val options = GetFileOptions(decrypt = false)
+            blockstackSession().getFile(imageFileName, options, {contents: Any ->
+
+                val imageByteArray = contents as ByteArray
+                val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+                runOnUiThread {
+                    imageView.setImageBitmap(bitmap)
+                }
+            })
         }
     }
 
