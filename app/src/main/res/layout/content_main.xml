@@ -16,7 +16,7 @@
         tools:layout_editor_absoluteY="0dp">
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/signInButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Sign in with Blockstack"

@@ -13,6 +13,8 @@ import org.json.JSONObject
 import java.net.URI
 import java.util.*
 
+private val AUTH_URL_STRING = "file:///android_res/raw/webview.html"
+
 /**
  * Created by larry on 3/25/18.
  */
@@ -21,7 +23,8 @@ class BlockstackSession(private val context: Context,
                         private val appDomain: URI,
                         private val redirectURI: URI,
                         private val manifestURI: URI,
-                        private val scopes: Array<String>) {
+                        private val scopes: Array<String>,
+                        onLoadedCallback: () -> Unit = {}) {
 
     private val TAG = BlockstackSession::class.qualifiedName
     private var userData: JSONObject? = null
@@ -36,12 +39,13 @@ class BlockstackSession(private val context: Context,
     init {
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
-        webView.webViewClient = BlockstackWebViewClient(context)
+        webView.webViewClient = BlockstackWebViewClient(context, onLoadedCallback)
         webView.addJavascriptInterface(JavascriptInterfaceObject(this),"android")
-        webView.loadUrl("file:///android_res/raw/webview.html")
+        webView.loadUrl(AUTH_URL_STRING)
     }
 
-    fun handlePendingSignIn(authResponse: String) {
+    fun handlePendingSignIn(authResponse: String, signInCallback: ((JSONObject) -> Unit)? = this.signInCallback) {
+        this.signInCallback = signInCallback
         Log.d(TAG, "handlePendingSignIn")
         val javascript = "handlePendingSignIn('${authResponse}')"
         webView.evaluateJavascript(javascript, { result: String ->
@@ -115,8 +119,7 @@ class BlockstackSession(private val context: Context,
         return uniqueIdentifier
     }
 
-    private class JavascriptInterfaceObject(session: BlockstackSession) {
-        private val session = session
+    private class JavascriptInterfaceObject(private val session: BlockstackSession) {
 
         @JavascriptInterface
         fun signInSuccess(userDataString: String) {
@@ -151,9 +154,15 @@ class BlockstackSession(private val context: Context,
 
 }
 
-private class BlockstackWebViewClient(context: Context) : WebViewClient() {
-    val context = context
+private class BlockstackWebViewClient(val context: Context, val onLoadedCallback: () -> Unit ) : WebViewClient() {
     private val TAG = BlockstackWebViewClient::class.qualifiedName
+
+    override fun onPageFinished(view: WebView?, url: String?) {
+        Log.d(TAG, "url loaded:" + url)
+        if (AUTH_URL_STRING == url) {
+            onLoadedCallback()
+        }
+    }
 
     override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
         // initially overriding a function that's deprecated in API 27 in order to support API 15

@@ -1,23 +1,17 @@
 package org.blockstack.android
 
+
 import android.content.Intent
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
-import android.widget.Button
 import android.widget.ImageView
-import android.widget.TextView
-
-
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.GetFileOptions
 import org.blockstack.android.sdk.PutFileOptions
@@ -26,7 +20,7 @@ import java.io.ByteArrayOutputStream
 import java.net.URI
 
 class MainActivity : AppCompatActivity() {
-    private val TAG = MainActivity::class.qualifiedName
+    private val TAG = MainActivity::class.java.simpleName
     private val textFileName = "message.txt"
     private val imageFileName = "team.jpg"
 
@@ -37,28 +31,22 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        signInButton.isEnabled = false
+        getStringFileButton.isEnabled = false
+        putStringFileButton.isEnabled = false
+
         val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
         val redirectURI = URI("${appDomain}/redirect")
         val manifestURI = URI("${appDomain}/manifest.json")
         val scopes = arrayOf("store_write")
-        _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes)
-        
-        val signInButton: Button = findViewById<Button>(R.id.button) as Button
 
-        val getStringFileButton: Button = findViewById<Button>(R.id.getStringFileButton) as Button
+        _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
+                onLoadedCallback = {signInButton.isEnabled = true})
+
         getStringFileButton.isEnabled = false
-        val putStringFileButton: Button = findViewById<Button>(R.id.putStringFileButton) as Button
         putStringFileButton.isEnabled = false
-
-        val getImageFileButton: Button = findViewById<Button>(R.id.getImageFileButton) as Button
         getImageFileButton.isEnabled = false
-        val putImageFileButton: Button = findViewById<Button>(R.id.putImageFileButton) as Button
         putImageFileButton.isEnabled = false
-
-        val userDataTextView: TextView = findViewById<TextView>(R.id.userDataTextView) as TextView
-        val readURLTextView: TextView = findViewById<TextView>(R.id.readURLTextView) as TextView
-        val fileContentsTextView: TextView = findViewById<TextView>(R.id.fileContentsTextView) as TextView
-        val imageFileTextView: TextView = findViewById<TextView>(R.id.imageFileTextView) as TextView
 
         val imageView: ImageView = findViewById<ImageView>(R.id.imageView) as ImageView
 
@@ -135,12 +123,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         Log.d(TAG, "onNewIntent")
@@ -157,16 +139,6 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 
     fun blockstackSession() : BlockstackSession {
