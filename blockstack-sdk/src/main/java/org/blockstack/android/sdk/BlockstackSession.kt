@@ -3,6 +3,7 @@ package org.blockstack.android.sdk
 import android.content.Context
 import android.net.Uri
 import android.support.customtabs.CustomTabsIntent
+import android.util.Base64
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
@@ -74,13 +75,30 @@ class BlockstackSession(private val context: Context,
         })
     }
 
-    fun putFile(path: String, content: String, options: PutFileOptions, callback: ((String) -> Unit)) {
+    fun putFile(path: String, content: Any, options: PutFileOptions, callback: ((String) -> Unit)) {
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
+
+        val valid = content is String || content is ByteArray
+        if(!valid) {
+            throw IllegalArgumentException("putFile content only supports String or ByteArray")
+        }
+
+        val isBinary = content is ByteArray
+
         val uniqueIdentifier = addPutFileCallback(callback)
-        val javascript = "putFile('${path}', '${content}', ${options}, '${uniqueIdentifier}')"
-        webView.evaluateJavascript(javascript, { result: String ->
-            // no op
-        })
+        if(isBinary) {
+            val contentString = Base64.encodeToString(content as ByteArray, Base64.NO_WRAP)
+            val javascript = "putFile('${path}', '${contentString}', ${options}, '${uniqueIdentifier}', true)"
+            webView.evaluateJavascript(javascript, { result: String ->
+                // no op
+            })
+        } else {
+            val javascript = "putFile('${path}', '${content}', ${options}, '${uniqueIdentifier}', false)"
+            webView.evaluateJavascript(javascript, { result: String ->
+                // no op
+            })
+        }
+
     }
 
 

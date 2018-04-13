@@ -3,6 +3,7 @@
 <head>
 <title>Blockstack Sign In</title>
 <script src="blockstack.js"></script>
+<script src="base64binary.js"></script>
 <script>
 var transitPrivateKey = blockstack.generateAndStoreTransitKey()
 
@@ -19,8 +20,7 @@ function handlePendingSignIn(authResponseToken) {
   })
 }
 
-function getFile(path, optionsString, uniqueIdentifier) {
-  var options = JSON.stringify(optionsString)
+function getFile(path, options, uniqueIdentifier) {
   console.log('getFile: ' + uniqueIdentifier)
   blockstack.getFile(path, options)
   .then(function(result) {
@@ -29,9 +29,14 @@ function getFile(path, optionsString, uniqueIdentifier) {
   })
 }
 
-function putFile(path, content, optionsString, uniqueIdentifier) {
-  var options = JSON.stringify(optionsString)
+function putFile(path, content, options, uniqueIdentifier, isBinary) {
   console.log('putFile: ' + uniqueIdentifier)
+
+  if(isBinary) {
+    console.log('Base64 decoding binary file')
+    content = Base64Binary.decodeArrayBuffer(content)
+  }
+
   blockstack.putFile(path, content, options)
   .then(function(result) {
     console.log(result)
