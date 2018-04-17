@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/blockstack-android.iml" filepath="$PROJECT_DIR$/blockstack-android.iml" />
       <module fileurl="file://$PROJECT_DIR$/blockstack-sdk/blockstack-sdk.iml" filepath="$PROJECT_DIR$/blockstack-sdk/blockstack-sdk.iml" />
+      <module fileurl="file://$PROJECT_DIR$/example/example.iml" filepath="$PROJECT_DIR$/example/example.iml" />
     </modules>
   </component>
 </project>

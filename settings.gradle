@@ -1,1 +1,1 @@
-include ':app', ':blockstack-sdk'
+include ':example', ':blockstack-sdk'
