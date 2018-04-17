@@ -117,7 +117,7 @@ override fun onNewIntent(intent: Intent?) {
        val authResponseTokens = response.split(':')
        if (authResponseTokens.size > 1) {
            val authResponse = authResponseTokens[1]
-           blockstackSession().handlePendingSignIn(authResponse)
+           session.handlePendingSignIn(authResponse)
        }
      }
    }
