@@ -28,7 +28,8 @@ class BlockstackSession(private val context: Context,
 
     private val TAG = BlockstackSession::class.qualifiedName
     private var userData: JSONObject? = null
-    private var signInCallback: ((JSONObject) -> Unit)? = null
+    private var signInCallback: ((UserData) -> Unit)? = null
+    private var userDataLoaded: ((UserData) -> Unit)? = null
     private val getFileCallbacks = HashMap<String, ((Any) -> Unit)>()
     private val putFileCallbacks = HashMap<String, ((String) -> Unit)>()
 
@@ -44,7 +45,7 @@ class BlockstackSession(private val context: Context,
         webView.loadUrl(AUTH_URL_STRING)
     }
 
-    fun handlePendingSignIn(authResponse: String, signInCallback: ((JSONObject) -> Unit)? = this.signInCallback) {
+    fun handlePendingSignIn(authResponse: String, signInCallback: ((UserData) -> Unit)? = this.signInCallback) {
         this.signInCallback = signInCallback
         Log.d(TAG, "handlePendingSignIn")
         val javascript = "handlePendingSignIn('${authResponse}')"
@@ -53,12 +54,20 @@ class BlockstackSession(private val context: Context,
         })
     }
 
-    fun redirectUserToSignIn(signInCallback: (JSONObject) -> Unit ) {
+    fun redirectUserToSignIn(signInCallback: (UserData) -> Unit ) {
         this.signInCallback = signInCallback
         Log.d(TAG, "redirectUserToSignIn")
         val scopesString = JSONArray(scopes).toString()
         val javascript = "redirectToSignIn('${appDomain}', '${redirectURI}', '${manifestURI}', ${scopesString})"
         webView.evaluateJavascript(javascript, { result: String ->
+            // no op
+        })
+    }
+
+    fun loadUserData(callback: (UserData) -> Unit) {
+        userDataLoaded = callback
+        val javascript = "loadUserData()"
+        webView.evaluateJavascript(javascript, {result ->
             // no op
         })
     }
@@ -105,8 +114,6 @@ class BlockstackSession(private val context: Context,
 
     }
 
-
-
     private fun addGetFileCallback(callback: (Any) -> Unit): String {
         val uniqueIdentifier = UUID.randomUUID().toString()
         getFileCallbacks[uniqueIdentifier] = callback
@@ -127,7 +134,17 @@ class BlockstackSession(private val context: Context,
             val userData = JSONObject(userDataString)
             session.userData = userData
             Log.d(session.TAG, session.userData.toString() )
-            session.signInCallback?.invoke(userData)
+            session.signInCallback?.invoke(UserData(userData))
+        }
+
+
+        @JavascriptInterface
+        fun userDataLoaded(userDataString: String) {
+            Log.d(session.TAG, "userDataLoaded" )
+            val userData = JSONObject(userDataString)
+            session.userData = userData
+            Log.d(session.TAG, session.userData.toString() )
+            session.userDataLoaded?.invoke(UserData(userData))
         }
 
         @JavascriptInterface
