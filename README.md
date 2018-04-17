@@ -39,7 +39,7 @@ In this example, we use `myblockstackapp:`.
 
 In your app's `AndroidManifest.xml` file, add the following:
 
-```
+```XML
 <intent-filter>
   <action android:name="android.intent.action.VIEW" />
   <category android:name="android.intent.category.DEFAULT" />
@@ -54,10 +54,10 @@ Add the Jitpack repository to your root `build.gradle` at the end of repositorie
 
 ```JS
 allprojects {
-	repositories {
-		...
-		maven { url 'https://jitpack.io' }
-	}
+  repositories {
+    ...
+    maven { url 'https://jitpack.io' }
+  }
 }
 ```
 
