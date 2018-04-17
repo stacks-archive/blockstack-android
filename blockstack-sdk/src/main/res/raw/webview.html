@@ -20,6 +20,12 @@ function handlePendingSignIn(authResponseToken) {
   })
 }
 
+function loadUserData() {
+  var userData = blockstack.loadUserData()
+  var userDataString = JSON.stringify(userData)
+  android.userDataLoaded(userDataString)
+}
+
 function getFile(path, options, uniqueIdentifier) {
   console.log('getFile: ' + uniqueIdentifier)
   blockstack.getFile(path, options)
