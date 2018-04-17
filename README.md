@@ -82,6 +82,9 @@ import org.blockstack.android.sdk.*
 
 #### Step 1 - Create a new session
 
+You'll need to replace `appDomain`, `redirectURI`, `manifestURI` and `scopes`
+with values appropriate for your app.
+
 ```Kotlin
 val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
 val redirectURI = URI("${appDomain}/redirect")
