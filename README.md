@@ -13,15 +13,15 @@ This repository contains a pre-release version of the Blockstack Android SDK, a 
 
 ### Step 1 - Add the Jitpack repository
 
-Add the Jitpack repository to your root build.gradle at the end of repositories:
+Add the Jitpack repository to your root `build.gradle` at the end of repositories:
 
 ```JS
 allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
 	}
+}
 ```
 
 ### Step 2 - Add the dependency
@@ -30,8 +30,8 @@ Add the Blockstack Android SDK dependency to your project's dependency list:
 
 ```JS
 dependencies {
-	        implementation 'com.github.blockstack:blockstack-android:-SNAPSHOT'
-	}
+  implementation 'com.github.blockstack:blockstack-android:-SNAPSHOT'
+}
 ```
 
 ### Step 3 - Import the package
@@ -49,9 +49,9 @@ val manifestURI = URI("${appDomain}/manifest.json")
 val scopes = arrayOf("store_write")
 
 val session = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
-                onLoadedCallback = {
-                  // Enable sign in your app
-                  // signInButton.isEnabled = true
+  onLoadedCallback = {
+    // Enable sign in your app
+    // signInButton.isEnabled = true
 })
 ```
 
@@ -59,12 +59,12 @@ val session = BlockstackSession(this, appDomain, redirectURI, manifestURI, scope
 
 ```Kotlin
 session.redirectUserToSignIn { userData ->
-                // signed in!
+  // signed in!
 
-                // update your UI with signed in state
-                // runOnUiThread {
-                //     onSignIn(userData)
-                // }
+  // update your UI with signed in state
+  // runOnUiThread {
+  //     onSignIn(userData)
+  // }
 }
 ```
 
@@ -77,12 +77,12 @@ val options = PutFileOptions()
 
 val fileName = "message.txt"
 
-//
+// Can be a `String` or `ByteArray`
 val content = "Hello Android!"
 
 session.putFile(fileName, content, options,
-                    {readURL: String ->
-                      // File stored at URL in `readURL`
+  {readURL: String ->
+    // File stored at URL in `readURL`
 })
 ```
 
@@ -97,8 +97,8 @@ val options = GetFileOptions()
 val fileName = "message.txt"
 
 session.getFile(fileName, options, {content: Any ->
-    // content can be a `String` or a `ByteArray`
+  // content can be a `String` or a `ByteArray`
 
-    // do something with `content`
+  // do something with `content`
 })
 ```
