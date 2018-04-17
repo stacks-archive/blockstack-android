@@ -11,6 +11,10 @@ This repository contains a pre-release version of the Blockstack Android SDK, a 
 
 ## Get started
 
+Below are step-by-step instructions for how to add Blockstack to your
+Android app. Code samples are in Kotlin but the equivalent Java code should
+work without any issues.
+
 ### Configure your Blockstack web app
 
 #### Step 1 - Choose a custom protocol handler
