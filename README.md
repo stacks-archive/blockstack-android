@@ -1,4 +1,4 @@
-# Blockstack Android
+# Blockstack Android SDK
 
 [![](https://jitpack.io/v/blockstack/blockstack-android.svg)](https://jitpack.io/#blockstack/blockstack-android)
 
