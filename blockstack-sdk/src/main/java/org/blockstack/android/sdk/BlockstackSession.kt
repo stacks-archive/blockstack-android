@@ -14,9 +14,10 @@ import java.net.URI
 import java.util.*
 
 private val AUTH_URL_STRING = "file:///android_res/raw/webview.html"
+private val HOSTED_BROWSER_URL_BASE = "https://browser.blockstack.org"
 
 /**
- * Created by larry on 3/25/18.
+ *
  */
 
 class BlockstackSession(private val context: Context,
@@ -45,8 +46,13 @@ class BlockstackSession(private val context: Context,
         webView.loadUrl(AUTH_URL_STRING)
     }
 
-    fun handlePendingSignIn(authResponse: String, signInCallback: ((UserData) -> Unit)? = this.signInCallback) {
-        this.signInCallback = signInCallback
+    /**
+     * Process a pending sign in. This method should be called by your app when it
+     * receives a request to the app's custom protocol handler.
+     *
+     * @property authResponse authentication response token
+     */
+    fun handlePendingSignIn(authResponse: String) {
         Log.d(TAG, "handlePendingSignIn")
         val javascript = "handlePendingSignIn('${authResponse}')"
         webView.evaluateJavascript(javascript, { result: String ->
@@ -54,6 +60,13 @@ class BlockstackSession(private val context: Context,
         })
     }
 
+    /**
+     * Generates an authentication request opens an activity that allows the user to
+     * sign with an existing Blockstack ID already on the device or create a new one.
+     *
+     * @property signInCallback a function that is called with `UserData`
+     * when authentication succeeds
+     */
     fun redirectUserToSignIn(signInCallback: (UserData) -> Unit ) {
         this.signInCallback = signInCallback
         Log.d(TAG, "redirectUserToSignIn")
@@ -64,6 +77,11 @@ class BlockstackSession(private val context: Context,
         })
     }
 
+    /**
+     * Retrieve data of signed in user
+     *
+     * @property callback a function that is called with `UserData` of the signed in user
+     */
     fun loadUserData(callback: (UserData) -> Unit) {
         userDataLoaded = callback
         val javascript = "loadUserData()"
@@ -74,11 +92,14 @@ class BlockstackSession(private val context: Context,
 
     /* Public storage methods */
 
-    // getAppBucketUrl
-
-    // getUserAppFileUrl
-
-
+    /**
+     * Retrieves the specified file from the app's data store.
+     *
+     * @property path the path of the file from which to read data
+     * @property options an instance of a `GetFileOptions` object which is used to configure
+     * options such as decryption and reading files from other apps or users.
+     * @property callback a function that is called
+     */
     fun getFile(path: String, options: GetFileOptions, callback: ((Any) -> Unit)) {
         Log.d(TAG, "getFile: path: ${path} options: ${options}")
         val uniqueIdentifier = addGetFileCallback(callback)
@@ -88,6 +109,14 @@ class BlockstackSession(private val context: Context,
         })
     }
 
+    /**
+     * Stores the data provided in the app's data store to to the file specified.
+     *
+     * @property path the path to store the data to
+     * @property content the data to store in the file
+     * @property options an instance of a `PutFileOptions` object which is used to configure
+     * options such as encryption
+     */
     fun putFile(path: String, content: Any, options: PutFileOptions, callback: ((String) -> Unit)) {
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
 
@@ -171,7 +200,8 @@ class BlockstackSession(private val context: Context,
 
 }
 
-private class BlockstackWebViewClient(val context: Context, val onLoadedCallback: () -> Unit ) : WebViewClient() {
+private class BlockstackWebViewClient(val context: Context,
+                                      val onLoadedCallback: () -> Unit ) : WebViewClient() {
     private val TAG = BlockstackWebViewClient::class.qualifiedName
 
     override fun onPageFinished(view: WebView?, url: String?) {
@@ -192,7 +222,8 @@ private class BlockstackWebViewClient(val context: Context, val onLoadedCallback
         val customTabsIntent = CustomTabsIntent.Builder().build()
         // on redirect load the following with
         // TODO: handle lack of custom tabs support
-        customTabsIntent.launchUrl(context, Uri.parse("https://browser.blockstack.org/auth?authRequest=${authRequestToken}"))
+        customTabsIntent.launchUrl(context,
+                Uri.parse("${HOSTED_BROWSER_URL_BASE}/auth?authRequest=${authRequestToken}"))
         return true
     }
 }
