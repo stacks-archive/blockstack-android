@@ -16,10 +16,6 @@ import java.util.*
 private val AUTH_URL_STRING = "file:///android_res/raw/webview.html"
 private val HOSTED_BROWSER_URL_BASE = "https://browser.blockstack.org"
 
-/**
- *
- */
-
 class BlockstackSession(private val context: Context,
                         private val appDomain: URI,
                         private val redirectURI: URI,
@@ -65,7 +61,8 @@ class BlockstackSession(private val context: Context,
      * sign with an existing Blockstack ID already on the device or create a new one.
      *
      * @property signInCallback a function that is called with `UserData`
-     * when authentication succeeds
+     * when authentication succeeds. It is not called on the UI thread so you should
+     * execute any UI interactions in a `runOnUIThread` block
      */
     fun redirectUserToSignIn(signInCallback: (UserData) -> Unit ) {
         this.signInCallback = signInCallback
@@ -98,7 +95,8 @@ class BlockstackSession(private val context: Context,
      * @property path the path of the file from which to read data
      * @property options an instance of a `GetFileOptions` object which is used to configure
      * options such as decryption and reading files from other apps or users.
-     * @property callback a function that is called
+     * @property callback a function that is called with the file contents. It is not called on the
+     * UI thread so you should execute any UI interactions in a `runOnUIThread` block
      */
     fun getFile(path: String, options: GetFileOptions, callback: ((Any) -> Unit)) {
         Log.d(TAG, "getFile: path: ${path} options: ${options}")
@@ -116,6 +114,9 @@ class BlockstackSession(private val context: Context,
      * @property content the data to store in the file
      * @property options an instance of a `PutFileOptions` object which is used to configure
      * options such as encryption
+     * @property callback a function that is called with a `String` representation of a url from
+     * which you can read the file that was just put. It is not called on the UI thread so you should
+     * execute any UI interactions in a `runOnUIThread` block
      */
     fun putFile(path: String, content: Any, options: PutFileOptions, callback: ((String) -> Unit)) {
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
@@ -192,6 +193,7 @@ class BlockstackSession(private val context: Context,
         @JavascriptInterface
         fun putFileResult(readURL: String, uniqueIdentifier: String) {
             Log.d(session.TAG, "putFileResult" )
+
             session.putFileCallbacks[uniqueIdentifier]?.invoke(readURL)
             session.putFileCallbacks.remove(uniqueIdentifier)
         }
