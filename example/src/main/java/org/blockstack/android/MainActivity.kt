@@ -160,7 +160,7 @@ class MainActivity : AppCompatActivity() {
                 userData -> runOnUiThread {if (userData != null) {onSignIn(userData)}}
             }
         } else if (intent?.action == Intent.ACTION_VIEW) {
-            val response = intent?.dataString
+            val response = intent.dataString
             Log.d(TAG, "response ${response}")
             if (response != null) {
                 val authResponseTokens = response.split(':')

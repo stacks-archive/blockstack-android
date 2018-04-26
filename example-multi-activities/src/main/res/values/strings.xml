@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Blockstack Demo Multi Activities</string>
+    <string name="action_account">Account</string>
+</resources>

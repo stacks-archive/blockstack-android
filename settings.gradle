@@ -1,1 +1,1 @@
-include ':example', ':blockstack-sdk'
+include ':example', ':example-multi-activities', ':blockstack-sdk'
