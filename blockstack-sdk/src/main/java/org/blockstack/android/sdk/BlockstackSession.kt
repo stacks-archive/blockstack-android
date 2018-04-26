@@ -24,11 +24,14 @@ class BlockstackSession(private val context: Context,
                         onLoadedCallback: () -> Unit = {}) {
 
     private val TAG = BlockstackSession::class.qualifiedName
+    var loaded: Boolean = false
+        private set(value) {field = value}
+
     private var userData: JSONObject? = null
     private var signInCallback: ((UserData) -> Unit)? = null
-    private var userDataLoaded: ((UserData) -> Unit)? = null
     private val getFileCallbacks = HashMap<String, ((Any) -> Unit)>()
     private val putFileCallbacks = HashMap<String, ((String) -> Unit)>()
+
 
     init {
         Log.d(TAG, context.toString())
@@ -37,7 +40,10 @@ class BlockstackSession(private val context: Context,
     init {
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
-        webView.webViewClient = BlockstackWebViewClient(context, onLoadedCallback)
+        webView.webViewClient = BlockstackWebViewClient(context) {
+            this.loaded = true
+            onLoadedCallback()
+        }
         webView.addJavascriptInterface(JavascriptInterfaceObject(this),"android")
         webView.loadUrl(AUTH_URL_STRING)
     }
@@ -79,11 +85,40 @@ class BlockstackSession(private val context: Context,
      *
      * @property callback a function that is called with `UserData` of the signed in user
      */
-    fun loadUserData(callback: (UserData) -> Unit) {
-        userDataLoaded = callback
+    fun loadUserData(callback: (UserData?) -> Unit) {
         val javascript = "loadUserData()"
         webView.evaluateJavascript(javascript, {result ->
-            // no op
+                if (result != null) {
+                    val newUserData = JSONObject(result)
+                    userData = newUserData
+                    callback(UserData(newUserData))
+                } else {
+                    callback(null)
+                }
+        })
+    }
+
+    /**
+     * Check if a user is currently signed in
+     *
+     * @property callback a function that is called with a flag that is `true` if the user is signed in, `false` if not.
+     */
+    fun isUserSignedIn(callback: (Boolean) -> Unit) {
+        val javascript = "isUserSignedIn()"
+        webView.evaluateJavascript(javascript, {
+            callback(it == "true")
+        })
+    }
+
+    /**
+     * Sign the user out
+     *
+     * @property callback a function that is called after the user is signed out.
+     */
+    fun signUserOut(callback: () -> Unit) {
+        val javascript = "signUserOut()"
+        webView.evaluateJavascript(javascript, {
+            callback()
         })
     }
 
@@ -165,16 +200,6 @@ class BlockstackSession(private val context: Context,
             session.userData = userData
             Log.d(session.TAG, session.userData.toString() )
             session.signInCallback?.invoke(UserData(userData))
-        }
-
-
-        @JavascriptInterface
-        fun userDataLoaded(userDataString: String) {
-            Log.d(session.TAG, "userDataLoaded" )
-            val userData = JSONObject(userDataString)
-            session.userData = userData
-            Log.d(session.TAG, session.userData.toString() )
-            session.userDataLoaded?.invoke(UserData(userData))
         }
 
         @JavascriptInterface
