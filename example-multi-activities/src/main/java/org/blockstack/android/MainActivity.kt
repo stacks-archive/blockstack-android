@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View.GONE
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.experimental.android.UI
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkLogin() {
         blockstackSession().isUserSignedIn({ signedIn ->
+            progressBar.visibility = GONE
             if (signedIn) {
                     blockstackSession().loadUserData({userData ->
                                 runOnUiThread {
@@ -94,20 +96,7 @@ class MainActivity : AppCompatActivity() {
             blockstackSession().loadUserData {
                 userData -> runOnUiThread {if (userData != null) {onSignIn(userData)}}
             }
-        } else if (intent?.action == Intent.ACTION_VIEW) {
-            val response = intent.dataString
-            Log.d(TAG, "response ${response}")
-            if (response != null) {
-                val authResponseTokens = response.split(':')
-
-                if (authResponseTokens.size > 1) {
-                    val authResponse = authResponseTokens[1]
-                    Log.d(TAG, "authResponse: ${authResponse}")
-                    blockstackSession().handlePendingSignIn(authResponse)
-                }
-            }
         }
-
     }
 
     private fun navigateToAccount() {

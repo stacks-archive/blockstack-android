@@ -31,7 +31,11 @@ class AccountActivity : AppCompatActivity() {
         val scopes = arrayOf("store_write")
 
         _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
-                onLoadedCallback = {onLoaded()})
+                onLoadedCallback = {
+                    if (intent?.action == Intent.ACTION_VIEW) {
+                        handleAuthResponse(intent)
+                    }
+                    onLoaded()})
 
         signInButton.setOnClickListener { view: View ->
             blockstackSession().redirectUserToSignIn { userData ->
@@ -72,24 +76,29 @@ class AccountActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         Log.d(TAG, "onNewIntent")
 
-        if (intent?.action == Intent.ACTION_MAIN) {
-            blockstackSession().loadUserData {
-                userData -> runOnUiThread {onSignIn() }
-            }
-        } else if (intent?.action == Intent.ACTION_VIEW) {
-            val response = intent?.dataString
-            Log.d(TAG, "response ${response}")
-            if (response != null) {
-                val authResponseTokens = response.split(':')
-
-                if (authResponseTokens.size > 1) {
-                    val authResponse = authResponseTokens[1]
-                    Log.d(TAG, "authResponse: ${authResponse}")
-                    blockstackSession().handlePendingSignIn(authResponse)
-                }
-            }
+        if (intent?.action == Intent.ACTION_VIEW) {
+            handleAuthResponse(intent)
         }
 
+    }
+
+    private fun handleAuthResponse(intent: Intent?) {
+        val response = intent?.dataString
+        Log.d(TAG, "response ${response}")
+        if (response != null) {
+            val authResponseTokens = response.split(':')
+
+            if (authResponseTokens.size > 1) {
+                val authResponse = authResponseTokens[1]
+                Log.d(TAG, "authResponse: ${authResponse}")
+                blockstackSession().handlePendingSignIn(authResponse, {
+                    Log.d(TAG, "signed in!")
+                    runOnUiThread {
+                        onSignIn()
+                    }
+                })
+            }
+        }
     }
 
     fun blockstackSession() : BlockstackSession {
