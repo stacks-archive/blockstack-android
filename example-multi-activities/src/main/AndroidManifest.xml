@@ -23,6 +23,7 @@
             android:name=".AccountActivity"
             android:label="@string/activity_account_title"
             android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".MainActivity"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

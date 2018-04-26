@@ -3,8 +3,10 @@ package org.blockstack.android
 
 import android.content.Intent
 import android.os.Bundle
+import android.support.v4.app.NavUtils
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_account.*
@@ -21,6 +23,7 @@ class AccountActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_account)
         setSupportActionBar(toolbar)
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
         signInButton.isEnabled = false
         signOutButton.isEnabled = false
@@ -99,6 +102,14 @@ class AccountActivity : AppCompatActivity() {
                 })
             }
         }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        if (item!!.itemId == android.R.id.home) {
+            NavUtils.navigateUpFromSameTask(this);
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     fun blockstackSession() : BlockstackSession {
