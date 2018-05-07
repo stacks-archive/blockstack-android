@@ -118,6 +118,10 @@ class MainActivity : AppCompatActivity() {
                 }
             })
         }
+
+        if (intent?.action == Intent.ACTION_VIEW) {
+            handleAuthResponse(intent)
+        }
     }
 
     private fun onSignIn(userData: UserData) {
@@ -160,19 +164,27 @@ class MainActivity : AppCompatActivity() {
                 userData -> runOnUiThread {if (userData != null) {onSignIn(userData)}}
             }
         } else if (intent?.action == Intent.ACTION_VIEW) {
-            val response = intent?.dataString
-            Log.d(TAG, "response ${response}")
-            if (response != null) {
-                val authResponseTokens = response.split(':')
+            handleAuthResponse(intent)
+        }
+    }
 
-                if (authResponseTokens.size > 1) {
-                    val authResponse = authResponseTokens[1]
-                    Log.d(TAG, "authResponse: ${authResponse}")
-                    blockstackSession().handlePendingSignIn(authResponse)
-                }
+    private fun handleAuthResponse(intent: Intent) {
+        val response = intent.dataString
+        Log.d(TAG, "response ${response}")
+        if (response != null) {
+            val authResponseTokens = response.split(':')
+
+            if (authResponseTokens.size > 1) {
+                val authResponse = authResponseTokens[1]
+                Log.d(TAG, "authResponse: ${authResponse}")
+                blockstackSession().handlePendingSignIn(authResponse, { userData ->
+                    Log.d(TAG, "signed in!")
+                    runOnUiThread {
+                        onSignIn(userData)
+                    }
+                })
             }
         }
-
     }
 
     fun blockstackSession() : BlockstackSession {
