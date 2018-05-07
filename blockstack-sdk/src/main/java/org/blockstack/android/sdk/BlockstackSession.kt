@@ -20,7 +20,7 @@ class BlockstackSession(private val context: Context,
                         private val appDomain: URI,
                         private val redirectURI: URI,
                         private val manifestURI: URI,
-                        private val scopes: Array<String>,
+                        private val scopes: Array<Scope>,
                         onLoadedCallback: () -> Unit = {}) {
 
     private val TAG = BlockstackSession::class.qualifiedName
