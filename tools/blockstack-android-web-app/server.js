@@ -23,5 +23,5 @@ app.listen(port, (err) => {
     return console.log('something bad happened', err)
   }
   console.log(`server is listening on ${port}`)
-  opn('http://localhost:5000')
+  opn(`http://localhost:${port}`)
 })
