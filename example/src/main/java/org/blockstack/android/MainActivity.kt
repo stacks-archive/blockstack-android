@@ -157,7 +157,7 @@ class MainActivity : AppCompatActivity() {
 
         if (intent?.action == Intent.ACTION_MAIN) {
             blockstackSession().loadUserData {
-                userData -> runOnUiThread {onSignIn(userData)}
+                userData -> runOnUiThread {if (userData != null) {onSignIn(userData)}}
             }
         } else if (intent?.action == Intent.ACTION_VIEW) {
             val response = intent?.dataString
