@@ -1,6 +1,7 @@
 package org.blockstack.android.sdk
 
 import org.json.JSONArray
+import org.json.JSONObject
 
 
 /**
@@ -31,11 +32,7 @@ enum class Scope(val scope: String) {
     companion object {
         @JvmStatic
         fun scopesArrayToJSONString(scopes: Array<Scope>): String {
-            val results = scopes.map{ it.scope }
-            //scopes.iterator().forEach { results.add(it.scope) }
-            // throw RuntimeException("${results}")
-            throw RuntimeException("${JSONArray(arrayOf("email"))}")
-            return JSONArray(arrayOf("email")).toString()
+            return scopes.joinToString(prefix = "[", transform = {"\"${it.scope}\""}, postfix = "]")
         }
     }
 }
