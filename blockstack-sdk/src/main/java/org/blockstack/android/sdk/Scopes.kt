@@ -1,9 +1,5 @@
 package org.blockstack.android.sdk
 
-import org.json.JSONArray
-import org.json.JSONObject
-
-
 /**
  * An enum of scopes supported in Blockstack Authentication.
  */
