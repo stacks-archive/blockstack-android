@@ -54,7 +54,8 @@ class BlockstackSession(private val context: Context,
      *
      * @property authResponse authentication response token
      */
-    fun handlePendingSignIn(authResponse: String) {
+    fun handlePendingSignIn(authResponse: String, signInCallback: (UserData) -> Unit) {
+        this.signInCallback = signInCallback
         Log.d(TAG, "handlePendingSignIn")
         val javascript = "handlePendingSignIn('${authResponse}')"
         webView.evaluateJavascript(javascript, { result: String ->
