@@ -15,6 +15,10 @@ Below are step-by-step instructions for how to add Blockstack to your
 Android app. Code samples are in Kotlin but the equivalent Java code should
 work without any issues.
 
+## Minimum requirements
+
+This SDK assumes Android API 19 or higher.
+
 ### Configure your Blockstack web app
 
 #### Step 1 - Choose a custom protocol handler
