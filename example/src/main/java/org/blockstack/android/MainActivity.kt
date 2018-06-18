@@ -11,14 +11,11 @@ import android.util.Log
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.GetFileOptions
-import org.blockstack.android.sdk.PutFileOptions
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
-import org.blockstack.android.sdk.UserData
+import org.blockstack.android.sdk.*
 import org.jetbrains.anko.coroutines.experimental.bg
 import java.net.URL
 
@@ -43,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
         val redirectURI = URI("${appDomain}/redirect")
         val manifestURI = URI("${appDomain}/manifest.json")
-        val scopes = arrayOf("store_write")
+        val scopes = arrayOf(Scope.StoreWrite)
 
         _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
                 onLoadedCallback = {signInButton.isEnabled = true})
