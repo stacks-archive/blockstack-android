@@ -12,9 +12,9 @@ import org.junit.Assert.*;
 public class ScopesUnitTest {
     @Test
     fun testScopesToString() {
-        val scopes: Array<Scope> = arrayOf<Scope>(Scope.Email, Scope.PublishData, Scope.StoreWrite)
+        val scopes: Array<Scope> = arrayOf(Scope.Email, Scope.PublishData, Scope.StoreWrite)
         val result = Scope.scopesArrayToJSONString(scopes)
-        assertEquals("", result)
+        assertEquals("[\"email\", \"publish_data\", \"store_write\"]", result)
 
     }
 }

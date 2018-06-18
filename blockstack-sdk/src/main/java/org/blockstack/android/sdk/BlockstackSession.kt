@@ -74,7 +74,7 @@ class BlockstackSession(private val context: Context,
     fun redirectUserToSignIn(signInCallback: (UserData) -> Unit ) {
         this.signInCallback = signInCallback
         Log.d(TAG, "redirectUserToSignIn")
-        val scopesString = JSONArray(scopes).toString()
+        val scopesString = Scope.scopesArrayToJSONString(scopes)
         val javascript = "redirectToSignIn('${appDomain}', '${redirectURI}', '${manifestURI}', ${scopesString})"
         webView.evaluateJavascript(javascript, { result: String ->
             // no op
