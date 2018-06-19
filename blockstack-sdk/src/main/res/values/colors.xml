@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="org_blockstack_purple_150">#15081c</color>
+    <color name="org_blockstack_purple_110_bg">#270f34</color>
+    <color name="org_blockstack_purple_130">#1e0b28</color>
+    <color name="org_blockstack_purple_85_lines">#4b3457</color>
+    <color name="org_blockstack_purple_80">#564061</color>
+    <color name="org_blockstack_purple_50_logos_types">#95889c</color>
+    <color name="org_blockstack_purple_25">#cac3cd</color>
+</resources>

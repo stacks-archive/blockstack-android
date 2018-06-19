@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Blockstack SDK</string>
+    <string name="org_blockstack_login">Sign in with Blockstack</string>
 </resources>

@@ -7,11 +7,10 @@
     tools:context="org.blockstack.android.MainActivity"
     tools:showIn="@layout/activity_main">
 
-        <Button
+        <org.blockstack.android.sdk.ui.BlockstackSignInButton
             android:id="@+id/signInButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Sign in with Blockstack"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
