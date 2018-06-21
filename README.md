@@ -97,7 +97,7 @@ with values appropriate for your app.
 val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
 val redirectURI = URI("${appDomain}/redirect")
 val manifestURI = URI("${appDomain}/manifest.json")
-val scopes = arrayOf("store_write")
+val scopes = arrayOf(Scope.StoreWrite)
 
 val session = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
   onLoadedCallback = {
