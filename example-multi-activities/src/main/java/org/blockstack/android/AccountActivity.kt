@@ -11,6 +11,7 @@ import android.view.View
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_account.*
 import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.Scope
 import java.net.URI
 
 
@@ -31,7 +32,7 @@ class AccountActivity : AppCompatActivity() {
         val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
         val redirectURI = URI("${appDomain}/redirect")
         val manifestURI = URI("${appDomain}/manifest.json")
-        val scopes = arrayOf("store_write")
+        val scopes = arrayOf(Scope.StoreWrite)
 
         _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
                 onLoadedCallback = {
