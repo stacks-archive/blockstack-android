@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - This change log.
+- A themed "Sign in with Blockstack" button that supports English, German, French,
+and Chinese. Thanks to @friedger for this.
 
 ### Changed
 - Start using "changelog" over "change log" since it's the common usage.
