@@ -43,7 +43,12 @@ class MainActivity : AppCompatActivity() {
         val scopes = arrayOf(Scope.StoreWrite)
 
         _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
-                onLoadedCallback = {signInButton.isEnabled = true})
+                onLoadedCallback = {
+                    // Wait until this callback fires before using any of the
+                    // BlockstackSession API methods
+                    
+                    signInButton.isEnabled = true
+                })
 
         getStringFileButton.isEnabled = false
         putStringFileButton.isEnabled = false
