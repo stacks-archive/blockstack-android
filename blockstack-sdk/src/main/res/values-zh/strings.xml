@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Blockstack SDK</string>
+    <string name="org_blockstack_login">使用 Blockstack 登录</string>
+</resources>
