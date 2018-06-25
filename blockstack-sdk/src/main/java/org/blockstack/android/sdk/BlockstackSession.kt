@@ -57,6 +57,9 @@ class BlockstackSession(private val context: Context,
     fun handlePendingSignIn(authResponse: String, signInCallback: (UserData) -> Unit) {
         this.signInCallback = signInCallback
         Log.d(TAG, "handlePendingSignIn")
+
+        ensureLoaded()
+
         val javascript = "handlePendingSignIn('${authResponse}')"
         webView.evaluateJavascript(javascript, { result: String ->
 
@@ -74,6 +77,9 @@ class BlockstackSession(private val context: Context,
     fun redirectUserToSignIn(signInCallback: (UserData) -> Unit ) {
         this.signInCallback = signInCallback
         Log.d(TAG, "redirectUserToSignIn")
+
+        ensureLoaded()
+
         val scopesString = Scope.scopesArrayToJSONString(scopes)
         val javascript = "redirectToSignIn('${appDomain}', '${redirectURI}', '${manifestURI}', ${scopesString})"
         webView.evaluateJavascript(javascript, { result: String ->
@@ -88,6 +94,10 @@ class BlockstackSession(private val context: Context,
      */
     fun loadUserData(callback: (UserData?) -> Unit) {
         val javascript = "loadUserData()"
+        Log.d(TAG, javascript)
+
+        ensureLoaded()
+
         webView.evaluateJavascript(javascript, {result ->
                 if (result != null) {
                     val newUserData = JSONObject(result)
@@ -106,6 +116,10 @@ class BlockstackSession(private val context: Context,
      */
     fun isUserSignedIn(callback: (Boolean) -> Unit) {
         val javascript = "isUserSignedIn()"
+        Log.d(TAG, javascript)
+
+        ensureLoaded()
+
         webView.evaluateJavascript(javascript, {
             callback(it == "true")
         })
@@ -118,6 +132,10 @@ class BlockstackSession(private val context: Context,
      */
     fun signUserOut(callback: () -> Unit) {
         val javascript = "signUserOut()"
+        Log.d(TAG, javascript)
+
+        ensureLoaded()
+
         webView.evaluateJavascript(javascript, {
             callback()
         })
@@ -136,6 +154,9 @@ class BlockstackSession(private val context: Context,
      */
     fun getFile(path: String, options: GetFileOptions, callback: ((Any) -> Unit)) {
         Log.d(TAG, "getFile: path: ${path} options: ${options}")
+
+        ensureLoaded()
+
         val uniqueIdentifier = addGetFileCallback(callback)
         val javascript = "getFile('${path}', ${options}, '${uniqueIdentifier}')"
         webView.evaluateJavascript(javascript, { result: String ->
@@ -156,6 +177,8 @@ class BlockstackSession(private val context: Context,
      */
     fun putFile(path: String, content: Any, options: PutFileOptions, callback: ((String) -> Unit)) {
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
+
+        ensureLoaded()
 
         val valid = content is String || content is ByteArray
         if(!valid) {
@@ -190,6 +213,13 @@ class BlockstackSession(private val context: Context,
         val uniqueIdentifier = UUID.randomUUID().toString()
         putFileCallbacks[uniqueIdentifier] = callback
         return uniqueIdentifier
+    }
+
+    private fun ensureLoaded() {
+        if(!this.loaded) {
+            throw IllegalStateException("Blockstack session hasn't finished loading." +
+                    " Please wait until the onLoadedCallback() has fired before performing operations.")
+        }
     }
 
     private class JavascriptInterfaceObject(private val session: BlockstackSession) {
