@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+
+## [0.2.0] - 2018-06-25
+
 ### Added
 - This change log.
 - A themed "Sign in with Blockstack" button that supports English, German, French,
@@ -22,6 +25,7 @@ and Chinese. Thanks to @friedger for this.
 - API operations will now throw an `IllegalStateException` if the Blockstack
 session has not fully initialized. You should wait for `onLoadedCallback`
 to fire before using other API methods.
+- Properly set version in grade
 
 ## [0.1.0] - 2018-06-23
 - Initial release.
