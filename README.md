@@ -179,3 +179,11 @@ session.getFile(fileName, options, {content: Any ->
   // do something with `content`
 })
 ```
+
+### Using the Sign in with Blockstack button
+
+This SDK includes a themed "Sign in with Blockstack" button. You should use
+this button in your app.
+
+To use the themed button, use
+the `org.blockstack.android.sdk.ui.BlockstackSignInButton` class.
