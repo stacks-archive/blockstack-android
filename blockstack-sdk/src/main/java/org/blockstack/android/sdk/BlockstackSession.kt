@@ -21,7 +21,7 @@ class BlockstackSession(private val context: Context,
                         private val redirectURI: URI,
                         private val manifestURI: URI,
                         private val scopes: Array<Scope>,
-                        onLoadedCallback: () -> Unit = {}) {
+                        onLoadedCallback: (session: BlockstackSession) -> Unit = {}) {
 
     private val TAG = BlockstackSession::class.qualifiedName
     var loaded: Boolean = false
@@ -42,7 +42,7 @@ class BlockstackSession(private val context: Context,
         webView.settings.domStorageEnabled = true
         webView.webViewClient = BlockstackWebViewClient(context) {
             this.loaded = true
-            onLoadedCallback()
+            onLoadedCallback(this)
         }
         webView.addJavascriptInterface(JavascriptInterfaceObject(this),"android")
         webView.loadUrl(AUTH_URL_STRING)

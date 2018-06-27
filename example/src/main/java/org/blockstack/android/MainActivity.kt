@@ -56,10 +56,12 @@ class MainActivity : AppCompatActivity() {
         putImageFileButton.isEnabled = false
 
         signInButton.setOnClickListener { view: View ->
-            blockstackSession().redirectUserToSignIn { userData ->
-                Log.d(TAG, "signed in!")
-                runOnUiThread {
-                    onSignIn(userData)
+            blockstackSession {
+                it.redirectUserToSignIn { userData ->
+                    Log.d(TAG, "signed in!")
+                    runOnUiThread {
+                        onSignIn(userData)
+                    }
                 }
             }
         }
@@ -68,24 +70,29 @@ class MainActivity : AppCompatActivity() {
             fileContentsTextView.text = "Downloading..."
 
             val options = GetFileOptions()
-            blockstackSession().getFile(textFileName, options, {content: Any ->
-                Log.d(TAG, "File contents: ${content as String}")
-                runOnUiThread {
-                    fileContentsTextView.text = content as String
-                }
-            })
+            blockstackSession {
+                it.getFile(textFileName, options, { content: Any ->
+                    Log.d(TAG, "File contents: ${content as String}")
+                    runOnUiThread {
+                        fileContentsTextView.text = content as String
+                    }
+                })
+            }
         }
 
         putStringFileButton.setOnClickListener { _ ->
             readURLTextView.text = "Uploading..."
             val options = PutFileOptions()
-            blockstackSession().putFile(textFileName, "Hello Android!", options,
-                    {readURL: String ->
-                Log.d(TAG, "File stored at: ${readURL}")
-                        runOnUiThread {
-                            readURLTextView.text = "File stored at: ${readURL}"
-                        }
-            })
+            blockstackSession {
+                it.putFile(textFileName, "Hello Android!", options,
+                        { readURL: String ->
+                            Log.d(TAG, "File stored at: ${readURL}")
+                            runOnUiThread {
+                                readURLTextView.text = "File stored at: ${readURL}"
+                            }
+
+                        })
+            }
         }
 
         putImageFileButton.setOnClickListener { _ ->
@@ -100,25 +107,29 @@ class MainActivity : AppCompatActivity() {
             val bitMapData = stream.toByteArray()
 
             val options = PutFileOptions(false)
-            blockstackSession().putFile(imageFileName, bitMapData, options,
-                    {readURL: String ->
-                        Log.d(TAG, "File stored at: ${readURL}")
-                        runOnUiThread {
-                            imageFileTextView.text = "File stored at: ${readURL}"
-                        }
-                    })
+            blockstackSession {
+                it.putFile(imageFileName, bitMapData, options,
+                        { readURL: String ->
+                            Log.d(TAG, "File stored at: ${readURL}")
+                            runOnUiThread {
+                                imageFileTextView.text = "File stored at: ${readURL}"
+                            }
+                        })
+            }
         }
 
         getImageFileButton.setOnClickListener { _ ->
             val options = GetFileOptions(decrypt = false)
-            blockstackSession().getFile(imageFileName, options, {contents: Any ->
+            blockstackSession {
+                it.getFile(imageFileName, options, { contents: Any ->
 
-                val imageByteArray = contents as ByteArray
-                val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
-                runOnUiThread {
-                    imageView.setImageBitmap(bitmap)
-                }
-            })
+                    val imageByteArray = contents as ByteArray
+                    val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+                    runOnUiThread {
+                        imageView.setImageBitmap(bitmap)
+                    }
+                })
+            }
         }
 
         if (intent?.action == Intent.ACTION_VIEW) {
@@ -162,8 +173,14 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onNewIntent")
 
         if (intent?.action == Intent.ACTION_MAIN) {
-            blockstackSession().loadUserData {
-                userData -> runOnUiThread {if (userData != null) {onSignIn(userData)}}
+            blockstackSession {
+                it.loadUserData { userData ->
+                    runOnUiThread {
+                        if (userData != null) {
+                            onSignIn(userData)
+                        }
+                    }
+                }
             }
         } else if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
@@ -179,23 +196,26 @@ class MainActivity : AppCompatActivity() {
             if (authResponseTokens.size > 1) {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: ${authResponse}")
-                blockstackSession().handlePendingSignIn(authResponse, { userData ->
-                    Log.d(TAG, "signed in!")
-                    runOnUiThread {
-                        onSignIn(userData)
-                    }
-                })
+                blockstackSession {
+                        it.handlePendingSignIn(authResponse, { userData ->
+                        Log.d(TAG, "signed in!")
+                        runOnUiThread {
+                            onSignIn(userData)
+                        }
+                    })
+                }
+                }
             }
         }
-    }
 
-    fun blockstackSession() : BlockstackSession {
-        val session = _blockstackSession
-        if(session != null) {
-            return session
-        } else {
-            throw IllegalStateException("No session.")
-        }
+    fun blockstackSession(callback: (session: BlockstackSession) -> Unit) {
+        val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
+        val redirectURI = URI("${appDomain}/redirect")
+        val manifestURI = URI("${appDomain}/manifest.json")
+        val scopes = arrayOf(Scope.StoreWrite)
+
+        BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
+                callback)
     }
 
 }
