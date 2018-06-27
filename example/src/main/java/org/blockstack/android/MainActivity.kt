@@ -37,12 +37,15 @@ class MainActivity : AppCompatActivity() {
         getStringFileButton.isEnabled = false
         putStringFileButton.isEnabled = false
 
-        val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
-        val redirectURI = URI("${appDomain}/redirect")
-        val manifestURI = URI("${appDomain}/manifest.json")
-        val scopes = arrayOf(Scope.StoreWrite)
+        val config = java.net.URI("https://flamboyant-darwin-d11c17.netlify.com").run {
+            org.blockstack.android.sdk.BlockstackConfig(
+                    this,
+                    java.net.URI("${this}/redirect"),
+                    java.net.URI("${this}/manifest.json"),
+                    kotlin.arrayOf(org.blockstack.android.sdk.Scope.StoreWrite))
+        }
 
-        _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
+        _blockstackSession = BlockstackSession(this, config,
                 onLoadedCallback = {
                     // Wait until this callback fires before using any of the
                     // BlockstackSession API methods

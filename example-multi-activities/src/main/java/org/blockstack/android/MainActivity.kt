@@ -31,12 +31,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
-        val redirectURI = URI("${appDomain}/redirect")
-        val manifestURI = URI("${appDomain}/manifest.json")
-        val scopes = arrayOf(Scope.StoreWrite)
-
-        _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
+        _blockstackSession = BlockstackSession(this, defaultConfig,
                 onLoadedCallback = {checkLogin()})
     }
 
