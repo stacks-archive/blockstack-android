@@ -99,7 +99,7 @@ class BlockstackSession(private val context: Context,
         ensureLoaded()
 
         webView.evaluateJavascript(javascript, {result ->
-                if (result != null) {
+                if (result != null && !"null".equals(result)) {
                     val newUserData = JSONObject(result)
                     userData = newUserData
                     callback(UserData(newUserData))
