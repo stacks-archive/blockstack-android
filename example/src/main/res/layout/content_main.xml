@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="org.blockstack.android.MainActivity"
-    tools:showIn="@layout/activity_main">
+                                             xmlns:app="http://schemas.android.com/apk/res-auto"
+                                             xmlns:tools="http://schemas.android.com/tools"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="match_parent"
+                                             tools:context="org.blockstack.android.MainActivity"
+                                             tools:showIn="@layout/activity_main">
 
-        <org.blockstack.android.sdk.ui.BlockstackSignInButton
-            android:id="@+id/signInButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/userDataTextView"
-            />
+    <org.blockstack.android.sdk.ui.BlockstackSignInButton
+        android:id="@+id/signInButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/userDataTextView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
 
     <ImageView
         android:id="@+id/avatarView"
@@ -31,79 +31,96 @@
         android:id="@+id/userDataTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toEndOf="@id/avatarView"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/avatarView"
         app:layout_constraintTop_toBottomOf="@id/signInButton"
         />
 
-        <Button
-            android:id="@+id/putStringFileButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Put String File"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/userDataTextView"
-             />
+    <Button
+        android:id="@+id/putStringFileButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Put String File"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/userDataTextView"
+        />
 
-        <TextView
-            android:id="@+id/readURLTextView"
-            android:layout_width="match_parent"
-            android:layout_height="37dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/putStringFileButton"/>
+    <TextView
+        android:id="@+id/readURLTextView"
+        android:layout_width="match_parent"
+        android:layout_height="37dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/putStringFileButton"/>
 
-        <Button
-            android:id="@+id/getStringFileButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Get String File"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/readURLTextView"/>/>
+    <Button
+        android:id="@+id/getStringFileButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get String File"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/readURLTextView"/>
 
-        <TextView
-            android:id="@+id/fileContentsTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/getStringFileButton"/>/>
+    <TextView
+        android:id="@+id/fileContentsTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/getStringFileButton"/>
 
-        <Button
-            android:id="@+id/putImageFileButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Put Image File"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/fileContentsTextView"/>/>
+    <Button
+        android:id="@+id/putImageFileButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Put Image File"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/fileContentsTextView"/>
 
-        <TextView
-            android:id="@+id/imageFileTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/putImageFileButton"/>/>
+    <TextView
+        android:id="@+id/imageFileTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/putImageFileButton"/>
 
-        <Button
-            android:id="@+id/getImageFileButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Get Image File"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/imageFileTextView"/>/>
+    <Button
+        android:id="@+id/getImageFileButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get Image File"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageFileTextView"/>
 
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            app:srcCompat="@android:color/background_light"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/getImageFileButton"/>/>
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/getImageFileButton"
+        app:srcCompat="@android:color/background_light"/>
+
+    <Button
+        android:id="@+id/getStringFileFromUserButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get String File from user friedger.id"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageView"/>
+
+    <TextView
+        android:id="@+id/fileFromUserContentsTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/getStringFileFromUserButton"/>
 
 </android.support.constraint.ConstraintLayout>

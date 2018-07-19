@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity() {
         putStringFileButton.isEnabled = false
         getImageFileButton.isEnabled = false
         putImageFileButton.isEnabled = false
+        getStringFileFromUserButton.isEnabled = false
 
         signInButton.setOnClickListener { view: View ->
             blockstackSession().redirectUserToSignIn { userData ->
@@ -124,6 +125,15 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
+        getStringFileFromUserButton.setOnClickListener { _ ->
+                val options = GetFileOptions(username = "dev_android_sdk.id.blockstack", zoneFileLookupURL = URL("https://core.blockstack.org/v1/names/"))
+            blockstackSession().getFile(textFileName, options) { content: Any ->
+                runOnUiThread {
+                    fileFromUserContentsTextView.text = content as String
+                }
+            }
+        }
+
         if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
         }
@@ -138,6 +148,7 @@ class MainActivity : AppCompatActivity() {
         putStringFileButton.isEnabled = true
         putImageFileButton.isEnabled = true
         getImageFileButton.isEnabled = true
+        getStringFileFromUserButton.isEnabled = true
     }
 
     private fun showUserAvatar(avatarImage: String?) {
