@@ -16,11 +16,8 @@ import java.util.*
 private val AUTH_URL_STRING = "file:///android_res/raw/webview.html"
 private val HOSTED_BROWSER_URL_BASE = "https://browser.blockstack.org"
 
-class BlockstackSession(private val context: Context,
-                        private val appDomain: URI,
-                        private val redirectURI: URI,
-                        private val manifestURI: URI,
-                        private val scopes: Array<Scope>,
+class BlockstackSession(context: Context,
+                        private val config: BlockstackConfig,
                         onLoadedCallback: () -> Unit = {}) {
 
     private val TAG = BlockstackSession::class.qualifiedName
@@ -80,8 +77,8 @@ class BlockstackSession(private val context: Context,
 
         ensureLoaded()
 
-        val scopesString = Scope.scopesArrayToJSONString(scopes)
-        val javascript = "redirectToSignIn('${appDomain}', '${redirectURI}', '${manifestURI}', ${scopesString})"
+        val scopesString = Scope.scopesArrayToJSONString(config.scopes)
+        val javascript = "redirectToSignIn('${config.appDomain}', '${config.redirectURI}', '${config.manifestURI}', ${scopesString})"
         webView.evaluateJavascript(javascript, { result: String ->
             // no op
         })
