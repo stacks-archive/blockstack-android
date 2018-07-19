@@ -32,6 +32,13 @@ function signUserOut()  {
   return blockstack.signUserOut()
 }
 
+function lookupProfile(username, zoneLookupFileURL) {
+  blockstack.lookupProfile(username, zoneLookupFileURL)
+  .then(function(userData) {
+      android.lookupProfileResult(username, JSON.stringify(userData))
+  })
+}
+
 function getFile(path, options, uniqueIdentifier) {
   console.log('getFile: ' + uniqueIdentifier)
   blockstack.getFile(path, options)

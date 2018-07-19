@@ -110,7 +110,7 @@
         android:id="@+id/getStringFileFromUserButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Get String File from user friedger.id"
+        android:text="Get String File from other user"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageView"/>
