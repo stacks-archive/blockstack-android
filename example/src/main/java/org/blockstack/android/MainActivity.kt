@@ -11,12 +11,11 @@ import android.util.Log
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import java.io.ByteArrayOutputStream
-import java.net.URI
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import org.blockstack.android.sdk.*
 import org.jetbrains.anko.coroutines.experimental.bg
+import java.io.ByteArrayOutputStream
 import java.net.URL
 
 
@@ -71,7 +70,7 @@ class MainActivity : AppCompatActivity() {
             fileContentsTextView.text = "Downloading..."
 
             val options = GetFileOptions()
-            blockstackSession().getFile(textFileName, options, {content: Any ->
+            blockstackSession().getFile(textFileName, options, { content: Any ->
                 Log.d(TAG, "File contents: ${content as String}")
                 runOnUiThread {
                     fileContentsTextView.text = content as String
@@ -83,12 +82,12 @@ class MainActivity : AppCompatActivity() {
             readURLTextView.text = "Uploading..."
             val options = PutFileOptions()
             blockstackSession().putFile(textFileName, "Hello Android!", options,
-                    {readURL: String ->
-                Log.d(TAG, "File stored at: ${readURL}")
+                    { readURL: String ->
+                        Log.d(TAG, "File stored at: ${readURL}")
                         runOnUiThread {
                             readURLTextView.text = "File stored at: ${readURL}"
                         }
-            })
+                    })
         }
 
         putImageFileButton.setOnClickListener { _ ->
@@ -104,7 +103,7 @@ class MainActivity : AppCompatActivity() {
 
             val options = PutFileOptions(false)
             blockstackSession().putFile(imageFileName, bitMapData, options,
-                    {readURL: String ->
+                    { readURL: String ->
                         Log.d(TAG, "File stored at: ${readURL}")
                         runOnUiThread {
                             imageFileTextView.text = "File stored at: ${readURL}"
@@ -114,7 +113,7 @@ class MainActivity : AppCompatActivity() {
 
         getImageFileButton.setOnClickListener { _ ->
             val options = GetFileOptions(decrypt = false)
-            blockstackSession().getFile(imageFileName, options, {contents: Any ->
+            blockstackSession().getFile(imageFileName, options, { contents: Any ->
 
                 val imageByteArray = contents as ByteArray
                 val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
@@ -165,8 +164,12 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onNewIntent")
 
         if (intent?.action == Intent.ACTION_MAIN) {
-            blockstackSession().loadUserData {
-                userData -> runOnUiThread {if (userData != null) {onSignIn(userData)}}
+            blockstackSession().loadUserData { userData ->
+                runOnUiThread {
+                    if (userData != null) {
+                        onSignIn(userData)
+                    }
+                }
             }
         } else if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
@@ -192,9 +195,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun blockstackSession() : BlockstackSession {
+    fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
-        if(session != null) {
+        if (session != null) {
             return session
         } else {
             throw IllegalStateException("No session.")

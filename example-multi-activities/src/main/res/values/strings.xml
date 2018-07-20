@@ -2,4 +2,7 @@
     <string name="app_name">Blockstack Demo Multi Activities</string>
     <string name="action_account">Account</string>
     <string name="activity_account_title">Blockstack Account</string>
+    <string name="action_cipher">Encrypt/Decrypt</string>
+    <string name="encryption">Encrypt/Decrypt</string>
+    <string name="cipher_description">You should see an dummy avatar and a text below</string>
 </resources>

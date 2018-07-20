@@ -8,9 +8,7 @@ import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import org.json.JSONArray
 import org.json.JSONObject
-import java.net.URI
 import java.util.*
 
 private val AUTH_URL_STRING = "file:///android_res/raw/webview.html"
@@ -22,7 +20,9 @@ class BlockstackSession(context: Context,
 
     private val TAG = BlockstackSession::class.qualifiedName
     var loaded: Boolean = false
-        private set(value) {field = value}
+        private set(value) {
+            field = value
+        }
 
     private var userData: JSONObject? = null
     private var signInCallback: ((UserData) -> Unit)? = null
@@ -33,7 +33,9 @@ class BlockstackSession(context: Context,
     init {
         Log.d(TAG, context.toString())
     }
+
     private val webView = WebView(context)
+
     init {
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
@@ -41,7 +43,7 @@ class BlockstackSession(context: Context,
             this.loaded = true
             onLoadedCallback()
         }
-        webView.addJavascriptInterface(JavascriptInterfaceObject(this),"android")
+        webView.addJavascriptInterface(JavascriptInterfaceObject(this), "android")
         webView.loadUrl(AUTH_URL_STRING)
     }
 
@@ -71,7 +73,7 @@ class BlockstackSession(context: Context,
      * when authentication succeeds. It is not called on the UI thread so you should
      * execute any UI interactions in a `runOnUIThread` block
      */
-    fun redirectUserToSignIn(signInCallback: (UserData) -> Unit ) {
+    fun redirectUserToSignIn(signInCallback: (UserData) -> Unit) {
         this.signInCallback = signInCallback
         Log.d(TAG, "redirectUserToSignIn")
 
@@ -95,14 +97,14 @@ class BlockstackSession(context: Context,
 
         ensureLoaded()
 
-        webView.evaluateJavascript(javascript, {result ->
-                if (result != null && !"null".equals(result)) {
-                    val newUserData = JSONObject(result)
-                    userData = newUserData
-                    callback(UserData(newUserData))
-                } else {
-                    callback(null)
-                }
+        webView.evaluateJavascript(javascript, { result ->
+            if (result != null && !"null".equals(result)) {
+                val newUserData = JSONObject(result)
+                userData = newUserData
+                callback(UserData(newUserData))
+            } else {
+                callback(null)
+            }
         })
     }
 
@@ -178,14 +180,14 @@ class BlockstackSession(context: Context,
         ensureLoaded()
 
         val valid = content is String || content is ByteArray
-        if(!valid) {
+        if (!valid) {
             throw IllegalArgumentException("putFile content only supports String or ByteArray")
         }
 
         val isBinary = content is ByteArray
 
         val uniqueIdentifier = addPutFileCallback(callback)
-        if(isBinary) {
+        if (isBinary) {
             val contentString = Base64.encodeToString(content as ByteArray, Base64.NO_WRAP)
             val javascript = "putFile('${path}', '${contentString}', ${options}, '${uniqueIdentifier}', true)"
             webView.evaluateJavascript(javascript, { result: String ->
@@ -198,6 +200,65 @@ class BlockstackSession(context: Context,
             })
         }
 
+    }
+
+    fun encryptContent(plainContent: Any, options: CryptoOptions, callback: (CipherObject?) -> Unit) {
+        ensureLoaded()
+
+        val valid = plainContent is String || plainContent is ByteArray
+        if (!valid) {
+            throw IllegalArgumentException("encrypt content only supports String or ByteArray")
+        }
+
+        val isBinary = plainContent is ByteArray
+
+        val javascript = if (isBinary) {
+            val contentString = Base64.encodeToString(plainContent as ByteArray, Base64.NO_WRAP)
+            "encryptContent('$contentString', $options, true)"
+        } else {
+            "encryptContent('$plainContent', $options, false)"
+        }
+
+        webView.evaluateJavascript(javascript) { result ->
+            if (result != null && !"null".equals(result)) {
+                val cipherObject = JSONObject(result)
+                callback(CipherObject(cipherObject))
+            } else {
+                callback(null)
+            }
+        }
+    }
+
+    fun decryptContent(cipherObject: Any, options: CryptoOptions, callback: (Any) -> Unit) {
+        ensureLoaded()
+
+        val valid = cipherObject is String || cipherObject is ByteArray
+        if (!valid) {
+            throw IllegalArgumentException("decrypt content only supports JSONObject or ByteArray")
+        }
+
+        val isBinary = cipherObject is ByteArray
+
+        var wasString:Boolean
+
+        val javascript = if (isBinary) {
+            val cipherTextString = Base64.encodeToString(cipherObject as ByteArray, Base64.NO_WRAP)
+            wasString = JSONObject(cipherTextString).getBoolean("wasString")
+            "decryptContent('$cipherTextString', $options, true)"
+        } else {
+            wasString = JSONObject(cipherObject as String).getBoolean("wasString")
+            "decryptContent('$cipherObject', $options, false)"
+        }
+
+
+        webView.evaluateJavascript(javascript) {plainContent ->
+
+            if (wasString) {
+                callback(plainContent)
+            } else {
+                callback(Base64.decode(plainContent, Base64.DEFAULT))
+            }
+        }
     }
 
     private fun addGetFileCallback(callback: (Any) -> Unit): String {
@@ -213,7 +274,7 @@ class BlockstackSession(context: Context,
     }
 
     private fun ensureLoaded() {
-        if(!this.loaded) {
+        if (!this.loaded) {
             throw IllegalStateException("Blockstack session hasn't finished loading." +
                     " Please wait until the onLoadedCallback() has fired before performing operations.")
         }
@@ -223,16 +284,16 @@ class BlockstackSession(context: Context,
 
         @JavascriptInterface
         fun signInSuccess(userDataString: String) {
-            Log.d(session.TAG, "signInSuccess" )
+            Log.d(session.TAG, "signInSuccess")
             val userData = JSONObject(userDataString)
             session.userData = userData
-            Log.d(session.TAG, session.userData.toString() )
+            Log.d(session.TAG, session.userData.toString())
             session.signInCallback?.invoke(UserData(userData))
         }
 
         @JavascriptInterface
         fun getFileResult(content: String, uniqueIdentifier: String, isBinary: Boolean) {
-            Log.d(session.TAG, "putFileResult" )
+            Log.d(session.TAG, "putFileResult")
 
             if (isBinary) {
                 val binaryContent: ByteArray = Base64.decode(content as String, Base64.DEFAULT)
@@ -245,7 +306,7 @@ class BlockstackSession(context: Context,
 
         @JavascriptInterface
         fun putFileResult(readURL: String, uniqueIdentifier: String) {
-            Log.d(session.TAG, "putFileResult" )
+            Log.d(session.TAG, "putFileResult")
 
             session.putFileCallbacks[uniqueIdentifier]?.invoke(readURL)
             session.putFileCallbacks.remove(uniqueIdentifier)
@@ -256,7 +317,7 @@ class BlockstackSession(context: Context,
 }
 
 private class BlockstackWebViewClient(val context: Context,
-                                      val onLoadedCallback: () -> Unit ) : WebViewClient() {
+                                      val onLoadedCallback: () -> Unit) : WebViewClient() {
     private val TAG = BlockstackWebViewClient::class.qualifiedName
 
     override fun onPageFinished(view: WebView?, url: String?) {

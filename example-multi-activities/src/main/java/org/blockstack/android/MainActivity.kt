@@ -99,6 +99,10 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent(this, AccountActivity::class.java))
     }
 
+    private fun navigateToCipher() {
+        startActivity(Intent(this, CipherActivity::class.java))
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -112,6 +116,10 @@ class MainActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.action_account -> {
                 navigateToAccount()
+                true
+            }
+            R.id.action_cipher -> {
+                navigateToCipher()
                 true
             }
             else -> super.onOptionsItemSelected(item)
