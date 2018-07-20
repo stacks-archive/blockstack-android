@@ -34,6 +34,15 @@ class UserData(private val jsonObject: JSONObject) {
         }
 
     /**
+     * The user's private key for the currently logged in app
+     */
+    val appPrivateKey: String
+        get() {
+            return jsonObject.getString("appPrivateKey")
+        }
+
+
+    /**
      * The `JSONObject` that backs this object. You use this object to
      * access properties that are not yet exposed by this class.
      */
