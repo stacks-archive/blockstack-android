@@ -56,8 +56,9 @@ class MainActivity : AppCompatActivity() {
         putStringFileButton.isEnabled = false
         getImageFileButton.isEnabled = false
         putImageFileButton.isEnabled = false
+        getStringFileFromUserButton.isEnabled = false
 
-        signInButton.setOnClickListener { view: View ->
+        signInButton.setOnClickListener { _: View ->
             blockstackSession().redirectUserToSignIn { userData ->
                 Log.d(TAG, "signed in!")
                 runOnUiThread {
@@ -68,12 +69,11 @@ class MainActivity : AppCompatActivity() {
 
         getStringFileButton.setOnClickListener { _ ->
             fileContentsTextView.text = "Downloading..."
-
             val options = GetFileOptions()
             blockstackSession().getFile(textFileName, options, { content: Any ->
                 Log.d(TAG, "File contents: ${content as String}")
                 runOnUiThread {
-                    fileContentsTextView.text = content as String
+                    fileContentsTextView.text = content
                 }
             })
         }
@@ -123,6 +123,25 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
+        getStringFileFromUserButton.setOnClickListener { _ ->
+            val username = "dev_android_sdk.id.blockstack";
+            val zoneFileLookupUrl = URL("https://core.blockstack.org/v1/names")
+
+            blockstackSession().lookupProfile(username, zoneFileLookupURL = zoneFileLookupUrl) { profile: Profile? ->
+                runOnUiThread {
+                    val options = GetFileOptions(username = username,
+                            zoneFileLookupURL = zoneFileLookupUrl,
+                            app = "https://flamboyant-darwin-d11c17.netlify.com",
+                            decrypt = false)
+                    blockstackSession().getFile(textFileName, options, { content: Any ->
+                        runOnUiThread {
+                            fileFromUserContentsTextView.text = "from ${profile?.name}($username):\n" + content as String
+                        }
+                    })
+                }
+            }
+        }
+
         if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
         }
@@ -137,6 +156,7 @@ class MainActivity : AppCompatActivity() {
         putStringFileButton.isEnabled = true
         putImageFileButton.isEnabled = true
         getImageFileButton.isEnabled = true
+        getStringFileFromUserButton.isEnabled = true
     }
 
     private fun showUserAvatar(avatarImage: String?) {

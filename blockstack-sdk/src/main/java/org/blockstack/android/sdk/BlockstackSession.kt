@@ -9,6 +9,7 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import org.json.JSONObject
+import java.net.URL
 import java.util.*
 
 private val AUTH_URL_STRING = "file:///android_res/raw/webview.html"
@@ -26,8 +27,10 @@ class BlockstackSession(context: Context,
 
     private var userData: JSONObject? = null
     private var signInCallback: ((UserData) -> Unit)? = null
+    private val lookupProfileCallbacks = HashMap<String, ((Profile) -> Unit)>()
     private val getFileCallbacks = HashMap<String, ((Any) -> Unit)>()
     private val putFileCallbacks = HashMap<String, ((String) -> Unit)>()
+
 
 
     init {
@@ -60,7 +63,7 @@ class BlockstackSession(context: Context,
         ensureLoaded()
 
         val javascript = "handlePendingSignIn('${authResponse}')"
-        webView.evaluateJavascript(javascript, { result: String ->
+        webView.evaluateJavascript(javascript, { _: String ->
 
         })
     }
@@ -81,7 +84,7 @@ class BlockstackSession(context: Context,
 
         val scopesString = Scope.scopesArrayToJSONString(config.scopes)
         val javascript = "redirectToSignIn('${config.appDomain}', '${config.redirectURI}', '${config.manifestURI}', ${scopesString})"
-        webView.evaluateJavascript(javascript, { result: String ->
+        webView.evaluateJavascript(javascript, { _: String ->
             // no op
         })
     }
@@ -140,6 +143,25 @@ class BlockstackSession(context: Context,
         })
     }
 
+    fun lookupProfile(username: String, zoneFileLookupURL: URL? = null, callback: (Profile?) -> Unit) {
+        val javascript = if (zoneFileLookupURL != null) {
+            "lookupProfile('$username', '$zoneFileLookupURL')"
+        } else {
+            "lookupProfile('$username')"
+        }
+        ensureLoaded()
+        lookupProfileCallbacks.put(username, callback)
+        webView.evaluateJavascript(javascript, {
+            result ->
+            if (result != null && !"null".equals(result)) {
+                val newUserData = JSONObject(result)
+                callback(Profile(newUserData))
+            } else {
+                callback(null)
+            }
+        })
+    }
+
     /* Public storage methods */
 
     /**
@@ -158,7 +180,7 @@ class BlockstackSession(context: Context,
 
         val uniqueIdentifier = addGetFileCallback(callback)
         val javascript = "getFile('${path}', ${options}, '${uniqueIdentifier}')"
-        webView.evaluateJavascript(javascript, { result: String ->
+        webView.evaluateJavascript(javascript, { _: String ->
             // no op
         })
     }
@@ -190,12 +212,12 @@ class BlockstackSession(context: Context,
         if (isBinary) {
             val contentString = Base64.encodeToString(content as ByteArray, Base64.NO_WRAP)
             val javascript = "putFile('${path}', '${contentString}', ${options}, '${uniqueIdentifier}', true)"
-            webView.evaluateJavascript(javascript, { result: String ->
+            webView.evaluateJavascript(javascript, { _: String ->
                 // no op
             })
         } else {
             val javascript = "putFile('${path}', '${content}', ${options}, '${uniqueIdentifier}', false)"
-            webView.evaluateJavascript(javascript, { result: String ->
+            webView.evaluateJavascript(javascript, { _: String ->
                 // no op
             })
         }
@@ -292,11 +314,17 @@ class BlockstackSession(context: Context,
         }
 
         @JavascriptInterface
+        fun lookupProfileResult(username:String, userDataString:String) {
+            val userData = JSONObject(userDataString)
+            session.lookupProfileCallbacks[username]?.invoke(Profile(userData))
+        }
+
+        @JavascriptInterface
         fun getFileResult(content: String, uniqueIdentifier: String, isBinary: Boolean) {
             Log.d(session.TAG, "putFileResult")
 
             if (isBinary) {
-                val binaryContent: ByteArray = Base64.decode(content as String, Base64.DEFAULT)
+                val binaryContent: ByteArray = Base64.decode(content, Base64.DEFAULT)
                 session.getFileCallbacks[uniqueIdentifier]?.invoke(binaryContent)
             } else {
                 session.getFileCallbacks[uniqueIdentifier]?.invoke(content)
