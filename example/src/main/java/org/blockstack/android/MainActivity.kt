@@ -149,7 +149,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onSignIn(userData: UserData) {
         userDataTextView.text = "Signed in as ${userData.did}"
-        showUserAvatar(userData.avatarImage)
+        showUserAvatar(userData.profile?.avatarImage)
         signInButton.isEnabled = false
 
         getStringFileButton.isEnabled = true

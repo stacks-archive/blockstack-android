@@ -60,8 +60,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onSignIn(userData: UserData) {
-        userDataTextView.text = "Signed in as ${userData.did}"
-        showUserAvatar(userData.avatarImage)
+        userDataTextView.text = "Signed in as ${userData.profile?.name} (${userData.did}) with ${userData.profile?.email}"
+        showUserAvatar(userData.profile?.avatarImage)
     }
 
     private fun showUserAvatar(avatarImage: String?) {
