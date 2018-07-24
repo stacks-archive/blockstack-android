@@ -14,12 +14,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - A `BlockstackConfig` object to make it easier to use across several activities. Thanks
 to @friedger.
-- `encryptContent`, `decryptContent` methods
+- `BlockstackSession.encryptContent`, `BlockstackSession.decryptContent` methods
 - `BlockstackSession.lookupProfile` method
 ### Changed
 - Fixed a bug where loadUserData would throw an exception if the user is not logged in.
 Thanks to @friedger.
-- Using blockstack.js 17.2.0
+- Using blockstack.js 18.0.0
+- Renaming UserData.did to UserData.decentralizedID
 
 
 
