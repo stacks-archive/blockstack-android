@@ -71,6 +71,31 @@ function putFile(path, content, options, uniqueIdentifier, isBinary) {
     android.putFileResult(result, uniqueIdentifier)
   })
 }
+
+function encryptContent(content, options, isBinary) {
+  console.log('encryptContent')
+  if (isBinary) {
+    content = Base64.decode(content)
+  }
+
+  encryption = blockstack.encryptContent(content, options)
+  return JSON.parse(encryption)
+}
+
+function decryptContent(cipher, options, isBinary) {
+  console.log('decryptContent')
+  if (isBinary) {
+    cipher = Base64.decode(cipher)
+  }
+
+  var decrypted = blockstack.decryptContent(cipher, options)
+  if (typeof decrypted === "string") {
+    console.log(decrypted)
+    return decrypted
+  } else {
+    return Base64.encode(decrypted)
+  }
+}
 </script>
 </head>
 <body>

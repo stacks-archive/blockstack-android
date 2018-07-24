@@ -224,6 +224,65 @@ class BlockstackSession(context: Context,
 
     }
 
+    fun encryptContent(plainContent: Any, options: CryptoOptions, callback: (CipherObject?) -> Unit) {
+        ensureLoaded()
+
+        val valid = plainContent is String || plainContent is ByteArray
+        if (!valid) {
+            throw IllegalArgumentException("encrypt content only supports String or ByteArray")
+        }
+
+        val isBinary = plainContent is ByteArray
+
+        val javascript = if (isBinary) {
+            val contentString = Base64.encodeToString(plainContent as ByteArray, Base64.NO_WRAP)
+            "encryptContent('$contentString', $options, true)"
+        } else {
+            "encryptContent('$plainContent', $options, false)"
+        }
+
+        webView.evaluateJavascript(javascript) { result ->
+            if (result != null && !"null".equals(result)) {
+                val cipherObject = JSONObject(result)
+                callback(CipherObject(cipherObject))
+            } else {
+                callback(null)
+            }
+        }
+    }
+
+    fun decryptContent(cipherObject: Any, options: CryptoOptions, callback: (Any) -> Unit) {
+        ensureLoaded()
+
+        val valid = cipherObject is String || cipherObject is ByteArray
+        if (!valid) {
+            throw IllegalArgumentException("decrypt content only supports JSONObject or ByteArray")
+        }
+
+        val isBinary = cipherObject is ByteArray
+
+        var wasString:Boolean
+
+        val javascript = if (isBinary) {
+            val cipherTextString = Base64.encodeToString(cipherObject as ByteArray, Base64.NO_WRAP)
+            wasString = JSONObject(cipherTextString).getBoolean("wasString")
+            "decryptContent('$cipherTextString', $options, true)"
+        } else {
+            wasString = JSONObject(cipherObject as String).getBoolean("wasString")
+            "decryptContent('$cipherObject', $options, false)"
+        }
+
+
+        webView.evaluateJavascript(javascript) {plainContent ->
+
+            if (wasString) {
+                callback(plainContent)
+            } else {
+                callback(Base64.decode(plainContent, Base64.DEFAULT))
+            }
+        }
+    }
+
     private fun addGetFileCallback(callback: (Any) -> Unit): String {
         val uniqueIdentifier = UUID.randomUUID().toString()
         getFileCallbacks[uniqueIdentifier] = callback
