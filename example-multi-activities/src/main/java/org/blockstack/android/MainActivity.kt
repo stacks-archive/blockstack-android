@@ -14,10 +14,8 @@ import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.Scope
 import org.blockstack.android.sdk.UserData
 import org.jetbrains.anko.coroutines.experimental.bg
-import java.net.URI
 import java.net.URL
 
 
@@ -60,7 +58,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onSignIn(userData: UserData) {
-        userDataTextView.text = "Signed in as ${userData.did}"
+        userDataTextView.text = "Signed in as ${userData.decentralizedID}"
         showUserAvatar(userData.avatarImage)
     }
 
