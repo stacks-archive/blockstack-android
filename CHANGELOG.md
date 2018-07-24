@@ -11,6 +11,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- A `BlockstackConfig` object to make it easier to use across several activities. Thanks
+to @friedger.
+- `encryptContent`, `decryptContent` methods
+- `BlockstackSession.lookupProfile` method
+### Changed
+- Fixed a bug where loadUserData would throw an exception if the user is not logged in.
+Thanks to @friedger.
+- Using blockstack.js 17.2.0
+
 
 
 ## [0.2.0] - 2018-06-25

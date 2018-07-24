@@ -11,12 +11,11 @@ import android.util.Log
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import java.io.ByteArrayOutputStream
-import java.net.URI
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import org.blockstack.android.sdk.*
 import org.jetbrains.anko.coroutines.experimental.bg
+import java.io.ByteArrayOutputStream
 import java.net.URL
 
 
@@ -37,12 +36,15 @@ class MainActivity : AppCompatActivity() {
         getStringFileButton.isEnabled = false
         putStringFileButton.isEnabled = false
 
-        val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
-        val redirectURI = URI("${appDomain}/redirect")
-        val manifestURI = URI("${appDomain}/manifest.json")
-        val scopes = arrayOf(Scope.StoreWrite)
+        val config = java.net.URI("https://flamboyant-darwin-d11c17.netlify.com").run {
+            org.blockstack.android.sdk.BlockstackConfig(
+                    this,
+                    java.net.URI("${this}/redirect"),
+                    java.net.URI("${this}/manifest.json"),
+                    kotlin.arrayOf(org.blockstack.android.sdk.Scope.StoreWrite))
+        }
 
-        _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
+        _blockstackSession = BlockstackSession(this, config,
                 onLoadedCallback = {
                     // Wait until this callback fires before using any of the
                     // BlockstackSession API methods
@@ -54,8 +56,9 @@ class MainActivity : AppCompatActivity() {
         putStringFileButton.isEnabled = false
         getImageFileButton.isEnabled = false
         putImageFileButton.isEnabled = false
+        getStringFileFromUserButton.isEnabled = false
 
-        signInButton.setOnClickListener { view: View ->
+        signInButton.setOnClickListener { _: View ->
             blockstackSession().redirectUserToSignIn { userData ->
                 Log.d(TAG, "signed in!")
                 runOnUiThread {
@@ -66,12 +69,11 @@ class MainActivity : AppCompatActivity() {
 
         getStringFileButton.setOnClickListener { _ ->
             fileContentsTextView.text = "Downloading..."
-
             val options = GetFileOptions()
-            blockstackSession().getFile(textFileName, options, {content: Any ->
+            blockstackSession().getFile(textFileName, options, { content: Any ->
                 Log.d(TAG, "File contents: ${content as String}")
                 runOnUiThread {
-                    fileContentsTextView.text = content as String
+                    fileContentsTextView.text = content
                 }
             })
         }
@@ -80,12 +82,12 @@ class MainActivity : AppCompatActivity() {
             readURLTextView.text = "Uploading..."
             val options = PutFileOptions()
             blockstackSession().putFile(textFileName, "Hello Android!", options,
-                    {readURL: String ->
-                Log.d(TAG, "File stored at: ${readURL}")
+                    { readURL: String ->
+                        Log.d(TAG, "File stored at: ${readURL}")
                         runOnUiThread {
                             readURLTextView.text = "File stored at: ${readURL}"
                         }
-            })
+                    })
         }
 
         putImageFileButton.setOnClickListener { _ ->
@@ -101,7 +103,7 @@ class MainActivity : AppCompatActivity() {
 
             val options = PutFileOptions(false)
             blockstackSession().putFile(imageFileName, bitMapData, options,
-                    {readURL: String ->
+                    { readURL: String ->
                         Log.d(TAG, "File stored at: ${readURL}")
                         runOnUiThread {
                             imageFileTextView.text = "File stored at: ${readURL}"
@@ -111,7 +113,7 @@ class MainActivity : AppCompatActivity() {
 
         getImageFileButton.setOnClickListener { _ ->
             val options = GetFileOptions(decrypt = false)
-            blockstackSession().getFile(imageFileName, options, {contents: Any ->
+            blockstackSession().getFile(imageFileName, options, { contents: Any ->
 
                 val imageByteArray = contents as ByteArray
                 val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
@@ -119,6 +121,25 @@ class MainActivity : AppCompatActivity() {
                     imageView.setImageBitmap(bitmap)
                 }
             })
+        }
+
+        getStringFileFromUserButton.setOnClickListener { _ ->
+            val username = "dev_android_sdk.id.blockstack";
+            val zoneFileLookupUrl = URL("https://core.blockstack.org/v1/names")
+
+            blockstackSession().lookupProfile(username, zoneFileLookupURL = zoneFileLookupUrl) { profile: Profile? ->
+                runOnUiThread {
+                    val options = GetFileOptions(username = username,
+                            zoneFileLookupURL = zoneFileLookupUrl,
+                            app = "https://flamboyant-darwin-d11c17.netlify.com",
+                            decrypt = false)
+                    blockstackSession().getFile(textFileName, options, { content: Any ->
+                        runOnUiThread {
+                            fileFromUserContentsTextView.text = "from ${profile?.name}($username):\n" + content as String
+                        }
+                    })
+                }
+            }
         }
 
         if (intent?.action == Intent.ACTION_VIEW) {
@@ -135,6 +156,7 @@ class MainActivity : AppCompatActivity() {
         putStringFileButton.isEnabled = true
         putImageFileButton.isEnabled = true
         getImageFileButton.isEnabled = true
+        getStringFileFromUserButton.isEnabled = true
     }
 
     private fun showUserAvatar(avatarImage: String?) {
@@ -162,8 +184,12 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onNewIntent")
 
         if (intent?.action == Intent.ACTION_MAIN) {
-            blockstackSession().loadUserData {
-                userData -> runOnUiThread {if (userData != null) {onSignIn(userData)}}
+            blockstackSession().loadUserData { userData ->
+                runOnUiThread {
+                    if (userData != null) {
+                        onSignIn(userData)
+                    }
+                }
             }
         } else if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
@@ -189,9 +215,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun blockstackSession() : BlockstackSession {
+    fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
-        if(session != null) {
+        if (session != null) {
             return session
         } else {
             throw IllegalStateException("No session.")

@@ -31,12 +31,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
-        val redirectURI = URI("${appDomain}/redirect")
-        val manifestURI = URI("${appDomain}/manifest.json")
-        val scopes = arrayOf(Scope.StoreWrite)
-
-        _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
+        _blockstackSession = BlockstackSession(this, defaultConfig,
                 onLoadedCallback = {checkLogin()})
     }
 
@@ -104,6 +99,10 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent(this, AccountActivity::class.java))
     }
 
+    private fun navigateToCipher() {
+        startActivity(Intent(this, CipherActivity::class.java))
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -117,6 +116,10 @@ class MainActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.action_account -> {
                 navigateToAccount()
+                true
+            }
+            R.id.action_cipher -> {
+                navigateToCipher()
                 true
             }
             else -> super.onOptionsItemSelected(item)
