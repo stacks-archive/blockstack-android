@@ -20,6 +20,7 @@ to @friedger.
 - Fixed a bug where loadUserData would throw an exception if the user is not logged in.
 Thanks to @friedger.
 - Using blockstack.js 18.0.0
+- Renaming UserData.did to UserData.decentralizedID
 
 
 
