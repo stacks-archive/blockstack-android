@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_account.*
 import org.blockstack.android.sdk.BlockstackConfig
@@ -93,9 +94,13 @@ class AccountActivity : AppCompatActivity() {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: ${authResponse}")
                 blockstackSession().handlePendingSignIn(authResponse, {
-                    Log.d(TAG, "signed in!")
-                    runOnUiThread {
-                        onSignIn()
+                    if (it.hasErrors) {
+                        Toast.makeText(this, it.error, Toast.LENGTH_SHORT).show()
+                    } else {
+                        Log.d(TAG, "signed in!")
+                        runOnUiThread {
+                            onSignIn()
+                        }
                     }
                 })
             }

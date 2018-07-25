@@ -35,11 +35,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkLogin() {
         blockstackSession().isUserSignedIn({ signedIn ->
-            progressBar.visibility = GONE
             if (signedIn) {
                 blockstackSession().loadUserData({ userData ->
-                    runOnUiThread {
-                        if (userData != null) {
+                    progressBar.visibility = GONE
+                    if (userData != null) {
+                        runOnUiThread {
                             onSignIn(userData)
                         }
                     }
