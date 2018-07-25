@@ -5,9 +5,7 @@ import android.net.Uri
 import android.support.customtabs.CustomTabsIntent
 import android.util.Base64
 import android.util.Log
-import android.webkit.JavascriptInterface
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import org.json.JSONObject
 import java.net.URL
 import java.util.*
@@ -17,6 +15,7 @@ private val HOSTED_BROWSER_URL_BASE = "https://browser.blockstack.org"
 
 class BlockstackSession(context: Context,
                         private val config: BlockstackConfig,
+                        val nameLookupUrl: String = "https://core.blockstack.org/v1/names/",
                         onLoadedCallback: () -> Unit = {}) {
 
     private val TAG = BlockstackSession::class.qualifiedName
@@ -49,6 +48,20 @@ class BlockstackSession(context: Context,
         webView.loadUrl(AUTH_URL_STRING)
     }
 
+
+    fun makeAuthResponse(privateKey: String, callback: (Result<String>) -> Unit) {
+        ensureLoaded()
+
+        val javascript = "makeAuthResponse('${privateKey}')"
+        webView.evaluateJavascript(javascript, { authResponse ->
+            if (authResponse != null && !"null".equals(authResponse)) {
+                callback(Result(authResponse.removeSurrounding("\"")))
+            } else {
+                callback(Result(null, "no auth response"))
+            }
+        })
+    }
+
     /**
      * Process a pending sign in. This method should be called by your app when it
      * receives a request to the app's custom protocol handler.
@@ -61,7 +74,7 @@ class BlockstackSession(context: Context,
 
         ensureLoaded()
 
-        val javascript = "handlePendingSignIn('${authResponse}')"
+        val javascript = "handlePendingSignIn('$nameLookupUrl', '${authResponse}')"
         webView.evaluateJavascript(javascript, { _: String ->
 
         })
@@ -275,7 +288,7 @@ class BlockstackSession(context: Context,
             if (plainContent != null && !"null".equals(plainContent)) {
 
                 if (wasString) {
-                    callback(Result(plainContent))
+                    callback(Result(plainContent.removeSurrounding("\"")))
                 } else {
                     callback(Result(Base64.decode(plainContent, Base64.DEFAULT)))
                 }
@@ -345,7 +358,7 @@ class BlockstackSession(context: Context,
         }
 
         @JavascriptInterface
-        fun getFileFailure(uniqueIdentifier: String, error: String) {
+        fun getFileFailure(error: String, uniqueIdentifier: String) {
             session.getFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
             session.getFileCallbacks.remove(uniqueIdentifier)
         }
@@ -359,7 +372,7 @@ class BlockstackSession(context: Context,
         }
 
         @JavascriptInterface
-        fun putFileFailure(uniqueIdentifier: String, error: String) {
+        fun putFileFailure(error: String, uniqueIdentifier: String) {
             session.putFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
             session.putFileCallbacks.remove(uniqueIdentifier)
         }

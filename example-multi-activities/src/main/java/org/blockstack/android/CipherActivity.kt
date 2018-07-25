@@ -52,7 +52,7 @@ class CipherActivity : AppCompatActivity() {
     }
 
     fun encryptDecryptString() {
-        val options = CryptoOptions(null)
+        val options = CryptoOptions()
         blockstackSession().encryptContent("Hello Android", options) { cipherResult ->
             if (cipherResult.hasValue) {
                 val cipher = cipherResult.value!!
@@ -82,7 +82,7 @@ class CipherActivity : AppCompatActivity() {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
         val bitMapData = stream.toByteArray()
 
-        val options = CryptoOptions(null)
+        val options = CryptoOptions()
         blockstackSession().encryptContent(bitMapData, options) { cipherResult ->
             if (cipherResult.hasValue) {
                 val cipher = cipherResult.value!!

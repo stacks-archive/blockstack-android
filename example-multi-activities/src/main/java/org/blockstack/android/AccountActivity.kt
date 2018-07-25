@@ -11,10 +11,7 @@ import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_account.*
-import org.blockstack.android.sdk.BlockstackConfig
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.Scope
-import java.net.URI
 
 
 class AccountActivity : AppCompatActivity() {
@@ -39,8 +36,8 @@ class AccountActivity : AppCompatActivity() {
                     onLoaded()
                 })
 
-        signInButton.setOnClickListener { view: View ->
-            blockstackSession().redirectUserToSignIn { userData ->
+        signInButton.setOnClickListener { _ ->
+            blockstackSession().redirectUserToSignIn { _ ->
                 Log.d(TAG, "signed in!")
                 runOnUiThread {
                     onSignIn()
@@ -109,7 +106,7 @@ class AccountActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item!!.itemId == android.R.id.home) {
-            NavUtils.navigateUpFromSameTask(this);
+            NavUtils.navigateUpFromSameTask(this)
             return true
         }
         return super.onOptionsItemSelected(item)

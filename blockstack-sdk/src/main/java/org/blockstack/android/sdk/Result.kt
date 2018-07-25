@@ -6,6 +6,6 @@ class Result<T>(val value: T?, val error: String? = null) {
         get() = value != null
 
     val hasErrors: Boolean
-        get() = value == null && (error == null || error.isEmpty())
+        get() = value == null && error != null && !error.isEmpty()
 
 }

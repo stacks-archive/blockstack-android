@@ -7,16 +7,24 @@
 <script>
 var transitPrivateKey = blockstack.generateAndStoreTransitKey()
 
+function makeAuthResponse(privateKey) {
+  const token = blockstack.makeAuthResponse(privateKey, {}, null, {}, null, null);
+  console.log(JSON.stringify(blockstack.decodeToken(token)))
+  return token
+}
+
 function redirectToSignIn(appDomain, redirectURI, manifestURI, scopes) {
   var authRequest = blockstack.makeAuthRequest(transitPrivateKey, redirectURI, manifestURI, scopes, appDomain)
   blockstack.redirectToSignInWithAuthRequest(authRequest)
 }
 
-function handlePendingSignIn(authResponseToken) {
-  blockstack.handlePendingSignIn('https://core.blockstack.org/v1/names/', authResponseToken)
+function handlePendingSignIn(nameLookupUrl, authResponseToken) {
+  blockstack.handlePendingSignIn(nameLookupUrl, authResponseToken)
   .then(function(userData) {
     var userDataString = JSON.stringify(userData)
     android.signInSuccess(userDataString)
+  }, function(error) {
+    android.signInFailure(error.toString())
   })
 }
 
@@ -69,6 +77,8 @@ function putFile(path, content, options, uniqueIdentifier, isBinary) {
   .then(function(result) {
     console.log(result)
     android.putFileResult(result, uniqueIdentifier)
+  }, function(error) {
+    android.putFileFailure(error.toString(), uniqueIdentifier)
   })
 }
 

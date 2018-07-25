@@ -23,6 +23,10 @@ class BlockstackSessionCipherTest {
     @get:Rule
     val rule = ActivityTestRule(TestActivity::class.java)
 
+    private val PRIVATE_KEY = "a5c61c6ca7b3e7e55edee68566aeab22e4da26baa285c7bd10e8d2218aa3b229"
+    private val PUBLIC_KEY = "027d28f9951ce46538951e3697c62588a87f1f1f295de4a14fdd4c780fc52cfe69"
+    private val DECENTRALIZED_ID = "did:btc-addr:1NZNxhoxobqwsNvTb16pdeiqvFvce3Yg8U"
+
     lateinit var session: BlockstackSession
 
     @Before
@@ -30,19 +34,24 @@ class BlockstackSessionCipherTest {
         val context = InstrumentationRegistry.getContext()
         val latch = CountDownLatch(1)
         val config = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(arrayOf())
-        val authResponse = ""
 
         // sign in if needed
         rule.activity.runOnUiThread {
             session = BlockstackSession(context, config) {
-                session.isUserSignedIn { signedIn ->
-                    if (signedIn) {
-                        latch.countDown()
-                    } else {
-                        session.handlePendingSignIn(authResponse, failureCallback = {
-                            failTest("sign in failed")
-                        }) {
-                            latch.await()
+                session.makeAuthResponse(PUBLIC_KEY) { authResponse ->
+                    if (authResponse.hasValue) {
+                        session.isUserSignedIn { signedIn ->
+                            if (signedIn) {
+                                latch.countDown()
+                            } else {
+                                session.handlePendingSignIn(authResponse.value!!) {
+                                    if (it.hasValue) {
+                                        latch.countDown()
+                                    } else {
+                                        failTest("sign in failed")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -52,7 +61,7 @@ class BlockstackSessionCipherTest {
         latch.await()
     }
 
-    private fun failTest(msg:String) {
+    private fun failTest(msg: String) {
         rule.activity.runOnUiThread {
             fail(msg)
         }
@@ -67,14 +76,13 @@ class BlockstackSessionCipherTest {
         var decryptedContent: Any? = null
 
         val plainText = "PlainText"
-        val privateKey = "pk"
-        val cryptoOptions = CryptoOptions(privateKey)
+        val cryptoOptions = CryptoOptions(PUBLIC_KEY, PRIVATE_KEY)
         rule.activity.runOnUiThread {
-            session.encryptContent(plainText, cryptoOptions) { cipherObject ->
-                assertThat(cipherObject, notNullValue())
+            session.encryptContent(plainText, cryptoOptions) { cipherObjectResult ->
+                assertThat(cipherObjectResult.value, notNullValue())
 
-                session.decryptContent(cipherObject!!, cryptoOptions) {
-                    decryptedContent = it
+                session.decryptContent(cipherObjectResult.value!!.json.toString(), cryptoOptions) {
+                    decryptedContent = it.value
                     latch.countDown()
                 }
             }
@@ -95,14 +103,13 @@ class BlockstackSessionCipherTest {
 
         val plainText = "PlainText"
         val plainByteArray = plainText.toByteArray()
-        val privateKey = "pk"
-        val cryptoOptions = CryptoOptions(privateKey)
+        val cryptoOptions = CryptoOptions(PUBLIC_KEY, PRIVATE_KEY)
         rule.activity.runOnUiThread {
-            session.encryptContent(plainByteArray, cryptoOptions) { cipherObject ->
-                assertThat(cipherObject, notNullValue())
+            session.encryptContent(plainByteArray, cryptoOptions) { cipherObjectResult ->
+                assertThat(cipherObjectResult.value, notNullValue())
 
-                session.decryptContent(cipherObject!!, cryptoOptions) {
-                    decryptedContent = it
+                session.decryptContent(cipherObjectResult.value!!.json.toString(), cryptoOptions) {
+                    decryptedContent = it.value
                     latch.countDown()
                 }
             }

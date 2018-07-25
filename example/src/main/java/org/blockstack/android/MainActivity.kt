@@ -163,7 +163,7 @@ class MainActivity : AppCompatActivity() {
                             if (contentResult.hasValue) {
                                 val content = contentResult.value!!
                                 runOnUiThread {
-                                    fileFromUserContentsTextView.text = "from ${profile?.name}($username):\n" + content as String
+                                    fileFromUserContentsTextView.text = "from ${profile.name}($username):\n ${content as String}"
                                 }
                             } else {
                                 Toast.makeText(this, "error: " + contentResult.error, Toast.LENGTH_SHORT).show()
