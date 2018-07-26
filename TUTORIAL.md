@@ -382,6 +382,7 @@ Now that you have created your initial project and verified it running in an emu
       <action android:name="android.intent.action.VIEW" />
       <category android:name="android.intent.category.DEFAULT" />
       <category android:name="android.intent.category.BROWSABLE" />
+      <data android:scheme="myblockstackapp" />
      </intent-filter>
     ```
 
@@ -426,14 +427,13 @@ Now that you have created your initial project and verified it running in an emu
 
     ```JS
     dependencies {
-        implementation fileTree(dir: 'libs', include: ['*.jar'])
         implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
         implementation 'com.android.support:appcompat-v7:27.1.0'
         implementation 'com.android.support.constraint:constraint-layout:1.1.2'
         testImplementation 'junit:junit:4.12'
         androidTestImplementation 'com.android.support.test:runner:1.0.2'
         androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-        implementation 'com.github.blockstack:blockstack-android:v0.2.0'
+        implementation 'com.github.blockstack:blockstack-android:v0.3.0'
     }
 
     ```
@@ -556,20 +556,22 @@ Now that you have created your initial project and verified it running in an emu
         val scopes = arrayOf(Scope.StoreWrite)
 
         _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
-                onLoadedCallback = {signInButton.isEnabled = true
-
-
+                onLoadedCallback = {
+                    signInButton.isEnabled = true
                 })
 
 
         signInButton.setOnClickListener { view: View ->
             blockstackSession().redirectUserToSignIn { userData ->
-                runOnUiThread {
-                    onSignIn(userData)
+                if (userData.hasValue) {
+                    runOnUiThread {
+                        onSignIn(userData.value!!)
+                    }
                 }
             }
         }
         if (intent?.action == Intent.ACTION_VIEW) {
+            // handle the redirect from sign in
             handleAuthResponse(intent)
         }
     }
@@ -592,14 +594,14 @@ Now that you have created your initial project and verified it running in an emu
 
     ```kotlin
     private fun onSignIn(userData: UserData) {
-    		userDataTextView.text = "Signed in as ${userData.did}"
+    		userDataTextView.text = "Signed in as ${userData.decentralizedID}"
 
     		signInButton.isEnabled = false
 
     }
     ```
 
-6. Handle sign in requests with an `onNewIntent` function.
+6. Handle sign in requests with an `onNewIntent` function if the activity was already opened when signing in
 
     Retrieve the authentication token from the custom protocol handler call and
     send it to the Blockstack session.
@@ -608,11 +610,7 @@ Now that you have created your initial project and verified it running in an emu
     override fun onNewIntent(intent: Intent?) {
       super.onNewIntent(intent)
 
-      if (intent?.action == Intent.ACTION_MAIN) {
-          blockstackSession().loadUserData {
-              userData -> runOnUiThread {if (userData != null) {onSignIn(userData)}}
-          }
-      } else if (intent?.action == Intent.ACTION_VIEW) {
+      if (intent?.action == Intent.ACTION_VIEW) {
           handleAuthResponse(intent)
       }
     }
@@ -630,9 +628,11 @@ Now that you have created your initial project and verified it running in an emu
                val authResponse = authResponseTokens[1]
 
                blockstackSession().handlePendingSignIn(authResponse, { userData ->
-                   // The user is now signed in!
-                   runOnUiThread {
-                       onSignIn(userData)
+                   if (userData.hasValue) {
+                      // The user is now signed in!
+                      runOnUiThread {
+                         onSignIn(userData.value!!)
+                      }
                    }
                })
            }
@@ -640,7 +640,7 @@ Now that you have created your initial project and verified it running in an emu
     }
     ```
 
-8. Instantiate the session.
+8. Add the convenience method to access the blockstack session.
 
     ```kotlin
     fun blockstackSession() : BlockstackSession {
@@ -679,8 +679,10 @@ Now that you have created your initial project and verified it running in an emu
 
             signInButton.setOnClickListener { view: View ->
                 blockstackSession().redirectUserToSignIn { userData ->
-                    runOnUiThread {
-                        onSignIn(userData)
+                    if (userData.hasValue) {
+                        runOnUiThread {
+                            onSignIn(userData)
+                        }
                     }
                 }
             }
@@ -690,7 +692,7 @@ Now that you have created your initial project and verified it running in an emu
         }
 
         private fun onSignIn(userData: UserData) {
-            userDataTextView.text = "Signed in as ${userData.did}"
+            userDataTextView.text = "Signed in as ${userData.decentralizedID}"
 
             signInButton.isEnabled = false
 
@@ -699,11 +701,7 @@ Now that you have created your initial project and verified it running in an emu
         override fun onNewIntent(intent: Intent?) {
             super.onNewIntent(intent)
 
-            if (intent?.action == Intent.ACTION_MAIN) {
-                blockstackSession().loadUserData {
-                    userData -> runOnUiThread {if (userData != null) {onSignIn(userData)}}
-                }
-            } else if (intent?.action == Intent.ACTION_VIEW) {
+            if (intent?.action == Intent.ACTION_VIEW) {
                 handleAuthResponse(intent)
             }
         }
@@ -717,9 +715,11 @@ Now that you have created your initial project and verified it running in an emu
                     val authResponse = authResponseTokens[1]
 
                     blockstackSession().handlePendingSignIn(authResponse, { userData ->
-                        // The user is now signed in!
-                        runOnUiThread {
-                            onSignIn(userData)
+                        if (userData.hasValue) {
+                            // The user is now signed in!
+                            runOnUiThread {
+                                onSignIn(userData.value!!)
+                            }
                         }
                     })
                 }
