@@ -26,6 +26,9 @@ private val HOSTED_BROWSER_URL_BASE = "https://browser.blockstack.org"
  */
 class BlockstackSession(context: Context,
                         private val config: BlockstackConfig,
+                        /**
+                         * url of the name lookup service, defaults to core.blockstack.org/v1/names
+                         */
                         val nameLookupUrl: String = "https://core.blockstack.org/v1/names/",
                         onLoadedCallback: () -> Unit = {}) {
 
@@ -64,6 +67,15 @@ class BlockstackSession(context: Context,
     }
 
 
+    /**
+     * Creates an auth response using the given private key. Usually not needed.
+     *
+     * This method creates an auth response token from the given private key. It
+     * is currently used for integration tests.
+     *
+     * @param privateKey the private key of the user that wants to sign in
+     * @param callback called with the auth response as string in json format
+     */
     fun makeAuthResponse(privateKey: String, callback: (Result<String>) -> Unit) {
         ensureLoaded()
 
