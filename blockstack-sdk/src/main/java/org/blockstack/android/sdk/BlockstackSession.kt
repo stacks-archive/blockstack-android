@@ -15,11 +15,26 @@ import java.util.*
 private val AUTH_URL_STRING = "file:///android_res/raw/webview.html"
 private val HOSTED_BROWSER_URL_BASE = "https://browser.blockstack.org"
 
+/**
+ * Main object to interact with blockstack in an activity
+ *
+ * The current implementation is a wrapper for blockstack.js using a WebView.
+ * This means that methods must be called on the UI thread e.g. using
+ * `runOnUIThread`
+ *
+ * @param context the activity interacting with blockstack
+ * @property config the configuration for blockstack
+ * @param onLoadedCallback the callback for when this object is ready to use
+ */
 class BlockstackSession(context: Context,
                         private val config: BlockstackConfig,
                         onLoadedCallback: () -> Unit = {}) {
 
     private val TAG = BlockstackSession::class.qualifiedName
+
+    /**
+     * Flag indicating whether this object is ready to use
+     */
     var loaded: Boolean = false
         private set(value) {
             field = value
@@ -143,6 +158,13 @@ class BlockstackSession(context: Context,
         })
     }
 
+    /**
+     * Lookup the profile of a user
+     *
+     * @param username the registered user name, like `dev_android_sdk.id`
+     * @param zoneFileLookupURL the url of the zone file lookup service like `https://core.blockstack.org/v1/names`
+     * @param callback is called with the profile of the user or null if not found
+     */
     fun lookupProfile(username: String, zoneFileLookupURL: URL? = null, callback: (Profile?) -> Unit) {
         val javascript = if (zoneFileLookupURL != null) {
             "lookupProfile('$username', '$zoneFileLookupURL')"
@@ -224,6 +246,13 @@ class BlockstackSession(context: Context,
 
     }
 
+    /**
+     * Encrypt content
+     *
+     * @plainContent can be a String or ByteArray
+     * @options defines how to encrypt
+     * @callback called with the cipher object or null if encryption failed
+     */
     fun encryptContent(plainContent: Any, options: CryptoOptions, callback: (CipherObject?) -> Unit) {
         ensureLoaded()
 
@@ -251,6 +280,12 @@ class BlockstackSession(context: Context,
         }
     }
 
+    /**
+     * Decrypt content
+     * @cipherObject can be a String or ByteArray representing the cipherObject returned by  @see encryptContent
+     * @options defines how to decrypt the cipherObject
+     * @callback called with the plain content as String or ByteArray depending on the given options
+     */
     fun decryptContent(cipherObject: Any, options: CryptoOptions, callback: (Any) -> Unit) {
         ensureLoaded()
 

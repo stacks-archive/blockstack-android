@@ -2,6 +2,8 @@ package org.blockstack.android.sdk
 
 /**
  * An enum of scopes supported in Blockstack Authentication.
+ *
+ * @property scope identifies the permission, same as in blockstack.js
  */
 enum class Scope(val scope: String) {
     /**
@@ -21,11 +23,17 @@ enum class Scope(val scope: String) {
      */
     Email("email");
 
+    /**
+     * returns the scope as string
+     */
     override fun toString(): String {
         return scope
     }
 
     companion object {
+        /**
+         * converts an array of scopes into a string usable by blockstack.js
+         */
         @JvmStatic
         fun scopesArrayToJSONString(scopes: Array<Scope>): String {
             return scopes.joinToString(prefix = "[", transform = {"\"${it.scope}\""}, postfix = "]")

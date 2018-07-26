@@ -2,6 +2,9 @@ package org.blockstack.android.sdk
 
 import org.json.JSONObject
 
+/**
+ * Object containing user's profile. This object is backed by the original JSON representation.
+ */
 class Profile(private val jsonObject: JSONObject) {
 
     /**

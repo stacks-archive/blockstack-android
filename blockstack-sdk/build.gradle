@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'org.jetbrains.dokka-android'
 
 group = 'com.github.blockstack'
 
@@ -29,6 +30,10 @@ android {
 
 }
 
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
+}
 
 dependencies {
     implementation 'com.android.support:customtabs:27.1.1'
