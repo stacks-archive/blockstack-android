@@ -31,6 +31,7 @@ android {
 }
 
 dokka {
+    includes = ['module.md']
     outputFormat = 'html'
     outputDirectory = "$buildDir/javadoc"
 }
