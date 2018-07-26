@@ -9,6 +9,14 @@ import org.json.JSONObject
  * `json.toString()`. This an then be used for decrypting the content in @see decryptContent
  */
 class CipherObject(private val jsonObject: JSONObject) {
+
+    /**
+     * json representation of the encrypted content
+     *
+     * json.toString should be used as parameter of decryptContent.
+     *
+     * @see BlockstackSession.decryptContent
+     */
     val json: JSONObject
         get() {
             return jsonObject
