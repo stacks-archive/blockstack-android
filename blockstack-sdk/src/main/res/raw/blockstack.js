@@ -465,6 +465,9 @@ function makeAuthResponse(privateKey) {
       version: VERSION
     };
   } else {
+    additionalProperties = {
+        version: ""
+    }
     _logger.Logger.info('blockstack.js: generating legacy auth response');
   }
 
