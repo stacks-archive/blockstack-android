@@ -148,7 +148,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onSignIn(userData: UserData) {
-        userDataTextView.text = "Signed in as ${userData.did}"
+        userDataTextView.text = "Signed in as ${userData.decentralizedID}"
         showUserAvatar(userData.avatarImage)
         signInButton.isEnabled = false
 

@@ -28,9 +28,9 @@ class UserData(private val jsonObject: JSONObject) {
     /**
      * The user's decentralized identifier - this is used to uniquely identify a user
      */
-    val did: String
+    val decentralizedID: String
         get() {
-            return jsonObject.getString("did")
+            return jsonObject.getString("decentralizedID")
         }
 
     /**
