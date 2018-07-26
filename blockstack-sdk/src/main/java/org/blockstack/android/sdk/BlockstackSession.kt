@@ -163,13 +163,8 @@ class BlockstackSession(context: Context,
         }
         ensureLoaded()
         lookupProfileCallbacks.put(username, callback)
-        webView.evaluateJavascript(javascript, { result ->
-            if (result != null && !"null".equals(result)) {
-                val newUserData = JSONObject(result)
-                callback(Result(Profile(newUserData)))
-            } else {
-                callback(Result(null, "failed to lookup profile"))
-            }
+        webView.evaluateJavascript(javascript, { _ ->
+            // no op, lookupProfileCallback for username will be called
         })
     }
 
@@ -192,7 +187,7 @@ class BlockstackSession(context: Context,
         val uniqueIdentifier = addGetFileCallback(callback)
         val javascript = "getFile('${path}', ${options}, '${uniqueIdentifier}')"
         webView.evaluateJavascript(javascript, { _: String ->
-            // no op
+            // no op, getFileCallback for uuid will be called
         })
     }
 

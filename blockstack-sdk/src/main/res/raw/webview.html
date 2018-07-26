@@ -44,6 +44,8 @@ function lookupProfile(username, zoneLookupFileURL) {
   blockstack.lookupProfile(username, zoneLookupFileURL)
   .then(function(userData) {
       android.lookupProfileResult(username, JSON.stringify(userData))
+  }, function(error) {
+      android.lookupProfileFailure(username, error.toString())
   })
 }
 
