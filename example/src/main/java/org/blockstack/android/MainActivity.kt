@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
                 onLoadedCallback = {
                     // Wait until this callback fires before using any of the
                     // BlockstackSession API methods
-                    
+
                     signInButton.isEnabled = true
                 })
 
@@ -149,7 +149,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onSignIn(userData: UserData) {
         userDataTextView.text = "Signed in as ${userData.decentralizedID}"
-        showUserAvatar(userData.avatarImage)
+        showUserAvatar(userData.profile?.avatarImage)
         signInButton.isEnabled = false
 
         getStringFileButton.isEnabled = true

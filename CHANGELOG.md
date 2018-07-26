@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 to @friedger.
 - `BlockstackSession.encryptContent`, `BlockstackSession.decryptContent` methods
 - `BlockstackSession.lookupProfile` method
+- `UserData.Profile` object that contains avatar image and email as well
+
 ### Changed
 - Fixed a bug where loadUserData would throw an exception if the user is not logged in.
 Thanks to @friedger.
