@@ -1,9 +1,11 @@
+# Blockstack Android SDK Tutorial (Pre-release)
+
 This TUTORIAL is written such that readers who are new to either or both
 Blockstack and Android to create a decentralized application. It contains the following sections:
 
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
-- [Blockstack Android SDK (Pre-release)](#blockstack-android-sdk-pre-release)
+- [Blockstack Android SDK (Pre-release)](#blockstack-android-sdk-tutorial-pre-release)
 	- [Understand the sample application flow](#understand-the-sample-application-flow)
 	- [Set up your environment](#set-up-your-environment)
 		- [Install Android Studio](#install-android-studio)
