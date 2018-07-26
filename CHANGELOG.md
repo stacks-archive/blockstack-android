@@ -16,7 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 to @friedger.
 - `BlockstackSession.encryptContent`, `BlockstackSession.decryptContent` methods
 - `BlockstackSession.lookupProfile` method
-- `Result<T>` object that can have a value of type T or errors, used for callbacks.
+- `UserData.Profile` object that contains avatar image and email as well
+- `Result<T>` object that can have a value of type T or errors, used for callbacks
+
 ### Changed
 - Fixed a bug where loadUserData would throw an exception if the user is not logged in.
 Thanks to @friedger.
