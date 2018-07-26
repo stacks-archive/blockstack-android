@@ -32,6 +32,10 @@ There are two example apps in module ([`/example`](examples/)) and ([`/example-m
     }
 ```
 
+## API Reference Documentation
+Please see [generated documenatation](https://31-124568327-gh.circle-artifacts.com/0/javadoc/blockstack-sdk/index.html)
+on the project's circle CI.
+
 ## Contributing
 Please see the [contribution guidelines](CONTRIBUTING.md).
 
