@@ -150,7 +150,7 @@ class MainActivity : AppCompatActivity() {
         getStringFileFromUserButton.setOnClickListener { _ ->
             val username = "dev_android_sdk.id.blockstack";
             val zoneFileLookupUrl = URL("https://core.blockstack.org/v1/names")
-
+            fileFromUserContentsTextView.text = "Downloading file from other user..."
             blockstackSession().lookupProfile(username, zoneFileLookupURL = zoneFileLookupUrl) { profileResult ->
                 if (profileResult.hasValue) {
                     val profile = profileResult.value!!
@@ -166,12 +166,16 @@ class MainActivity : AppCompatActivity() {
                                     fileFromUserContentsTextView.text = "from ${profile?.name}($username):\n" + content as String
                                 }
                             } else {
-                                Toast.makeText(this, "error: " + contentResult.error, Toast.LENGTH_SHORT).show()
+                                val errorMsg = "error: " + contentResult.error
+                                fileFromUserContentsTextView.text = errorMsg
+                                Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show()
                             }
                         })
                     }
                 } else {
-                    Toast.makeText(this, "error: " + profileResult.error, Toast.LENGTH_SHORT).show()
+                    val errorMsg = "error: " + profileResult.error
+                    fileFromUserContentsTextView.text = errorMsg
+                    Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show()
                 }
             }
         }
