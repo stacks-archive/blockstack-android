@@ -5,9 +5,7 @@ import android.net.Uri
 import android.support.customtabs.CustomTabsIntent
 import android.util.Base64
 import android.util.Log
-import android.webkit.JavascriptInterface
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import org.json.JSONObject
 import java.net.URL
 import java.util.*
@@ -17,6 +15,7 @@ private val HOSTED_BROWSER_URL_BASE = "https://browser.blockstack.org"
 
 class BlockstackSession(context: Context,
                         private val config: BlockstackConfig,
+                        val nameLookupUrl: String = "https://core.blockstack.org/v1/names/",
                         onLoadedCallback: () -> Unit = {}) {
 
     private val TAG = BlockstackSession::class.qualifiedName
@@ -26,11 +25,10 @@ class BlockstackSession(context: Context,
         }
 
     private var userData: JSONObject? = null
-    private var signInCallback: ((UserData) -> Unit)? = null
-    private val lookupProfileCallbacks = HashMap<String, ((Profile) -> Unit)>()
-    private val getFileCallbacks = HashMap<String, ((Any) -> Unit)>()
-    private val putFileCallbacks = HashMap<String, ((String) -> Unit)>()
-
+    private var signInCallback: ((Result<UserData>) -> Unit)? = null
+    private val lookupProfileCallbacks = HashMap<String, ((Result<Profile>) -> Unit)>()
+    private val getFileCallbacks = HashMap<String, ((Result<Any>) -> Unit)>()
+    private val putFileCallbacks = HashMap<String, ((Result<String>) -> Unit)>()
 
 
     init {
@@ -50,19 +48,33 @@ class BlockstackSession(context: Context,
         webView.loadUrl(AUTH_URL_STRING)
     }
 
+
+    fun makeAuthResponse(privateKey: String, callback: (Result<String>) -> Unit) {
+        ensureLoaded()
+
+        val javascript = "makeAuthResponse('${privateKey}')"
+        webView.evaluateJavascript(javascript, { authResponse ->
+            if (authResponse != null && !"null".equals(authResponse)) {
+                callback(Result(authResponse.removeSurrounding("\"")))
+            } else {
+                callback(Result(null, "no auth response"))
+            }
+        })
+    }
+
     /**
      * Process a pending sign in. This method should be called by your app when it
      * receives a request to the app's custom protocol handler.
      *
      * @property authResponse authentication response token
      */
-    fun handlePendingSignIn(authResponse: String, signInCallback: (UserData) -> Unit) {
+    fun handlePendingSignIn(authResponse: String, signInCallback: (Result<UserData>) -> Unit) {
         this.signInCallback = signInCallback
         Log.d(TAG, "handlePendingSignIn")
 
         ensureLoaded()
 
-        val javascript = "handlePendingSignIn('${authResponse}')"
+        val javascript = "handlePendingSignIn('$nameLookupUrl', '${authResponse}')"
         webView.evaluateJavascript(javascript, { _: String ->
 
         })
@@ -76,7 +88,7 @@ class BlockstackSession(context: Context,
      * when authentication succeeds. It is not called on the UI thread so you should
      * execute any UI interactions in a `runOnUIThread` block
      */
-    fun redirectUserToSignIn(signInCallback: (UserData) -> Unit) {
+    fun redirectUserToSignIn(signInCallback: (Result<UserData>) -> Unit) {
         this.signInCallback = signInCallback
         Log.d(TAG, "redirectUserToSignIn")
 
@@ -143,7 +155,7 @@ class BlockstackSession(context: Context,
         })
     }
 
-    fun lookupProfile(username: String, zoneFileLookupURL: URL? = null, callback: (Profile?) -> Unit) {
+    fun lookupProfile(username: String, zoneFileLookupURL: URL? = null, callback: (Result<Profile>) -> Unit) {
         val javascript = if (zoneFileLookupURL != null) {
             "lookupProfile('$username', '$zoneFileLookupURL')"
         } else {
@@ -151,13 +163,12 @@ class BlockstackSession(context: Context,
         }
         ensureLoaded()
         lookupProfileCallbacks.put(username, callback)
-        webView.evaluateJavascript(javascript, {
-            result ->
+        webView.evaluateJavascript(javascript, { result ->
             if (result != null && !"null".equals(result)) {
                 val newUserData = JSONObject(result)
-                callback(Profile(newUserData))
+                callback(Result(Profile(newUserData)))
             } else {
-                callback(null)
+                callback(Result(null, "failed to lookup profile"))
             }
         })
     }
@@ -173,7 +184,7 @@ class BlockstackSession(context: Context,
      * @property callback a function that is called with the file contents. It is not called on the
      * UI thread so you should execute any UI interactions in a `runOnUIThread` block
      */
-    fun getFile(path: String, options: GetFileOptions, callback: ((Any) -> Unit)) {
+    fun getFile(path: String, options: GetFileOptions, callback: ((Result<Any>) -> Unit)) {
         Log.d(TAG, "getFile: path: ${path} options: ${options}")
 
         ensureLoaded()
@@ -196,7 +207,7 @@ class BlockstackSession(context: Context,
      * which you can read the file that was just put. It is not called on the UI thread so you should
      * execute any UI interactions in a `runOnUIThread` block
      */
-    fun putFile(path: String, content: Any, options: PutFileOptions, callback: ((String) -> Unit)) {
+    fun putFile(path: String, content: Any, options: PutFileOptions, callback: (Result<String>) -> Unit) {
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
 
         ensureLoaded()
@@ -224,7 +235,7 @@ class BlockstackSession(context: Context,
 
     }
 
-    fun encryptContent(plainContent: Any, options: CryptoOptions, callback: (CipherObject?) -> Unit) {
+    fun encryptContent(plainContent: Any, options: CryptoOptions, callback: (Result<CipherObject>) -> Unit) {
         ensureLoaded()
 
         val valid = plainContent is String || plainContent is ByteArray
@@ -244,14 +255,14 @@ class BlockstackSession(context: Context,
         webView.evaluateJavascript(javascript) { result ->
             if (result != null && !"null".equals(result)) {
                 val cipherObject = JSONObject(result)
-                callback(CipherObject(cipherObject))
+                callback(Result(CipherObject(cipherObject)))
             } else {
-                callback(null)
+                callback(Result(null, "failed to encrypt"))
             }
         }
     }
 
-    fun decryptContent(cipherObject: Any, options: CryptoOptions, callback: (Any) -> Unit) {
+    fun decryptContent(cipherObject: Any, options: CryptoOptions, callback: (Result<Any>) -> Unit) {
         ensureLoaded()
 
         val valid = cipherObject is String || cipherObject is ByteArray
@@ -261,7 +272,7 @@ class BlockstackSession(context: Context,
 
         val isBinary = cipherObject is ByteArray
 
-        var wasString:Boolean
+        var wasString: Boolean
 
         val javascript = if (isBinary) {
             val cipherTextString = Base64.encodeToString(cipherObject as ByteArray, Base64.NO_WRAP)
@@ -273,23 +284,27 @@ class BlockstackSession(context: Context,
         }
 
 
-        webView.evaluateJavascript(javascript) {plainContent ->
+        webView.evaluateJavascript(javascript) { plainContent ->
+            if (plainContent != null && !"null".equals(plainContent)) {
 
-            if (wasString) {
-                callback(plainContent)
+                if (wasString) {
+                    callback(Result(plainContent.removeSurrounding("\"")))
+                } else {
+                    callback(Result(Base64.decode(plainContent, Base64.DEFAULT)))
+                }
             } else {
-                callback(Base64.decode(plainContent, Base64.DEFAULT))
+                callback(Result(null, "failed to decrypt"))
             }
         }
     }
 
-    private fun addGetFileCallback(callback: (Any) -> Unit): String {
+    private fun addGetFileCallback(callback: (Result<Any>) -> Unit): String {
         val uniqueIdentifier = UUID.randomUUID().toString()
         getFileCallbacks[uniqueIdentifier] = callback
         return uniqueIdentifier
     }
 
-    private fun addPutFileCallback(callback: (String) -> Unit): String {
+    private fun addPutFileCallback(callback: (Result<String>) -> Unit): String {
         val uniqueIdentifier = UUID.randomUUID().toString()
         putFileCallbacks[uniqueIdentifier] = callback
         return uniqueIdentifier
@@ -310,13 +325,23 @@ class BlockstackSession(context: Context,
             val userData = JSONObject(userDataString)
             session.userData = userData
             Log.d(session.TAG, session.userData.toString())
-            session.signInCallback?.invoke(UserData(userData))
+            session.signInCallback?.invoke(Result(UserData(userData)))
         }
 
         @JavascriptInterface
-        fun lookupProfileResult(username:String, userDataString:String) {
+        fun signInFailure(error: String) {
+            session.signInCallback?.invoke(Result(null, error))
+        }
+
+        @JavascriptInterface
+        fun lookupProfileResult(username: String, userDataString: String) {
             val userData = JSONObject(userDataString)
-            session.lookupProfileCallbacks[username]?.invoke(Profile(userData))
+            session.lookupProfileCallbacks[username]?.invoke(Result(Profile(userData)))
+        }
+
+        @JavascriptInterface
+        fun lookupProfileFailure(username: String, error: String) {
+            session.lookupProfileCallbacks[username]?.invoke(Result(null, error))
         }
 
         @JavascriptInterface
@@ -325,10 +350,16 @@ class BlockstackSession(context: Context,
 
             if (isBinary) {
                 val binaryContent: ByteArray = Base64.decode(content, Base64.DEFAULT)
-                session.getFileCallbacks[uniqueIdentifier]?.invoke(binaryContent)
+                session.getFileCallbacks[uniqueIdentifier]?.invoke(Result(binaryContent))
             } else {
-                session.getFileCallbacks[uniqueIdentifier]?.invoke(content)
+                session.getFileCallbacks[uniqueIdentifier]?.invoke(Result(content))
             }
+            session.getFileCallbacks.remove(uniqueIdentifier)
+        }
+
+        @JavascriptInterface
+        fun getFileFailure(error: String, uniqueIdentifier: String) {
+            session.getFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
             session.getFileCallbacks.remove(uniqueIdentifier)
         }
 
@@ -336,7 +367,13 @@ class BlockstackSession(context: Context,
         fun putFileResult(readURL: String, uniqueIdentifier: String) {
             Log.d(session.TAG, "putFileResult")
 
-            session.putFileCallbacks[uniqueIdentifier]?.invoke(readURL)
+            session.putFileCallbacks[uniqueIdentifier]?.invoke(Result(readURL))
+            session.putFileCallbacks.remove(uniqueIdentifier)
+        }
+
+        @JavascriptInterface
+        fun putFileFailure(error: String, uniqueIdentifier: String) {
+            session.putFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
             session.putFileCallbacks.remove(uniqueIdentifier)
         }
 
