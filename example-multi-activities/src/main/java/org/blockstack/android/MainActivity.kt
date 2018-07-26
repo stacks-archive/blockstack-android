@@ -30,20 +30,20 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         _blockstackSession = BlockstackSession(this, defaultConfig,
-                onLoadedCallback = {checkLogin()})
+                onLoadedCallback = { checkLogin() })
     }
 
     private fun checkLogin() {
         blockstackSession().isUserSignedIn({ signedIn ->
-            progressBar.visibility = GONE
             if (signedIn) {
-                    blockstackSession().loadUserData({userData ->
-                                runOnUiThread {
-                                    if (userData != null) {
-                                        onSignIn(userData)
-                                    }
-                                }
-                            })
+                blockstackSession().loadUserData({ userData ->
+                    progressBar.visibility = GONE
+                    if (userData != null) {
+                        runOnUiThread {
+                            onSignIn(userData)
+                        }
+                    }
+                })
             } else {
                 navigateToAccount()
             }
@@ -58,8 +58,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onSignIn(userData: UserData) {
-        userDataTextView.text = "Signed in as ${userData.decentralizedID}"
-        showUserAvatar(userData.avatarImage)
+        userDataTextView.text = "Signed in as ${userData.profile?.name} (${userData.decentralizedID}) with ${userData.profile?.email}"
+        showUserAvatar(userData.profile?.avatarImage)
     }
 
     private fun showUserAvatar(avatarImage: String?) {
@@ -87,8 +87,12 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onNewIntent")
 
         if (intent?.action == Intent.ACTION_MAIN) {
-            blockstackSession().loadUserData {
-                userData -> runOnUiThread {if (userData != null) {onSignIn(userData)}}
+            blockstackSession().loadUserData { userData ->
+                runOnUiThread {
+                    if (userData != null) {
+                        onSignIn(userData)
+                    }
+                }
             }
         }
     }
@@ -124,9 +128,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun blockstackSession() : BlockstackSession {
+    fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
-        if(session != null) {
+        if (session != null) {
             return session
         } else {
             throw IllegalStateException("No session.")

@@ -5,9 +5,9 @@ import org.json.JSONObject
 /**
  * An object to configure options for `encrypt` and `decrypt` operations.
  *
- * @property privateKey the hex string of the ECDSA private key to use for decryption.
+ * @property publicKey the hex string of the ECDSA public key to use for decryption.
  */
-class CryptoOptions(val privateKey: String?) {
+class CryptoOptions(val publicKey: String? = null, val privateKey: String? = null) {
 
     /**
      * json representation of these options
@@ -15,6 +15,7 @@ class CryptoOptions(val privateKey: String?) {
     fun toJSON(): JSONObject {
         val optionsObject = JSONObject()
         optionsObject.put("privateKey", if (privateKey == null) JSONObject.NULL else privateKey)
+        optionsObject.put("publicKey", if (publicKey == null) JSONObject.NULL else publicKey)
         return optionsObject
     }
 

@@ -8,12 +8,10 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_account.*
-import org.blockstack.android.sdk.BlockstackConfig
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.Scope
-import java.net.URI
 
 
 class AccountActivity : AppCompatActivity() {
@@ -38,8 +36,8 @@ class AccountActivity : AppCompatActivity() {
                     onLoaded()
                 })
 
-        signInButton.setOnClickListener { view: View ->
-            blockstackSession().redirectUserToSignIn { userData ->
+        signInButton.setOnClickListener { _ ->
+            blockstackSession().redirectUserToSignIn { _ ->
                 Log.d(TAG, "signed in!")
                 runOnUiThread {
                     onSignIn()
@@ -93,9 +91,13 @@ class AccountActivity : AppCompatActivity() {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: ${authResponse}")
                 blockstackSession().handlePendingSignIn(authResponse, {
-                    Log.d(TAG, "signed in!")
-                    runOnUiThread {
-                        onSignIn()
+                    if (it.hasErrors) {
+                        Toast.makeText(this, it.error, Toast.LENGTH_SHORT).show()
+                    } else {
+                        Log.d(TAG, "signed in!")
+                        runOnUiThread {
+                            onSignIn()
+                        }
                     }
                 })
             }
@@ -104,7 +106,7 @@ class AccountActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item!!.itemId == android.R.id.home) {
-            NavUtils.navigateUpFromSameTask(this);
+            NavUtils.navigateUpFromSameTask(this)
             return true
         }
         return super.onOptionsItemSelected(item)
