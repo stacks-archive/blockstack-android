@@ -28,7 +28,7 @@ There are two example apps in module ([`/example`](examples/)) and ([`/example-m
     }
 
     dependencies {
-        implementation 'com.github.blockstack:blockstack-android:v0.3.0'
+        implementation 'com.github.blockstack:blockstack-android:0.3.0'
     }
 ```
 
