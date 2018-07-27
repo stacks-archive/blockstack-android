@@ -14,10 +14,8 @@ import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.Scope
 import org.blockstack.android.sdk.UserData
 import org.jetbrains.anko.coroutines.experimental.bg
-import java.net.URI
 import java.net.URL
 
 
@@ -31,26 +29,21 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
-        val redirectURI = URI("${appDomain}/redirect")
-        val manifestURI = URI("${appDomain}/manifest.json")
-        val scopes = arrayOf(Scope.StoreWrite)
-
-        _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
-                onLoadedCallback = {checkLogin()})
+        _blockstackSession = BlockstackSession(this, defaultConfig,
+                onLoadedCallback = { checkLogin() })
     }
 
     private fun checkLogin() {
         blockstackSession().isUserSignedIn({ signedIn ->
-            progressBar.visibility = GONE
             if (signedIn) {
-                    blockstackSession().loadUserData({userData ->
-                                runOnUiThread {
-                                    if (userData != null) {
-                                        onSignIn(userData)
-                                    }
-                                }
-                            })
+                blockstackSession().loadUserData({ userData ->
+                    progressBar.visibility = GONE
+                    if (userData != null) {
+                        runOnUiThread {
+                            onSignIn(userData)
+                        }
+                    }
+                })
             } else {
                 navigateToAccount()
             }
@@ -65,8 +58,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onSignIn(userData: UserData) {
-        userDataTextView.text = "Signed in as ${userData.did}"
-        showUserAvatar(userData.avatarImage)
+        userDataTextView.text = "Signed in as ${userData.profile?.name} (${userData.decentralizedID}) with ${userData.profile?.email}"
+        showUserAvatar(userData.profile?.avatarImage)
     }
 
     private fun showUserAvatar(avatarImage: String?) {
@@ -94,14 +87,22 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onNewIntent")
 
         if (intent?.action == Intent.ACTION_MAIN) {
-            blockstackSession().loadUserData {
-                userData -> runOnUiThread {if (userData != null) {onSignIn(userData)}}
+            blockstackSession().loadUserData { userData ->
+                runOnUiThread {
+                    if (userData != null) {
+                        onSignIn(userData)
+                    }
+                }
             }
         }
     }
 
     private fun navigateToAccount() {
         startActivity(Intent(this, AccountActivity::class.java))
+    }
+
+    private fun navigateToCipher() {
+        startActivity(Intent(this, CipherActivity::class.java))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -119,13 +120,17 @@ class MainActivity : AppCompatActivity() {
                 navigateToAccount()
                 true
             }
+            R.id.action_cipher -> {
+                navigateToCipher()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    fun blockstackSession() : BlockstackSession {
+    fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
-        if(session != null) {
+        if (session != null) {
             return session
         } else {
             throw IllegalStateException("No session.")

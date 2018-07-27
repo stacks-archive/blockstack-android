@@ -17,6 +17,9 @@ public class GetFileOptions(val decrypt: Boolean = true,
                             val app: String? = null,
                             val zoneFileLookupURL: URL? = null) {
 
+    /**
+     * json representation of these options as used by blockstack.js
+     */
     fun toJSON() : JSONObject {
         val optionsObject = JSONObject()
         optionsObject.put("decrypt", decrypt)
@@ -26,6 +29,9 @@ public class GetFileOptions(val decrypt: Boolean = true,
         return optionsObject
     }
 
+    /**
+     * string representation in json format used by blockstack.js
+     */
     override fun toString(): String {
         return toJSON().toString()
     }

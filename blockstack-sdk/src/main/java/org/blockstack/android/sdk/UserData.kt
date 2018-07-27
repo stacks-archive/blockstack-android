@@ -12,26 +12,32 @@ import org.json.JSONObject
  */
 class UserData(private val jsonObject: JSONObject) {
 
-    // TODO move this into a profile property
-    val avatarImage: String?
-        get() {
-            try {
-                return jsonObject.getJSONObject("profile")
-                        .getJSONArray("image")
-                        .getJSONObject(0) // TODO iterator through images for avatar type
-                        .getString("contentUrl")
-            } catch (e: JSONException) {
-                return null
-            }
-        }
+
+    /**
+     * The profile of the user or null if not defined
+     */
+    val profile: Profile? = if (jsonObject.has("profile")) {
+        Profile(jsonObject.getJSONObject("profile"))
+    } else {
+        null
+    }
 
     /**
      * The user's decentralized identifier - this is used to uniquely identify a user
      */
-    val did: String
+    val decentralizedID: String
         get() {
-            return jsonObject.getString("did")
+            return jsonObject.getString("decentralizedID")
         }
+
+    /**
+     * The user's private key for the currently logged in app
+     */
+    val appPrivateKey: String
+        get() {
+            return jsonObject.getString("appPrivateKey")
+        }
+
 
     /**
      * The `JSONObject` that backs this object. You use this object to

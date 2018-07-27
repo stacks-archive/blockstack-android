@@ -32,6 +32,10 @@
                 <data android:scheme="myblockstackapp" />
             </intent-filter>
         </activity>
+        <activity android:name=".CipherActivity"
+                  android:label="@string/encryption"
+                  android:theme="@style/AppTheme.NoActionBar"
+                  android:parentActivityName=".MainActivity"/>
     </application>
 
 </manifest>

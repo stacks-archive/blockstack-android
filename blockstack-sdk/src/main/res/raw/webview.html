@@ -7,16 +7,24 @@
 <script>
 var transitPrivateKey = blockstack.generateAndStoreTransitKey()
 
+function makeAuthResponse(privateKey) {
+  const token = blockstack.makeAuthResponse(privateKey, {}, null, {}, null, null);
+  console.log(JSON.stringify(blockstack.decodeToken(token)))
+  return token
+}
+
 function redirectToSignIn(appDomain, redirectURI, manifestURI, scopes) {
   var authRequest = blockstack.makeAuthRequest(transitPrivateKey, redirectURI, manifestURI, scopes, appDomain)
   blockstack.redirectToSignInWithAuthRequest(authRequest)
 }
 
-function handlePendingSignIn(authResponseToken) {
-  blockstack.handlePendingSignIn(authResponseToken)
+function handlePendingSignIn(nameLookupUrl, authResponseToken) {
+  blockstack.handlePendingSignIn(nameLookupUrl, authResponseToken)
   .then(function(userData) {
     var userDataString = JSON.stringify(userData)
     android.signInSuccess(userDataString)
+  }, function(error) {
+    android.signInFailure(error.toString())
   })
 }
 
@@ -30,6 +38,15 @@ function isUserSignedIn() {
 
 function signUserOut()  {
   return blockstack.signUserOut()
+}
+
+function lookupProfile(username, zoneLookupFileURL) {
+  blockstack.lookupProfile(username, zoneLookupFileURL)
+  .then(function(userData) {
+      android.lookupProfileResult(username, JSON.stringify(userData))
+  }, function(error) {
+      android.lookupProfileFailure(username, error.toString())
+  })
 }
 
 function getFile(path, options, uniqueIdentifier) {
@@ -62,7 +79,34 @@ function putFile(path, content, options, uniqueIdentifier, isBinary) {
   .then(function(result) {
     console.log(result)
     android.putFileResult(result, uniqueIdentifier)
+  }, function(error) {
+    android.putFileFailure(error.toString(), uniqueIdentifier)
   })
+}
+
+function encryptContent(content, options, isBinary) {
+  console.log('encryptContent')
+  if (isBinary) {
+    content = Base64.decode(content)
+  }
+
+  encryption = blockstack.encryptContent(content, options)
+  return JSON.parse(encryption)
+}
+
+function decryptContent(cipher, options, isBinary) {
+  console.log('decryptContent')
+  if (isBinary) {
+    cipher = Base64.decode(cipher)
+  }
+
+  var decrypted = blockstack.decryptContent(cipher, options)
+  if (typeof decrypted === "string") {
+    console.log(decrypted)
+    return decrypted
+  } else {
+    return Base64.encode(decrypted)
+  }
 }
 </script>
 </head>
