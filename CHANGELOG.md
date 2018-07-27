@@ -10,21 +10,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2018-07-27
+
 ### Added
 - A `BlockstackConfig` object to make it easier to use across several activities. Thanks
 to @friedger.
 - `BlockstackSession.encryptContent`, `BlockstackSession.decryptContent` methods
-- `BlockstackSession.lookupProfile` method
+- `BlockstackSession.lookupProfile` method which allows lookup of the profile of an arbitrary user
 - `UserData.Profile` object that contains avatar image and email as well
 - `Result<T>` object that can have a value of type T or errors, used for callbacks
 
 ### Changed
 - Fixed a bug where loadUserData would throw an exception if the user is not logged in.
 Thanks to @friedger.
-- Using blockstack.js 18.0.0
-- Renaming UserData.did to UserData.decentralizedID
-- All method callbacks (but isUserSignedIn, lookupProfile) now take a Result<T> object as parameter.
+- Updated `blockstack.js` to v18.0.0
+- Renamed `UserData.did` to `UserData.decentralizedID`
+- All method callbacks (except `isUserSignedIn`, `lookupProfile`) now take a `Result<T>`` object as parameter.
 
 
 ## [0.2.0] - 2018-06-25
