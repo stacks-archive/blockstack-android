@@ -556,8 +556,16 @@ Now that you have created your initial project and verified it running in an emu
         val redirectURI = URI("${appDomain}/redirect")
         val manifestURI = URI("${appDomain}/manifest.json")
         val scopes = arrayOf(Scope.StoreWrite)
+	
+	val config = java.net.URI("https://flamboyant-darwin-d11c17.netlify.com").run {
+            org.blockstack.android.sdk.BlockstackConfig(
+                    this,
+                    redirectURI,
+                    manifestURI,
+                    scopes
+        }
 
-        _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
+        _blockstackSession = BlockstackSession(this, config,
                 onLoadedCallback = {
                     signInButton.isEnabled = true
                 })
