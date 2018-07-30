@@ -435,7 +435,7 @@ Now that you have created your initial project and verified it running in an emu
         testImplementation 'junit:junit:4.12'
         androidTestImplementation 'com.android.support.test:runner:1.0.2'
         androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-        implementation 'com.github.blockstack:blockstack-android:v0.3.0'
+        implementation 'com.github.blockstack:blockstack-android:0.3.0'
     }
 
     ```
