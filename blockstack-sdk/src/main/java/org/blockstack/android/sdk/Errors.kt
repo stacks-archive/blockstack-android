@@ -38,8 +38,8 @@ open class ResultError(
          */
         fun fromJS(error: String): ResultError {
             val jsonError = JSONObject(error)
-            return ResultError(ErrorCode.fromJS(jsonError.getString("code")),
-                    jsonError.getString("message"),
+            return ResultError(ErrorCode.fromJS(jsonError.optString("code", ErrorCode.UnknownError.code)),
+                    jsonError.optString("message"),
                     jsonError.optString("parameter"),
                     jsonError)
         }

@@ -101,7 +101,7 @@ class BlockstackSession(context: Context,
 
         ensureLoaded()
 
-        val javascript = "handlePendingSignIn('$nameLookupUrl', '${authResponse}')"
+        val javascript = "handlePendingSignIn('$nameLookupUrl', '$authResponse')"
         webView.evaluateJavascript(javascript, { _: String ->
 
         })

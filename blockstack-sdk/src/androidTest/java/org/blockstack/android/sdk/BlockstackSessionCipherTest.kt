@@ -53,6 +53,8 @@ class BlockstackSessionCipherTest {
                                 }
                             }
                         }
+                    } else {
+                        failTest("makeAuthResponse failed")
                     }
                 }
             }

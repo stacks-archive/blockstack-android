@@ -48,6 +48,8 @@ class BlockstackSessionFileOpsTest {
                                 failTest("sign in failed")
                             }
                         }
+                    } else {
+                        failTest("makeAuthResponse failed")
                     }
                 }
             }
