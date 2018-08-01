@@ -92,7 +92,7 @@ class AccountActivity : AppCompatActivity() {
                 Log.d(TAG, "authResponse: ${authResponse}")
                 blockstackSession().handlePendingSignIn(authResponse, {
                     if (it.hasErrors) {
-                        Toast.makeText(this, it.error, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "error: ${it.error}", Toast.LENGTH_SHORT).show()
                     } else {
                         Log.d(TAG, "signed in!")
                         runOnUiThread {

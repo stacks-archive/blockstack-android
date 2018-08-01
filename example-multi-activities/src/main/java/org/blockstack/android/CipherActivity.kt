@@ -63,11 +63,11 @@ class CipherActivity : AppCompatActivity() {
                             textView.setText(plainContent)
                         }
                     } else {
-                        Toast.makeText(this, "error: " + plainContentResult.error, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "error: ${plainContentResult.error}", Toast.LENGTH_SHORT).show()
                     }
                 }
             } else {
-                Toast.makeText(this, "error: " + cipherResult.error, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "error: ${cipherResult.error}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -95,11 +95,11 @@ class CipherActivity : AppCompatActivity() {
                             imageView.setImageBitmap(bitmap)
                         }
                     } else {
-                        Toast.makeText(this, "error: " + plainContentResult.error, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "error: ${plainContentResult.error}", Toast.LENGTH_SHORT).show()
                     }
                 }
             } else {
-                Toast.makeText(this, "error: " + cipherResult.error, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "error: ${cipherResult.error}", Toast.LENGTH_SHORT).show()
             }
         }
     }

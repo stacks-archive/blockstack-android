@@ -140,7 +140,7 @@ class BlockstackSessionFileOpsTest {
                 if (!putFileResult.hasErrors) {
                     failTest("should fail with 'failed to fetch' error")
                 } else {
-                    error = putFileResult.error
+                    error = putFileResult.error!!.message
                     latch.countDown()
                 }
             }

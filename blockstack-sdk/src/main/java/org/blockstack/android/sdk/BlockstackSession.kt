@@ -80,13 +80,13 @@ class BlockstackSession(context: Context,
         ensureLoaded()
 
         val javascript = "makeAuthResponse('${privateKey}')"
-        webView.evaluateJavascript(javascript, { authResponse ->
+        webView.evaluateJavascript(javascript) { authResponse ->
             if (authResponse != null && !"null".equals(authResponse)) {
                 callback(Result(authResponse.removeSurrounding("\"")))
             } else {
-                callback(Result(null, "no auth response"))
+                callback(Result(null, ResultError(ErrorCode.UnknownError, "no auth response")))
             }
-        })
+        }
     }
 
     /**
@@ -293,7 +293,7 @@ class BlockstackSession(context: Context,
                 val cipherObject = JSONObject(result)
                 callback(Result(CipherObject(cipherObject)))
             } else {
-                callback(Result(null, "failed to encrypt"))
+                callback(Result(null, ResultError(ErrorCode.UnknownError, "failed to encrypt")))
             }
         }
     }
@@ -328,14 +328,13 @@ class BlockstackSession(context: Context,
 
         webView.evaluateJavascript(javascript) { plainContent ->
             if (plainContent != null && !"null".equals(plainContent)) {
-
                 if (wasString) {
                     callback(Result(plainContent.removeSurrounding("\"")))
                 } else {
                     callback(Result(Base64.decode(plainContent, Base64.DEFAULT)))
                 }
             } else {
-                callback(Result(null, "failed to decrypt"))
+                callback(Result(null, ResultError(ErrorCode.UnknownError, "failed to decrypt")))
             }
         }
     }
@@ -372,7 +371,7 @@ class BlockstackSession(context: Context,
 
         @JavascriptInterface
         fun signInFailure(error: String) {
-            session.signInCallback?.invoke(Result(null, error))
+            session.signInCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         @JavascriptInterface
@@ -383,7 +382,7 @@ class BlockstackSession(context: Context,
 
         @JavascriptInterface
         fun lookupProfileFailure(username: String, error: String) {
-            session.lookupProfileCallbacks[username]?.invoke(Result(null, error))
+            session.lookupProfileCallbacks[username]?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         @JavascriptInterface
@@ -401,7 +400,7 @@ class BlockstackSession(context: Context,
 
         @JavascriptInterface
         fun getFileFailure(error: String, uniqueIdentifier: String) {
-            session.getFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
+            session.getFileCallbacks[uniqueIdentifier]?.invoke(Result(null, ResultError.fromJS(error)))
             session.getFileCallbacks.remove(uniqueIdentifier)
         }
 
@@ -415,7 +414,7 @@ class BlockstackSession(context: Context,
 
         @JavascriptInterface
         fun putFileFailure(error: String, uniqueIdentifier: String) {
-            session.putFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
+            session.putFileCallbacks[uniqueIdentifier]?.invoke(Result(null, ResultError.fromJS(error)))
             session.putFileCallbacks.remove(uniqueIdentifier)
         }
 
