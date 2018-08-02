@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Replaced `Result.error` type String with type `ResultError` 
- 
+- Updated `blockstack.js` to v18.0.3 on feature branch `feature/error_messages`
+
 ## [0.3.0] - 2018-07-27
 
 ### Added
