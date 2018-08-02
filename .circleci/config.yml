@@ -22,7 +22,7 @@ jobs:
           key: jars-{{ checksum "build.gradle" }}-{{ checksum  "blockstack-sdk/build.gradle" }}-{{ checksum "example/build.gradle" }}-{{ checksum "example-multi-activities/build.gradle" }}
       - run:
           name: Run Tests
-          command: ./gradlew lint test assAndroidTest
+          command: ./gradlew lint test assDebug assAndroidTest
       - run:
           name: Export google services key
           command: echo 'export $GCLOUD_SERVICE_KEY="$GCLOUD_SERVICE_KEY"' >> $BASH_ENV
