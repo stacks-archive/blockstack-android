@@ -22,7 +22,22 @@ jobs:
           key: jars-{{ checksum "build.gradle" }}-{{ checksum  "blockstack-sdk/build.gradle" }}-{{ checksum "example/build.gradle" }}-{{ checksum "example-multi-activities/build.gradle" }}
       - run:
           name: Run Tests
-          command: ./gradlew lint test
+          command: ./gradlew lint test assAndroidTest
+      - run:
+          name: Export google services key
+          command: echo 'export $GCLOUD_SERVICE_KEY="$GCLOUD_SERVICE_KEY"' >> $BASH_ENV
+      - run:
+          name: Decode google services key
+          command: echo $GCLOUD_SERVICE_KEY | base64 -di > ${HOME}/client-secret.json
+      - run:
+          name: Set Google Cloud target project
+          command: gcloud config set project blockstack-android
+      - run:
+          name: Authenticate with Google Cloud
+          command: gcloud auth activate-service-account firebase-adminsdk-p9qvk@newspaper-84169.iam.gserviceaccount.com --key-file ${HOME}/client-secret.json
+      - run:
+          name: Run instrumented test on Firebase Test Lab
+          command: gcloud firebase test android run --type instrumentation --app example/build/outputs/apk/debug/example-debug.apk --test blockstack-sd/build/outputs/apk/androidTest/debug/blockstack-sdk-debug-androidTest.apk  --timeout 5m
       - store_artifacts:
           path: blockstack-sdk/build/reports
           destination: reports
