@@ -24,7 +24,7 @@ function handlePendingSignIn(nameLookupUrl, authResponseToken) {
     var userDataString = JSON.stringify(userData)
     android.signInSuccess(userDataString)
   }, function(error) {
-    android.signInFailure(JSON.stringify(error))
+    android.signInFailure(JSON.stringify(error, Object.getOwnPropertyNames(error)))
   })
 }
 
@@ -45,7 +45,7 @@ function lookupProfile(username, zoneLookupFileURL) {
   .then(function(userData) {
       android.lookupProfileResult(username, JSON.stringify(userData))
   }, function(error) {
-      android.lookupProfileFailure(username, JSON.stringify(error))
+      android.lookupProfileFailure(username, JSON.stringify(error, Object.getOwnPropertyNames(error)))
   })
 }
 
@@ -64,7 +64,9 @@ function getFile(path, options, uniqueIdentifier) {
         encodedResult = Base64.encode(result)
         android.getFileResult(encodedResult, uniqueIdentifier, isBinary)
     }
-  })
+  }, function(error) {
+    android.getFileFailure(JSON.stringify(error, Object.getOwnPropertyNames(error)), uniqueIdentifier)
+   })
 }
 
 function putFile(path, content, options, uniqueIdentifier, isBinary) {
@@ -80,7 +82,7 @@ function putFile(path, content, options, uniqueIdentifier, isBinary) {
     console.log(result)
     android.putFileResult(result, uniqueIdentifier)
   }, function(error) {
-    android.putFileFailure(JSON.stringify(error), uniqueIdentifier)
+    android.putFileFailure(JSON.stringify(error, Object.getOwnPropertyNames(error)), uniqueIdentifier)
   })
 }
 

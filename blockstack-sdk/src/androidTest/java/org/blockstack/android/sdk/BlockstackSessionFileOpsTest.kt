@@ -133,7 +133,7 @@ class BlockstackSessionFileOpsTest {
     fun plainTextFileCanNotBeUploadedWithBadAppPrivateKey() {
 
         var latch = CountDownLatch(1)
-        var error: String? = null
+        var error: ResultError? = null
 
         val path = "test1.txt"
         val content = "Test content"
@@ -142,7 +142,7 @@ class BlockstackSessionFileOpsTest {
                 if (!putFileResult.hasErrors) {
                     failTest("should fail with 'failed to fetch' error")
                 } else {
-                    error = putFileResult.error!!.message
+                    error = putFileResult.error
                     latch.countDown()
                 }
             }
@@ -150,7 +150,7 @@ class BlockstackSessionFileOpsTest {
 
         latch.await()
         assertThat(error, notNullValue())
-        assertThat(error as String, `is`("TypeError: Failed to fetch"))
+        assertThat(error!!.message, `is`("Failed to fetch"))
     }
 
 
