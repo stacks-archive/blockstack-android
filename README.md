@@ -9,17 +9,20 @@ applications for this new internet using the Blockstack platform.
 This repository contains a pre-release for Android developers:
 
 - the Blockstack Android SDK ([`/blockstack-sdk`](blockstack-sdk/))
-- a Android tutorial application that uses the SDK (this README tutorial)
 - tools that assist development ([`/tools`](tools/))
+- a tutorial that teaches you [how to use the SDK](docs/tutorial.md)
+
 
 All of the material in this is a pre-release, if you encounter an issue please
 feel free to log it [on this
 repository](https://github.com/blockstack/blockstack-android/issues).
 
 ## Get started
-Walk through the [detailed tutorial](TUTORIAL.md) and build your first blockstack app with react and Android.
 
-There are two example apps in module ([`/example`](examples/)) and ([`/example-multi-activity`](example-multi-activity/))
+Use the [detailed tutorial](docs/tutorial.md) and to build your first Blockstack
+Android application with React. You can also work through two example apps in
+module ([`/example`](examples/)) and
+([`/example-multi-activity`](example-multi-activity/))
 
 ## Adding to your project
 ```
@@ -41,4 +44,3 @@ Please see the [contribution guidelines](CONTRIBUTING.md).
 
 ## License
 Please see [license file](LICENSE)
-
