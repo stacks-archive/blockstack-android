@@ -1,7 +1,8 @@
 # Blockstack Android SDK Tutorial (Pre-release)
 
-This TUTORIAL is written such that readers who are new to either or both
-Blockstack and Android to create a decentralized application. It contains the following sections:
+This tutorial is written for readers who are new to either or both Blockstack
+and Android to create a decentralized application. It contains the following
+content:
 
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
@@ -36,7 +37,7 @@ the `#support` channel.
 Finally, this tutorial is written for all levels from the beginner to the most
 experienced. For best results, beginners should follow the guide as written. It
 is expected that the fast or furiously brilliant will skip ahead and improvise
-on this material at will. Good speed one and all.
+on this material at will. Fair journey one and all.
 
 If you prefer, you can skip working through the tutorial all together. Instead,
 you can [download the final project code](images/helloandroid.zip) and import it
@@ -556,7 +557,7 @@ Now that you have created your initial project and verified it running in an emu
         val redirectURI = URI("${appDomain}/redirect")
         val manifestURI = URI("${appDomain}/manifest.json")
         val scopes = arrayOf(Scope.StoreWrite)
-	
+
 	val config = java.net.URI("https://flamboyant-darwin-d11c17.netlify.com").run {
             org.blockstack.android.sdk.BlockstackConfig(
                     this,
