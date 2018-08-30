@@ -8030,6 +8030,12 @@ function updateQueryStringParameter(uri, key, value) {
  */
 
 function isLaterVersion(v1, v2) {
+  if (v1 === undefined) {
+    v1 = '0.0.0'
+  }
+  if (v2 === undefined) {
+    v2 = '0.0.0'
+  }
   var v1tuple = v1.split('.').map(function (x) {
     return parseInt(x, 10);
   });
