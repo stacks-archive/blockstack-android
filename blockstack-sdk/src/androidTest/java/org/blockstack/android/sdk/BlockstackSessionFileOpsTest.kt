@@ -159,7 +159,7 @@ class BlockstackSessionFileOpsTest {
 
 
     @Test
-    fun getAppBucketUrlReturns_null_ForInvalidAppPrivateKey() {
+    fun getAppBucketUrlReturnsUrl() {
         val latch = CountDownLatch(1)
         var url: String? = null
 
@@ -177,7 +177,7 @@ class BlockstackSessionFileOpsTest {
 
         latch.await()
         assertThatTestDidNotFail()
-        assertThat(url, `is`("null"))
+        assertThat(url, `is`("https://gaia.blockstack.org/hub/1NZNxhoxobqwsNvTb16pdeiqvFvce3Yg8U/"))
     }
 
     private fun failTest(msg: String) {
