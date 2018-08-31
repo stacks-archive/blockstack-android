@@ -38,7 +38,7 @@ class BlockstackSessionCipherTest {
         // sign in if needed
         rule.activity.runOnUiThread {
             session = BlockstackSession(context, config) {
-                session.makeAuthResponse(PUBLIC_KEY) { authResponse ->
+                session.makeAuthResponse(PUBLIC_KEY, null) { authResponse ->
                     if (authResponse.hasValue) {
                         session.isUserSignedIn { signedIn ->
                             if (signedIn) {

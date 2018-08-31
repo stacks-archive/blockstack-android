@@ -38,6 +38,11 @@ class UserData(private val jsonObject: JSONObject) {
             return jsonObject.getString("appPrivateKey")
         }
 
+    /**
+     * The user's gaia storage location
+     */
+    val hubUrl: String
+        get() = jsonObject.getString("hubUrl")
 
     /**
      * The `JSONObject` that backs this object. You use this object to
