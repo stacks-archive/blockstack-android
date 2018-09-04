@@ -48,7 +48,6 @@ class BlockstackSession(context:Context, private val config: BlockstackConfig,
     private val putFileCallbacks = HashMap<String, ((Result<String>) -> Unit)>()
 
 
-    private val duktape = Duktape.create()
     private val blockstack:V8Object
     private val v8: V8
     init {
