@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         signInButton.isEnabled = false
         getUserAppFileUrlButton.isEnabled = false
 
-        val config = java.net.URI("https://flamboyant-darwin-d11c17.netlify.com").run {
+        val config = java.net.URI("https://dreibengels.de").run {
             org.blockstack.android.sdk.BlockstackConfig(
                     this,
                     java.net.URI("${this}/redirect"),
