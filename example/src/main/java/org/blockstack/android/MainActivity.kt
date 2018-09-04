@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         validateProofsButton.setOnClickListener { _ ->
-            validateProofsButton.text = "Validating..."
+            validateProofsText.text = "Validating..."
             blockstackSession().loadUserData {
                 it?.let {
                     val ownerAddress = it.decentralizedID.split(":")[2]
