@@ -29,8 +29,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        _blockstackSession = BlockstackSession(this, defaultConfig,
-                onLoadedCallback = { checkLogin() })
+        _blockstackSession = BlockstackSession(defaultConfig)
     }
 
     private fun checkLogin() {

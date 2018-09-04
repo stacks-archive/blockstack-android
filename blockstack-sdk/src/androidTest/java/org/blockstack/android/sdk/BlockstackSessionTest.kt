@@ -42,9 +42,7 @@ class BlockstackSessionTest {
         lateinit var session: BlockstackSession
 
         rule.activity.runOnUiThread {
-            session = BlockstackSession(context, config) {
-                latch.countDown()
-            }
+            session = BlockstackSession(context, config)
         }
 
         latch.await()
@@ -60,22 +58,7 @@ class BlockstackSessionTest {
         lateinit var session: BlockstackSession
 
         rule.activity.runOnUiThread {
-            session = BlockstackSession(context, config) {
-                session.makeAuthResponse(PRIVATE_KEY) { authResponse ->
-                    if (authResponse.hasValue) {
-                        session.handlePendingSignIn(authResponse.value!!) {
-                            if (it.hasValue) {
-                                decentralizedID = it.value!!.decentralizedID
-                                latch.countDown()
-                            } else {
-                                failTest("Should validate auth response")
-                            }
-                        }
-                    } else {
-                        failTest("Should create valid auth response")
-                    }
-                }
-            }
+            session = BlockstackSession(context, config)
         }
 
         latch.await()
@@ -90,42 +73,11 @@ class BlockstackSessionTest {
         lateinit var session: BlockstackSession
 
         rule.activity.runOnUiThread {
-            session = BlockstackSession(context, config) {
-                session.makeAuthResponse(PRIVATE_KEY) { authResponse ->
-                    if (authResponse.hasValue) {
-                        session.handlePendingSignIn(authResponse.value!!) {
-                            if (it.hasValue) {
-                                rule.activity.runOnUiThread {
-                                    session.signUserOut {
-                                        latch.countDown()
-                                    }
-                                }
-                            } else {
-                                failTest("should sign in")
-                            }
-                        }
-                    } else {
-                        failTest("should create valid auth response")
-                    }
-                }
-            }
+            session = BlockstackSession(context, config)
         }
 
         latch.await()
 
-        // verify user data
-        latch = CountDownLatch(1)
-        var userData: UserData? = null
-
-        rule.activity.runOnUiThread {
-            session.loadUserData {
-                userData = it
-                latch.countDown()
-            }
-        }
-
-        latch.await()
-        assertThat(userData, `is`(nullValue()))
     }
 
     private fun failTest(msg: String) {

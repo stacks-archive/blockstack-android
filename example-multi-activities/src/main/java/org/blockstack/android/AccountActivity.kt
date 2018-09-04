@@ -28,13 +28,7 @@ class AccountActivity : AppCompatActivity() {
         signInButton.isEnabled = false
         signOutButton.isEnabled = false
 
-        _blockstackSession = BlockstackSession(this, defaultConfig,
-                onLoadedCallback = {
-                    if (intent?.action == Intent.ACTION_VIEW) {
-                        handleAuthResponse(intent)
-                    }
-                    onLoaded()
-                })
+        _blockstackSession = BlockstackSession(defaultConfig)
 
         signInButton.setOnClickListener { _ ->
             blockstackSession().redirectUserToSignIn { _ ->

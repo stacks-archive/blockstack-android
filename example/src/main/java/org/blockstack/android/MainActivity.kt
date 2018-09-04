@@ -45,13 +45,7 @@ class MainActivity : AppCompatActivity() {
                     kotlin.arrayOf(org.blockstack.android.sdk.Scope.StoreWrite))
         }
 
-        _blockstackSession = BlockstackSession(this, config,
-                onLoadedCallback = {
-                    // Wait until this callback fires before using any of the
-                    // BlockstackSession API methods
-
-                    signInButton.isEnabled = true
-                })
+        _blockstackSession = BlockstackSession(config)
 
         getStringFileButton.isEnabled = false
         putStringFileButton.isEnabled = false

@@ -9936,14 +9936,16 @@ module.exports = function base (ALPHABET) {
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const pad_string_1 = require("./pad-string");
-function encode(input, encoding = "utf8") {
+function encode(input) {
+    encoding = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] :"utf8"
     if (Buffer.isBuffer(input)) {
         return fromBase64(input.toString("base64"));
     }
     return fromBase64(Buffer.from(input, encoding).toString("base64"));
 }
 ;
-function decode(base64url, encoding = "utf8") {
+function decode(base64url) {
+    encoding = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] :"utf8"
     return Buffer.from(toBase64(base64url), "base64").toString(encoding);
 }
 function toBase64(base64url) {
@@ -9961,7 +9963,7 @@ function fromBase64(base64) {
 function toBuffer(base64url) {
     return Buffer.from(toBase64(base64url), "base64");
 }
-let base64url = encode;
+const base64url = encode;
 base64url.encode = encode;
 base64url.decode = decode;
 base64url.toBase64 = toBase64;
@@ -9975,16 +9977,16 @@ exports.default = base64url;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function padString(input) {
-    let segmentLength = 4;
-    let stringLength = input.length;
-    let diff = stringLength % segmentLength;
+    const segmentLength = 4;
+    const stringLength = input.length;
+    const diff = stringLength % segmentLength;
     if (!diff) {
         return input;
     }
-    let position = stringLength;
-    let padLength = segmentLength - diff;
-    let paddedStringLength = stringLength + padLength;
-    let buffer = Buffer.alloc(paddedStringLength);
+    const position = stringLength;
+    const padLength = segmentLength - diff;
+    const paddedStringLength = stringLength + padLength;
+    const buffer = Buffer.alloc(paddedStringLength);
     buffer.write(input);
     while (padLength--) {
         buffer.write("=", position++);

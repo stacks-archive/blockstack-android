@@ -24,8 +24,7 @@ class CipherActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        _blockstackSession = BlockstackSession(this, defaultConfig,
-                onLoadedCallback = { checkLogin() })
+        _blockstackSession = BlockstackSession(defaultConfig)
     }
 
     override fun onResume() {

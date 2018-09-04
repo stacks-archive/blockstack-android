@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Blockstack Sign In</title>
-<script src="blockstack.js"></script>
-<script src="base64.js"></script>
-<script>
+import Base64 from "./base64"
+import Blockstack from "./blockstack"
+
 var transitPrivateKey = blockstack.generateAndStoreTransitKey()
 
 function makeAuthResponse(privateKey) {
@@ -108,9 +104,3 @@ function decryptContent(cipher, options, isBinary) {
     return Base64.encode(decrypted)
   }
 }
-</script>
-</head>
-<body>
-<p>Blockstack Sign In</p>
-</body>
-</html>
