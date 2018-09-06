@@ -64,6 +64,7 @@ class BlockstackSession(context: Context,
     init {
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
+        webView.settings.userAgentString = "blockstack-sdk"
         webView.webViewClient = BlockstackWebViewClient(context) {
             this.loaded = true
             onLoadedCallback()
