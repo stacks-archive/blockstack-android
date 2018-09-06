@@ -34,8 +34,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         signInButton.isEnabled = false
-        getStringFileButton.isEnabled = false
-        putStringFileButton.isEnabled = false
+        getUserAppFileUrlButton.isEnabled = false
 
         val config = java.net.URI("https://flamboyant-darwin-d11c17.netlify.com").run {
             org.blockstack.android.sdk.BlockstackConfig(
@@ -51,13 +50,17 @@ class MainActivity : AppCompatActivity() {
                     // BlockstackSession API methods
 
                     signInButton.isEnabled = true
+                    getUserAppFileUrlButton.isEnabled = true
                 })
 
+        validateProofsButton.isEnabled = false
         getStringFileButton.isEnabled = false
         putStringFileButton.isEnabled = false
         getImageFileButton.isEnabled = false
         putImageFileButton.isEnabled = false
         getStringFileFromUserButton.isEnabled = false
+        getAppBucketUrlButton.isEnabled = false
+
 
         signInButton.setOnClickListener { _: View ->
             blockstackSession().redirectUserToSignIn { userDataResult ->
@@ -70,6 +73,22 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "error: " + userDataResult.error, Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+
+        validateProofsButton.setOnClickListener { _ ->
+            validateProofsText.text = "Validating..."
+            blockstackSession().loadUserData {
+                it?.let {
+                    val ownerAddress = it.decentralizedID.split(":")[2]
+                    blockstackSession().validateProofs(it.profile!!, ownerAddress, it.json.optString("username")) {result ->
+                        runOnUiThread {
+                            validateProofsText.text = "${result.value?.size} proofs found."
+                        }
+                    }
+                }
+
+            }
+
         }
 
         getStringFileButton.setOnClickListener { _ ->
@@ -180,9 +199,40 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        if (intent?.action == Intent.ACTION_VIEW) {
-            handleAuthResponse(intent)
+        getAppBucketUrlButton.setOnClickListener { _ ->
+            getAppBucketUrlText.text = "Getting url ..."
+            blockstackSession().loadUserData {
+                it?.let {
+                    blockstackSession().getAppBucketUrl(it.hubUrl, it.appPrivateKey) {result ->
+                        runOnUiThread {
+                            getAppBucketUrlText.text =
+                                    if (result.hasValue) {
+                                        result.value
+                                    } else {
+                                        result.error
+                                    }
+                        }
+                    }
+                }
+
+            }
         }
+
+        getUserAppFileUrlButton.setOnClickListener { _ ->
+            getUserAppFileUrlText.text = "Getting url ..."
+            val username = "dev_android_sdk.id.blockstack";
+            val zoneFileLookupUrl = "https://core.blockstack.org/v1/names"
+            blockstackSession().getUserAppFileUrl(textFileName, username, "https://flamboyant-darwin-d11c17.netlify.com", zoneFileLookupUrl) {
+                runOnUiThread {
+                    getUserAppFileUrlText.text = if (it.hasValue) {
+                        it.value
+                    } else {
+                        it.error
+                    }
+                }
+            }
+        }
+
     }
 
     private fun onSignIn(userData: UserData) {
@@ -190,11 +240,13 @@ class MainActivity : AppCompatActivity() {
         showUserAvatar(userData.profile?.avatarImage)
         signInButton.isEnabled = false
 
+        validateProofsButton.isEnabled = true
         getStringFileButton.isEnabled = true
         putStringFileButton.isEnabled = true
         putImageFileButton.isEnabled = true
         getImageFileButton.isEnabled = true
         getStringFileFromUserButton.isEnabled = true
+        getAppBucketUrlButton.isEnabled = true
     }
 
     private fun showUserAvatar(avatarImage: String?) {

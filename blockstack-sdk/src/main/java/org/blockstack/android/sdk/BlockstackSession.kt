@@ -5,7 +5,10 @@ import android.net.Uri
 import android.support.customtabs.CustomTabsIntent
 import android.util.Base64
 import android.util.Log
-import android.webkit.*
+import android.webkit.JavascriptInterface
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
 import java.util.*
@@ -45,8 +48,11 @@ class BlockstackSession(context: Context,
     private var userData: JSONObject? = null
     private var signInCallback: ((Result<UserData>) -> Unit)? = null
     private val lookupProfileCallbacks = HashMap<String, ((Result<Profile>) -> Unit)>()
+    private var validateProofsCallback: ((Result<ArrayList<Proof>>) -> Unit)? = null
     private val getFileCallbacks = HashMap<String, ((Result<Any>) -> Unit)>()
     private val putFileCallbacks = HashMap<String, ((Result<String>) -> Unit)>()
+    private var getAppBucketUrlCallback: ((Result<String>) -> Unit)? = null
+    private var getUserAppFileUrlCallback: ((Result<String>) -> Unit)? = null
 
 
     init {
@@ -70,16 +76,21 @@ class BlockstackSession(context: Context,
     /**
      * Creates an auth response using the given private key. Usually not needed.
      *
-     * This method creates an auth response token from the given private key. It
+     * This method creates an auth response token from the given private keys. It
      * is currently used for integration tests.
      *
-     * @param privateKey the private key of the user that wants to sign in
+     * @param privateKey the private key of the user that is signing in
+     * @param appPrivateKey the private key of the app the user is signing in
      * @param callback called with the auth response as string in json format
      */
-    fun makeAuthResponse(privateKey: String, callback: (Result<String>) -> Unit) {
+    fun makeAuthResponse(privateKey: String, appPrivateKey: String?, callback: (Result<String>) -> Unit) {
         ensureLoaded()
 
-        val javascript = "makeAuthResponse('${privateKey}')"
+        val javascript = if (appPrivateKey != null) {
+            "makeAuthResponse('${privateKey}', '${appPrivateKey}')"
+        } else {
+            "makeAuthResponse('${privateKey}', null)"
+        }
         webView.evaluateJavascript(javascript, { authResponse ->
             if (authResponse != null && !"null".equals(authResponse)) {
                 callback(Result(authResponse.removeSurrounding("\"")))
@@ -93,7 +104,9 @@ class BlockstackSession(context: Context,
      * Process a pending sign in. This method should be called by your app when it
      * receives a request to the app's custom protocol handler.
      *
-     * @property authResponse authentication response token
+     * @param authResponse authentication response token
+     * @param signInCallback called with the user data after sign-in or with an error
+     *
      */
     fun handlePendingSignIn(authResponse: String, signInCallback: (Result<UserData>) -> Unit) {
         this.signInCallback = signInCallback
@@ -111,7 +124,7 @@ class BlockstackSession(context: Context,
      * Generates an authentication request opens an activity that allows the user to
      * sign with an existing Blockstack ID already on the device or create a new one.
      *
-     * @property signInCallback a function that is called with `UserData`
+     * @param signInCallback a function that is called with `UserData`
      * when authentication succeeds. It is not called on the UI thread so you should
      * execute any UI interactions in a `runOnUIThread` block
      */
@@ -131,7 +144,7 @@ class BlockstackSession(context: Context,
     /**
      * Retrieve data of signed in user
      *
-     * @property callback a function that is called with `UserData` of the signed in user
+     * @param callback a function that is called with `UserData` of the signed in user
      */
     fun loadUserData(callback: (UserData?) -> Unit) {
         val javascript = "loadUserData()"
@@ -153,7 +166,7 @@ class BlockstackSession(context: Context,
     /**
      * Check if a user is currently signed in
      *
-     * @property callback a function that is called with a flag that is `true` if the user is signed in, `false` if not.
+     * @param callback a function that is called with a flag that is `true` if the user is signed in, `false` if not.
      */
     fun isUserSignedIn(callback: (Boolean) -> Unit) {
         val javascript = "isUserSignedIn()"
@@ -169,7 +182,7 @@ class BlockstackSession(context: Context,
     /**
      * Sign the user out
      *
-     * @property callback a function that is called after the user is signed out.
+     * @param callback a function that is called after the user is signed out.
      */
     fun signUserOut(callback: () -> Unit) {
         val javascript = "signUserOut()"
@@ -199,6 +212,28 @@ class BlockstackSession(context: Context,
         lookupProfileCallbacks.put(username, callback)
         webView.evaluateJavascript(javascript, { _ ->
             // no op, lookupProfileCallback for username will be called
+        })
+    }
+
+    /**
+     * Validates the social proofs in a user's profile.
+     * Currently supports validation of Facebook, Twitter, GitHub, Instagram, LinkedIn and HackerNews accounts.
+     *
+     * @param profile  The profile to be validated
+     * @param ownerAddress  The owner bitcoin address to be validated
+     * @param name (default = null) The Blockstack name to be validated
+     * @param callback called with a list of validated proof objects or an error
+     */
+    fun validateProofs(profile: Profile, ownerAdress: String, name: String? = null, callback: (Result<ArrayList<Proof>>) -> Unit) {
+        val javascript = if (name == null) {
+            "validateProofs('${profile.json}', '$ownerAdress')"
+        } else {
+            "validateProofs('${profile.json}', '$ownerAdress', '$name')"
+        }
+        validateProofsCallback = callback
+
+        webView.evaluateJavascript(javascript, { _ ->
+            // no op, validateProofsCallback will be called
         })
     }
 
@@ -340,6 +375,42 @@ class BlockstackSession(context: Context,
         }
     }
 
+    /**
+     * Get the app storage bucket URL
+     *
+     * @param gaiaHubUrl (String) the gaia hub URL
+     * @param appPrivateKey (String) the app private key used to generate the app address
+     * @param callback called with the URL of the app index file or error if it fails
+     */
+    fun getAppBucketUrl(gaiaHubUrl: String, appPrivateKey: String, callback: (Result<String>) -> Unit) {
+        val javascript = "getAppBucketUrl('$gaiaHubUrl', '$appPrivateKey')"
+        getAppBucketUrlCallback = callback
+        webView.evaluateJavascript(javascript) { _ ->
+            // no op, getAppBucketUrlCallback will be called
+        }
+    }
+
+    /**
+     * Fetch the public read URL of a user file for the specified app.
+     *
+     *@param path the path to the file to read
+     *@param username The Blockstack ID of the user to look up
+     *@param appOrigin The app origin
+     *@param zoneFileLookupURL The URL to use for zonefile lookup. If falsey, this will use the blockstack.js's getNameInfo function instead.
+     *@param callback called with the public read URL of the file or an error
+     */
+    fun getUserAppFileUrl(path: String, username: String, appOrigin: String, zoneFileLookupURL: String?, callback: (Result<String>) -> Unit) {
+        val javascript = if (zoneFileLookupURL == null) {
+            "getUserAppFileUrl('$path', '$username', '$appOrigin')"
+        } else {
+            "getUserAppFileUrl('$path', '$username', '$appOrigin', '$zoneFileLookupURL')"
+        }
+        getUserAppFileUrlCallback = callback
+        webView.evaluateJavascript(javascript) { _ ->
+            // no op, getUserAppFileUrlCallback will be called
+        }
+    }
+
     private fun addGetFileCallback(callback: (Result<Any>) -> Unit): String {
         val uniqueIdentifier = UUID.randomUUID().toString()
         getFileCallbacks[uniqueIdentifier] = callback
@@ -387,6 +458,22 @@ class BlockstackSession(context: Context,
         }
 
         @JavascriptInterface
+        fun validateProofsResult(proofs: String) {
+            val proofs = JSONArray(proofs)
+            val proofArray = arrayListOf<Proof>()
+            for (i in 0..proofs.length() - 1) {
+                proofArray.add(Proof(proofs.getJSONObject(i)))
+            }
+            session.validateProofsCallback?.invoke(Result(proofArray))
+
+        }
+
+        @JavascriptInterface
+        fun validateProofsFailure(error: String) {
+            session.validateProofsCallback?.invoke(Result(null, error))
+        }
+
+        @JavascriptInterface
         fun getFileResult(content: String, uniqueIdentifier: String, isBinary: Boolean) {
             Log.d(session.TAG, "putFileResult")
 
@@ -419,6 +506,25 @@ class BlockstackSession(context: Context,
             session.putFileCallbacks.remove(uniqueIdentifier)
         }
 
+        @JavascriptInterface
+        fun getAppBucketUrlResult(url: String) {
+            session.getAppBucketUrlCallback?.invoke(Result(url))
+        }
+
+        @JavascriptInterface
+        fun getAppBucketUrlFailure(error: String) {
+            session.getAppBucketUrlCallback?.invoke(Result(null, error))
+        }
+
+        @JavascriptInterface
+        fun getUserAppFileUrlResult(url: String) {
+            session.getUserAppFileUrlCallback?.invoke(Result(url))
+        }
+
+        @JavascriptInterface
+        fun getUserAppFileUrlFailre(error: String) {
+            session.getAppBucketUrlCallback?.invoke(Result(null, error))
+        }
     }
 
 }
