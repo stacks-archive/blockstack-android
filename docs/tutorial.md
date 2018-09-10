@@ -411,6 +411,14 @@ In this section, you run the appliation and create an emulator when prompted.
 Now that you have created your initial project and verified it running in an emulator, you are ready to begin configuring the application for use with Blockstack.
 
 1. In studio, open the `AndroidManifest.xml` file.
+1. Add single launch mode to the activity.
+    ```XML
+    <activity android:name=".MainActivity"
+       ...
+       android:launchMode="singleTask"    
+    >
+    ```
+    
 2. Add an `<intent-filter>` with the custom handler for Blockstack.
 
     ```XML
