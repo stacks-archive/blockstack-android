@@ -6,17 +6,20 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.view.View
+import android.util.Log
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_cipher.*
-import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.CryptoOptions
+import org.blockstack.android.sdk.*
+import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+
+val TAG = CipherActivity::class.java.simpleName
 
 class CipherActivity : AppCompatActivity() {
 
-    private var _blockstackSession: BlockstackSession? = null
+    private var _blockstackSession: BlockstackSession2? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +27,9 @@ class CipherActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        _blockstackSession = BlockstackSession(defaultConfig)
+        Log.d(TAG, "json " + intent.getStringExtra("json"))
+        val userData = UserData(JSONObject(intent.getStringExtra("json")))
+        _blockstackSession = BlockstackSession2(this, defaultConfig)
     }
 
     override fun onResume() {
@@ -35,16 +40,13 @@ class CipherActivity : AppCompatActivity() {
     }
 
     fun checkLogin() {
-        blockstackSession().isUserSignedIn({ signedIn ->
-            progressBar.visibility = View.GONE
-            if (signedIn) {
-                encryptDecryptString()
-                encryptDecryptImage()
-            } else {
-                navigateToAccount()
-            }
-        })
+        if (blockstackSession().isUserSignedIn()) {
+            encryptDecryptString()
+        } else {
+            navigateToAccount()
+        }
     }
+
 
     private fun navigateToAccount() {
         startActivity(Intent(this, AccountActivity::class.java))
@@ -52,59 +54,17 @@ class CipherActivity : AppCompatActivity() {
 
     fun encryptDecryptString() {
         val options = CryptoOptions()
-        blockstackSession().encryptContent("Hello Android", options) { cipherResult ->
-            if (cipherResult.hasValue) {
-                val cipher = cipherResult.value!!
-                blockstackSession().decryptContent(cipher.json.toString(), options) { plainContentResult ->
-                    if (plainContentResult.hasValue) {
-                        val plainContent:String = plainContentResult.value as String
-                        runOnUiThread {
-                            textView.setText(plainContent)
-                        }
-                    } else {
-                        Toast.makeText(this, "error: " + plainContentResult.error, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } else {
-                Toast.makeText(this, "error: " + cipherResult.error, Toast.LENGTH_SHORT).show()
-            }
+        val cipherResult = blockstackSession().encryptContent("Hello Android", options)
+        Log.d(TAG, "result encryptDecryptString " + cipherResult.toString())
+        if (cipherResult.hasValue) {
+            val cipher = cipherResult.value!!
+            Log.d(TAG, "cipher:" + cipherResult.value.toString())
+        } else {
+            Toast.makeText(this, "error: " + cipherResult.error, Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun encryptDecryptImage() {
-
-        val drawable: BitmapDrawable = resources.getDrawable(R.drawable.default_avatar) as BitmapDrawable
-
-        val bitmap = drawable.getBitmap()
-        val stream = ByteArrayOutputStream()
-
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
-        val bitMapData = stream.toByteArray()
-
-        val options = CryptoOptions()
-        blockstackSession().encryptContent(bitMapData, options) { cipherResult ->
-            if (cipherResult.hasValue) {
-                val cipher = cipherResult.value!!
-                blockstackSession().decryptContent(cipher.json.toString(), options) { plainContentResult ->
-                    if (plainContentResult.hasValue) {
-                        val plainContent: ByteArray = plainContentResult.value as ByteArray
-                        val imageByteArray = plainContent
-                        val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
-                        runOnUiThread {
-                            imageView.setImageBitmap(bitmap)
-                        }
-                    } else {
-                        Toast.makeText(this, "error: " + plainContentResult.error, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } else {
-                Toast.makeText(this, "error: " + cipherResult.error, Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-
-    fun blockstackSession(): BlockstackSession {
+    fun blockstackSession(): BlockstackSession2 {
         val session = _blockstackSession
         if (session != null) {
             return session

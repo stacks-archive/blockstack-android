@@ -1,7 +1,12 @@
-import Base64 from "./base64"
-import Blockstack from "./blockstack"
-
-var transitPrivateKey = blockstack.generateAndStoreTransitKey()
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Blockstack Sign In</title>
+        <script src="blockstack.js"></script>
+        <script src="base64.js"></script>
+        <script src="sessionstore_android.js"></script>
+        <script>
+var userSession = new blockstack.UserSession({sessionStore:androidSessionStore})
 
 function makeAuthResponse(privateKey) {
   const token = blockstack.makeAuthResponse(privateKey, {}, null, {}, null, null);
@@ -9,13 +14,14 @@ function makeAuthResponse(privateKey) {
   return token
 }
 
-function redirectToSignIn(appDomain, redirectURI, manifestURI, scopes) {
-  var authRequest = blockstack.makeAuthRequest(transitPrivateKey, redirectURI, manifestURI, scopes, appDomain)
-  blockstack.redirectToSignInWithAuthRequest(authRequest)
+function redirectToSignIn(appDomain, redirectPath, manifestPath, scopes) {
+  userSession = new blockstack.UserSession({appConfig:new blockstack.AppConfig(appDomain, scopes, redirectPath, manifestPath),
+   sessionStore:androidSessionStore})
+  userSession.redirectToSignIn()
 }
 
 function handlePendingSignIn(nameLookupUrl, authResponseToken) {
-  blockstack.handlePendingSignIn(nameLookupUrl, authResponseToken)
+  userSession.handlePendingSignIn(authResponseToken)
   .then(function(userData) {
     var userDataString = JSON.stringify(userData)
     android.signInSuccess(userDataString)
@@ -25,15 +31,15 @@ function handlePendingSignIn(nameLookupUrl, authResponseToken) {
 }
 
 function loadUserData() {
-  return blockstack.loadUserData()
+  return userSession.loadUserData()
 }
 
 function isUserSignedIn() {
-  return blockstack.isUserSignedIn()
+  return userSession.isUserSignedIn()
 }
 
 function signUserOut()  {
-  return blockstack.signUserOut()
+  return userSession.signUserOut()
 }
 
 function lookupProfile(username, zoneLookupFileURL) {
@@ -47,7 +53,7 @@ function lookupProfile(username, zoneLookupFileURL) {
 
 function getFile(path, options, uniqueIdentifier) {
   console.log('getFile: ' + uniqueIdentifier)
-  blockstack.getFile(path, options)
+  userSession.getFile(path, options)
   .then(function(result) {
     if(typeof result === "string") {
         console.log('getFile: retrieved String')
@@ -71,7 +77,7 @@ function putFile(path, content, options, uniqueIdentifier, isBinary) {
     content = Base64.decode(content)
   }
 
-  blockstack.putFile(path, content, options)
+  userSession.putFile(path, content, options)
   .then(function(result) {
     console.log(result)
     android.putFileResult(result, uniqueIdentifier)
@@ -86,7 +92,7 @@ function encryptContent(content, options, isBinary) {
     content = Base64.decode(content)
   }
 
-  encryption = blockstack.encryptContent(content, options)
+  encryption = userSession.encryptContent(content, options)
   return JSON.parse(encryption)
 }
 
@@ -96,7 +102,7 @@ function decryptContent(cipher, options, isBinary) {
     cipher = Base64.decode(cipher)
   }
 
-  var decrypted = blockstack.decryptContent(cipher, options)
+  var decrypted = userSession.decryptContent(cipher, options)
   if (typeof decrypted === "string") {
     console.log(decrypted)
     return decrypted
@@ -104,3 +110,9 @@ function decryptContent(cipher, options, isBinary) {
     return Base64.encode(decrypted)
   }
 }
+</script>
+    </head>
+    <body>
+        <p>Blockstack Sign In</p>
+    </body>
+</html>
