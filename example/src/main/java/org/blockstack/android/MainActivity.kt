@@ -289,13 +289,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleAuthResponse(intent: Intent) {
-        val response = intent.dataString
+        val response = intent.data
         Log.d(TAG, "response ${response}")
         if (response != null) {
-            val authResponseTokens = response.split(':')
+            val authResponse = response.getQueryParameter("authResponse")
 
-            if (authResponseTokens.size > 1) {
-                val authResponse = authResponseTokens[1]
+            if (authResponse != null) {
                 Log.d(TAG, "authResponse: ${authResponse}")
                 blockstackSession().handlePendingSignIn(authResponse, { userDataResult ->
                     if (userDataResult.hasValue) {
