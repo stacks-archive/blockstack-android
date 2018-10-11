@@ -5,9 +5,16 @@ import android.preference.PreferenceManager
 import android.util.Base64
 import android.util.Log
 import android.webkit.JavascriptInterface
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
 import com.eclipsesource.v8.V8
 import com.eclipsesource.v8.V8Array
 import com.eclipsesource.v8.V8Object
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.async
+import org.jetbrains.anko.coroutines.experimental.bg
 import org.json.JSONObject
 import java.util.*
 
@@ -54,31 +61,13 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
     private val v8: V8
     init {
 
-        v8 = V8.createV8Runtime();
+        v8 = V8.createV8Runtime()
         v8.executeVoidScript(context.resources.openRawResource(R.raw.blockstack).bufferedReader().use { it.readText() });
         v8.executeVoidScript(context.resources.openRawResource(R.raw.sessionstore_android).bufferedReader().use { it.readText() });
         v8.executeVoidScript(context.resources.openRawResource(R.raw.blockstack_android2).bufferedReader().use { it.readText() });
         blockstack = v8.getObject("blockstack")
 
-        val console = object: Console {
-            override fun error(msg: String) {
-                Log.e(TAG, msg)
-            }
-
-            override fun warn(msg: String) {
-                Log.w(TAG, msg)
-            }
-
-            override fun log(msg: String) {
-                Log.i(TAG, msg)
-            }
-
-            override fun debug(msg: String) {
-                Log.d(TAG, msg)
-            }
-
-        }
-
+        val console = LogConsole()
         val v8Console = V8Object(v8)
         v8.add("console", v8Console)
         v8Console.registerJavaMethod(console, "log", "log", arrayOf<Class<*>>(String::class.java))
@@ -87,11 +76,17 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
         v8Console.registerJavaMethod(console, "warn", "warn", arrayOf<Class<*>>(String::class.java))
         v8Console.release()
 
-        val android = JavascriptInterface2Object(this)
+        val android = JavascriptInterface2Object(this, v8, blockstack)
         val v8android = V8Object(v8)
         v8.add("android", v8android)
         v8android.registerJavaMethod(android, "getSessionData", "getSessionData", arrayOf<Class<*>>())
         v8android.registerJavaMethod(android, "setSessionData", "setSessionData", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "deleteSessionData", "deleteSessionData", arrayOf<Class<*>>())
+        v8android.registerJavaMethod(android, "getFileResult", "getFileResult", arrayOf<Class<*>>(String::class.java, String::class.java, Boolean::class.java))
+        v8android.registerJavaMethod(android, "getFileFailure", "getFileFailure", arrayOf<Class<*>>(String::class.java, String::class.java))
+        v8android.registerJavaMethod(android, "putFileResult", "putFileResult", arrayOf<Class<*>>(String::class.java, String::class.java))
+        v8android.registerJavaMethod(android, "putFileFailure", "putFileFailure", arrayOf<Class<*>>(String::class.java, String::class.java))
+        v8android.registerJavaMethod(android, "fetch2", "fetch2", arrayOf<Class<*>>(String::class.java, String::class.java))
 
         v8.executeVoidScript("var appConfig = new blockstack.AppConfig('${config.appDomain}');var userSession = new blockstack.UserSession({appConfig:appConfig, sessionStore:androidSessionStore});")
         userSession = v8.getObject("userSession")
@@ -105,33 +100,81 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
         fun log(msg: String)
     }
 
-    internal interface Blockstack {
-        fun makeAuthRequest(transitPrivateKey:String, redirectURI:String, manifestURI:String, scopes:Array<String>, appDomain:String):String
-    }
+    class LogConsole: Console {
+        override fun error(msg: String) {
+            Log.e(TAG, msg)
+        }
 
-    /**
-     * Creates an auth response using the given private key. Usually not needed.
-     *
-     * This method creates an auth response token from the given private key. It
-     * is currently used for integration tests.
-     *
-     * @param privateKey the private key of the user that wants to sign in
-     * @param callback called with the auth response as string in json format
-     */
-    fun makeAuthResponse(privateKey: String): String {
-        val params = V8Array(v8).push(privateKey).push("").push( "").pushNull().push("")
-        val authResponse = blockstack.executeStringFunction("makeAuthResponse", params);
-        return authResponse
-    }
+        override fun warn(msg: String) {
+            Log.w(TAG, msg)
+        }
 
+        override fun log(msg: String) {
+            Log.i(TAG, msg)
+        }
+
+        override fun debug(msg: String) {
+            Log.d(TAG, msg)
+        }
+    }
 
     fun isUserSignedIn(): Boolean {
         Log.d(TAG, "isUserSignedIn start")
-        val result = userSession.executeBooleanFunction("isUserSignedIn", V8Array(v8))
+        val result = userSession.executeBooleanFunction("isUserSignedIn", null)
         Log.d(TAG, "isUserSignedIn end")
         return result
     }
 
+    /**
+     * Retrieves the specified file from the app's data store.
+     *
+     * @property path the path of the file from which to read data
+     * @property options an instance of a `GetFileOptions` object which is used to configure
+     * options such as decryption and reading files from other apps or users.
+     * @property callback a function that is called with the file contents. It is not called on the
+     * UI thread so you should execute any UI interactions in a `runOnUIThread` block
+     */
+    fun getFile(path: String, options: GetFileOptions, callback: (Result<Any>) -> Unit) {
+        Log.d(TAG, "getFile: path: ${path} options: ${options}")
+
+        val uniqueIdentifier = addGetFileCallback(callback)
+        val params = V8Array(v8).push(path).push(options.toJSON().toString()).push(uniqueIdentifier)
+        blockstack.executeVoidFunction("getFile", params)
+    }
+
+    /**
+     * Stores the data provided in the app's data store to to the file specified.
+     *
+     * @property path the path to store the data to
+     * @property content the data to store in the file
+     * @property options an instance of a `PutFileOptions` object which is used to configure
+     * options such as encryption
+     * @property callback a function that is called with a `String` representation of a url from
+     * which you can read the file that was just put. It is not called on the UI thread so you should
+     * execute any UI interactions in a `runOnUIThread` block
+     */
+    fun putFile(path: String, content: Any, options: PutFileOptions, callback: (Result<String>) -> Unit) {
+        Log.d(TAG, "putFile: path: ${path} options: ${options}")
+
+
+        val valid = content is String || content is ByteArray
+        if (!valid) {
+            throw IllegalArgumentException("putFile content only supports String or ByteArray")
+        }
+
+        val isBinary = content is ByteArray
+        val uniqueIdentifier = addPutFileCallback(callback)
+
+        return if (isBinary) {
+            val contentString = Base64.encodeToString(content as ByteArray, Base64.NO_WRAP)
+            val params = V8Array(v8).push(path).push(contentString).push(options.toJSON().toString()).push(uniqueIdentifier).push(true)
+            blockstack.executeVoidFunction("putFile", params)
+        } else {
+            val params = V8Array(v8).push(path).push(content).push(options.toJSON().toString()).push(uniqueIdentifier).push(false)
+            blockstack.executeVoidFunction("putFile", params)
+        }
+
+    }
 
     fun encryptContent(plainContent: Any, options: CryptoOptions): Result<CipherObject> {
 
@@ -146,11 +189,11 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
             val contentString = Base64.encodeToString(plainContent as ByteArray, Base64.NO_WRAP)
             Log.d(TAG, "image " + contentString)
             val params = V8Array(v8).push(contentString).push(options.toJSON().toString())
-            userSession.executeStringFunction("encryptContent", params)
+            blockstack.executeStringFunction("encryptContent", params)
         } else {
             Log.d(TAG, "string " + plainContent)
             val params = V8Array(v8).push(plainContent as String).push(options.toJSON().toString())
-            userSession.executeStringFunction("encryptContent", params)
+            blockstack.executeStringFunction("encryptContent", params)
         }
         if (result != null && !"null".equals(result)) {
             val cipherObject = JSONObject(result)
@@ -167,7 +210,7 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
      * @options defines how to decrypt the cipherObject
      * @callback called with the plain content as String or ByteArray depending on the given options
      */
-    fun decryptContent(cipherObject: Any, options: CryptoOptions, callback: (Result<Any>) -> Unit) {
+    fun decryptContent(cipherObject: Any, binary:Boolean, options: CryptoOptions, callback: (Result<Any>) -> Unit) {
 
         val valid = cipherObject is String || cipherObject is ByteArray
         if (!valid) {
@@ -181,18 +224,18 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
         val plainContent = if (isBinary) {
             val cipherTextString = Base64.encodeToString(cipherObject as ByteArray, Base64.NO_WRAP)
             wasString = JSONObject(cipherTextString).getBoolean("wasString")
-            val params = V8Array(v8).push(cipherTextString).push(options.toJSON().toString())
-            userSession.executeStringFunction("decryptContent", params)
+            val params = V8Array(v8).push(cipherTextString).push(options.toJSON().toString()).push(true)
+            blockstack.executeStringFunction("decryptContent", params)
         } else {
             wasString = JSONObject(cipherObject as String).getBoolean("wasString")
-            val params = V8Array(v8).push(cipherObject).push(options.toJSON().toString())
-            userSession.executeStringFunction("decryptContent", params)
+            val params = V8Array(v8).push(cipherObject).push(options.toJSON().toString()).push(true)
+            blockstack.executeStringFunction("decryptContent", params)
         }
 
 
         if (plainContent != null && !"null".equals(plainContent)) {
 
-            if (wasString) {
+            if (!binary) {
                 callback(Result(plainContent.removeSurrounding("\"")))
             } else {
                 callback(Result(Base64.decode(plainContent, Base64.DEFAULT)))
@@ -200,6 +243,18 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
         } else {
             callback(Result(null, "failed to decrypt"))
         }
+    }
+
+    private fun addGetFileCallback(callback: (Result<Any>) -> Unit): String {
+        val uniqueIdentifier = UUID.randomUUID().toString()
+        getFileCallbacks[uniqueIdentifier] = callback
+        return uniqueIdentifier
+    }
+
+    private fun addPutFileCallback(callback: (Result<String>) -> Unit): String {
+        val uniqueIdentifier = UUID.randomUUID().toString()
+        putFileCallbacks[uniqueIdentifier] = callback
+        return uniqueIdentifier
     }
 
     private interface JavaScriptInterface2 {
@@ -212,9 +267,10 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
         fun getSessionData(): String
         fun setSessionData(sessionData: String)
         fun deleteSessionData()
+        fun fetch2(url: String, options: String)
     }
 
-    private class JavascriptInterface2Object(private val session: BlockstackSession2) : JavaScriptInterface2 {
+    private class JavascriptInterface2Object(private val session: BlockstackSession2, val v8:V8, val blockstack:V8Object) : JavaScriptInterface2 {
 
         @JavascriptInterface
         override fun lookupProfileResult(username: String, userDataString: String) {
@@ -274,5 +330,48 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
         override fun deleteSessionData() {
             return session.sessionStore.deleteSessionData()
         }
+
+        private val httpClient = OkHttpClient()
+
+        @JavascriptInterface
+        override fun fetch2(url: String, optionsString: String) {
+            val options = JSONObject(optionsString)
+
+            val builder = Request.Builder()
+                    .url(url)
+
+            if (options.has("method")) {
+                var body: RequestBody? = null
+                if (options.has("body")) {
+                    body = RequestBody.create(null, options.getString("body"))
+                }
+                builder.method(options.getString("method"), body)
+            }
+
+            if (options.has("headers")) {
+                val headers = options.getJSONObject("headers")
+                for (key in headers.keys()) {
+                    builder.header(key, headers.getString(key))
+                }
+            }
+
+            async(UI) {
+                val response = bg {
+                    httpClient.newCall(builder.build()).execute()
+                }.await()
+                val r = response.toJSONString()
+                var params = V8Array(v8).push(url).push(r)
+                blockstack.executeVoidFunction("fetchResolve", params)
+            }
+
+        }
+
     }
+}
+
+fun Response.toJSONString(): String {
+    return JSONObject()
+            .put("status", code())
+            .put("body", body()?.string()?:"")
+            .toString()
 }

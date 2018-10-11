@@ -50,9 +50,7 @@ class CipherActivity : AppCompatActivity() {
     }
 
     private fun putFileGetFile() {
-
         // works
-        /*
         blockstackSession().putFile("try.txt", "Hello from Blockstack2", PutFileOptions(encrypt = false)) {
             Log.d(TAG, "result: " + it.value)
             // does not yet work
@@ -60,7 +58,6 @@ class CipherActivity : AppCompatActivity() {
                 Log.d(TAG, "content " + it.value)
             }
         }
-        */
 
     }
 
@@ -74,7 +71,7 @@ class CipherActivity : AppCompatActivity() {
         Log.d(TAG, "result encryptDecryptString " + cipherResult.toString())
         if (cipherResult.hasValue) {
             val cipher = cipherResult.value!!
-            blockstackSession().decryptContent(cipher.json.toString(), options) { plainContentResult ->
+            blockstackSession().decryptContent(cipher.json.toString(), false, options) { plainContentResult ->
                 if (plainContentResult.hasValue) {
                     val plainContent: String = plainContentResult.value as String
                     runOnUiThread {
@@ -105,10 +102,9 @@ class CipherActivity : AppCompatActivity() {
 
         if (cipherResult.hasValue) {
             val cipher = cipherResult.value!!
-            blockstackSession().decryptContent(cipher.json.toString(), options) { plainContentResult ->
+            blockstackSession().decryptContent(cipher.json.toString(), true, options) { plainContentResult ->
                 if (plainContentResult.hasValue) {
-                    Log.d(TAG, "decrypted" + plainContentResult.toString())
-
+                    Log.d(TAG, "decrypted " + plainContentResult.toString())
                     val plainContent: ByteArray = plainContentResult.value as ByteArray
                     val imageByteArray = plainContent
                     val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
