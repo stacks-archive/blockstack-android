@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Blockstack Sign In</title>
-        <script src="blockstack.js"></script>
-        <script src="base64.js"></script>
-        <script src="sessionstore_android.js"></script>
-        <script>
+<head>
+<title>Blockstack Sign In</title>
+<script src="blockstack.js"></script>
+<script src="base64.js"></script>
+<script src="sessionstore_android.js"></script>
+<script>
 var userSession = new blockstack.UserSession({sessionStore:androidSessionStore})
 
 function makeAuthResponse(privateKey) {

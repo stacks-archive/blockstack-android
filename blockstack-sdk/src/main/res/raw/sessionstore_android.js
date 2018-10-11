@@ -19,11 +19,11 @@ var androidSessionStore = {
   }
 }
 
-var console = {
-  log: function() {
-  },
+getByte = function() {
+return 1;
+}
 
-  error: function() {
-  }
-
+global.generate=function (len) {
+  var res=new Uint8Array(len);for(var i=0;i<res.length;i++){res[i]=getByte();}
+  return res;
 }
