@@ -1,11 +1,20 @@
 
-blockstack.getFile = function(path,options, uniqueIdentifier) {
+blockstack.getFile = function(path, options, uniqueIdentifier) {
     const opts = JSON.parse(options)
     console.log("opts" + opts)
     userSession.getFile(path, opts)
       .then(function(result) {
-         console.log("get file result:" + result)
-         android.getFileResult(result, uniqueIdentifier)
+         console.log("get file result: " + JSON.stringify(result))
+         var isArrayBuffer = result instanceof ArrayBuffer
+         console.log("get file result: " + isArrayBuffere)
+         var isBuffer = result instanceof Uint8Array
+         console.log("get file result: " + isArrayBuffer + " " + isBuffer)
+         var binary = isArrayBuffer || isBuffer
+         if (binary) {
+           console.log("binary " + result.byteLength)
+           result = Base64.encode(result)
+         }
+         android.getFileResult(result, uniqueIdentifier, binary)
       }, function(error) {
         console.log("get file failure:" + error)
         android.getFileFailure(error.toString(), uniqueIdentifier)
@@ -13,7 +22,14 @@ blockstack.getFile = function(path,options, uniqueIdentifier) {
 }
 
 blockstack.putFile = function(path, contentString, options, uniqueIdentifier, binary) {
-  userSession.putFile(path, contentString, JSON.parse(options))
+  var content = null;
+  if (binary) {
+    content = Base64.decode(contentString)
+    console.log("put file binary length:" + content.byteLength)
+  } else {
+    content = contentString
+  }
+  userSession.putFile(path, content, JSON.parse(options))
     .then(function(result) {
       console.log("put result:" + result)
       android.putFileResult(result, uniqueIdentifier)
@@ -46,7 +62,16 @@ blockstack.decryptContent = function(cipherTextString, options, binary) {
 
 function Response(r) {
   this.status = r.status
-  this.body = r.body
+  if (r.bodyEncoded) {
+    this.body = Base64.decode(r.body)
+    console.log("Response body " + this.body + " " + this.body.byteLength)
+  } else {
+    this.body = r.body
+  }
+  this.headers = r.headers
+  this.headers.get = function(name) {
+    return r.headers[name.toLowerCase()]
+  }
   this.ok = this.status >= 200 && this.status < 300;
 }
 
@@ -72,39 +97,47 @@ Response.prototype.text = function() {
 
   var _this = this;
 
-  return new blockstack.Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
     resolve(_this.body);
   });
 
 }
 
+Response.prototype.arrayBuffer = function() {
+  var _this = this;
+
+  return new Promise(function(resolve, reject) {
+    console.log("arrayBuffer() - body is ArrayBuffer: " + (_this.body instanceof ArrayBuffer).toString())
+    resolve(_this.body)
+  });
+}
 
 var fetchPromises = {}
 fetch = function(url, options){
-  var promise = new blockstack.Promise(function(resolve, reject) {
+  var promise = new Promise(function(resolve, reject) {
     console.log('fetch ' + url)
     fetchPromises.resolve = resolve
     if (options) {
+        if (options.body instanceof ArrayBuffer) {
+          options.body = Base64.encode(options.body)
+          options.bodyEncoded = true
+        }
         android.fetch2(url, JSON.stringify(options))
     } else {
         android.fetch2(url, "{}")
     }
   })
-  console.log("after promise created")
   return promise
 }
 
 blockstack.fetchResolve = function(url, response) {
   console.log('resolved ' + url)
-  console.log('response ' + response)
   try {
     var resp = new Response(JSON.parse(response))
-    console.log('resp ' + resp)
-    var resolved = fetchPromises.resolve(resp)
-    console.log('result ' + resolved)
-    fakeEventLoop()
+    console.log('resolved ' + resp.status)
+    fetchPromises.resolve(resp)
   } catch (e) {
-   console.log("error:" + e.toString())
+    console.log("error:" + e.toString())
   }
   return "success"
 }
@@ -142,7 +175,6 @@ var clearTimeout;
             var fn = timers.shift();
             console.log('run timer ' + fn);
             try {
-                const Promise = blockstack.Promise;
                 const global = blockstack.global;
                 fn();
             } catch (e) {

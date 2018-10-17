@@ -41,9 +41,10 @@ class CipherActivity : AppCompatActivity() {
 
     fun checkLogin() {
         if (blockstackSession().isUserSignedIn()) {
-            encryptDecryptString()
+            //encryptDecryptString()
             //putFileGetFile()
-            encryptDecryptImage()
+            putFileGetFileImage()
+            //encryptDecryptImage()
         } else {
             navigateToAccount()
         }
@@ -51,14 +52,37 @@ class CipherActivity : AppCompatActivity() {
 
     private fun putFileGetFile() {
         // works
-        blockstackSession().putFile("try.txt", "Hello from Blockstack2", PutFileOptions(encrypt = false)) {
+        blockstackSession().putFile("try.txt", "Hello from Blockstack2", PutFileOptions(encrypt = true)) {
             Log.d(TAG, "result: " + it.value)
             // does not yet work
-            blockstackSession().getFile("try.txt", GetFileOptions(false)) {
+            blockstackSession().getFile("try.txt", GetFileOptions(true)) {
                 Log.d(TAG, "content " + it.value)
             }
         }
+    }
 
+    private fun putFileGetFileImage() {
+        val drawable: BitmapDrawable = resources.getDrawable(R.drawable.default_avatar) as BitmapDrawable
+
+        val bitmap = drawable.getBitmap()
+        val stream = ByteArrayOutputStream()
+
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+        val bitMapData = stream.toByteArray()
+
+        // works
+        blockstackSession().putFile("try.txt", bitMapData, PutFileOptions(encrypt = true)) {
+            Log.d(TAG, "result: " + it.value)
+            // does not yet work
+            blockstackSession().getFile("try.txt", GetFileOptions(true)) {
+                val plainContent: ByteArray = it.value as ByteArray
+                val imageByteArray = plainContent
+                val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+                runOnUiThread {
+                    imageView.setImageBitmap(bitmap)
+                }
+            }
+        }
     }
 
     private fun navigateToAccount() {

@@ -62,10 +62,6 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
     init {
 
         v8 = V8.createV8Runtime()
-        v8.executeVoidScript(context.resources.openRawResource(R.raw.blockstack).bufferedReader().use { it.readText() });
-        v8.executeVoidScript(context.resources.openRawResource(R.raw.sessionstore_android).bufferedReader().use { it.readText() });
-        v8.executeVoidScript(context.resources.openRawResource(R.raw.blockstack_android2).bufferedReader().use { it.readText() });
-        blockstack = v8.getObject("blockstack")
 
         val console = LogConsole()
         val v8Console = V8Object(v8)
@@ -75,6 +71,12 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
         v8Console.registerJavaMethod(console, "debug", "debug", arrayOf<Class<*>>(String::class.java))
         v8Console.registerJavaMethod(console, "warn", "warn", arrayOf<Class<*>>(String::class.java))
         v8Console.release()
+
+        v8.executeVoidScript(context.resources.openRawResource(R.raw.blockstack).bufferedReader().use { it.readText() });
+        v8.executeVoidScript(context.resources.openRawResource(R.raw.base64).bufferedReader().use { it.readText() });
+        v8.executeVoidScript(context.resources.openRawResource(R.raw.sessionstore_android).bufferedReader().use { it.readText() });
+        v8.executeVoidScript(context.resources.openRawResource(R.raw.blockstack_android2).bufferedReader().use { it.readText() });
+        blockstack = v8.getObject("blockstack")
 
         val android = JavascriptInterface2Object(this, v8, blockstack)
         val v8android = V8Object(v8)
@@ -285,10 +287,10 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
 
         @JavascriptInterface
         override fun getFileResult(content: String, uniqueIdentifier: String, isBinary: Boolean) {
-            Log.d(session.TAG, "putFileResult")
+            Log.d(session.TAG, "getFileResult isBinary? " + isBinary)
 
             if (isBinary) {
-                val binaryContent: ByteArray = Base64.decode(content, Base64.DEFAULT)
+                val binaryContent: ByteArray = Base64.decode(content, Base64.NO_WRAP)
                 session.getFileCallbacks[uniqueIdentifier]?.invoke(Result(binaryContent))
             } else {
                 session.getFileCallbacks[uniqueIdentifier]?.invoke(Result(content))
@@ -343,7 +345,12 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
             if (options.has("method")) {
                 var body: RequestBody? = null
                 if (options.has("body")) {
-                    body = RequestBody.create(null, options.getString("body"))
+                    val bodyString = options.getString("body")
+                    if (options.has("bodyEncoded")) {
+                        body = RequestBody.create(null, Base64.decode(bodyString, Base64.NO_WRAP))
+                    } else {
+                        body = RequestBody.create(null, bodyString)
+                    }
                 }
                 builder.method(options.getString("method"), body)
             }
@@ -370,8 +377,28 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
 }
 
 fun Response.toJSONString(): String {
+    val headersJson = JSONObject()
+    headers().names().forEach {headersJson.put(it.toLowerCase(), header(it))}
+    val bodyEncoded:Boolean
+    val bodyJson:String
+    if (headersJson.optString("content-type")?.contentEquals("application/octet-stream") == true) {
+        bodyEncoded = true
+        val bytes = body()?.bytes()
+        if (bytes != null) {
+            bodyJson = Base64.encodeToString(bytes, Base64.NO_WRAP)
+        } else {
+            bodyJson = ""
+        }
+    } else {
+        bodyEncoded = false
+        bodyJson = body()?.string()?:""
+    }
+
+
     return JSONObject()
             .put("status", code())
-            .put("body", body()?.string()?:"")
+            .put("body", bodyJson)
+            .put("bodyEncoded", bodyEncoded)
+            .put("headers", headersJson)
             .toString()
 }
