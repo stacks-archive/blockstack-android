@@ -1,12 +1,12 @@
 
 blockstack.getFile = function(path, options, uniqueIdentifier) {
     const opts = JSON.parse(options)
-    console.log("opts" + opts)
+    console.log("opts" + options)
     userSession.getFile(path, opts)
       .then(function(result) {
          console.log("get file result: " + JSON.stringify(result))
          var isArrayBuffer = result instanceof ArrayBuffer
-         console.log("get file result: " + isArrayBuffere)
+         console.log("get file result: " + isArrayBuffer)
          var isBuffer = result instanceof Uint8Array
          console.log("get file result: " + isArrayBuffer + " " + isBuffer)
          var binary = isArrayBuffer || isBuffer
@@ -146,12 +146,9 @@ blockstack.timeout = function() {
   fakeEventLoop()
 }
 
-getByte = function() {
-return 1;
-}
-
 global.generate=function (len) {
-  var res=new Uint8Array(len);for(var i=0;i<res.length;i++){res[i]=getByte();}
+  var res=new Uint8Array(len);
+  global.crypto.getRandomValues(res);
   return res;
 }
 

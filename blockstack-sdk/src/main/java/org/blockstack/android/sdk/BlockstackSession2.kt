@@ -5,17 +5,16 @@ import android.preference.PreferenceManager
 import android.util.Base64
 import android.util.Log
 import android.webkit.JavascriptInterface
+import com.eclipsesource.v8.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
-import com.eclipsesource.v8.V8
-import com.eclipsesource.v8.V8Array
-import com.eclipsesource.v8.V8Object
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import org.jetbrains.anko.coroutines.experimental.bg
 import org.json.JSONObject
+import java.security.SecureRandom
 import java.util.*
 
 
@@ -72,11 +71,16 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
         v8Console.registerJavaMethod(console, "warn", "warn", arrayOf<Class<*>>(String::class.java))
         v8Console.release()
 
+
         v8.executeVoidScript(context.resources.openRawResource(R.raw.blockstack).bufferedReader().use { it.readText() });
         v8.executeVoidScript(context.resources.openRawResource(R.raw.base64).bufferedReader().use { it.readText() });
         v8.executeVoidScript(context.resources.openRawResource(R.raw.sessionstore_android).bufferedReader().use { it.readText() });
         v8.executeVoidScript(context.resources.openRawResource(R.raw.blockstack_android2).bufferedReader().use { it.readText() });
         blockstack = v8.getObject("blockstack")
+
+        val v8crypto = v8.getObject("global").getObject("crypto")
+        val crypto = GlobalCrypto(v8)
+        v8crypto.registerJavaMethod(crypto, "getRandomValues", "getRandomValues", arrayOf<Class<*>>(V8TypedArray::class.java))
 
         val android = JavascriptInterface2Object(this, v8, blockstack)
         val v8android = V8Object(v8)
@@ -117,6 +121,19 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
 
         override fun debug(msg: String) {
             Log.d(TAG, msg)
+        }
+    }
+
+    class GlobalCrypto (val v8: V8) {
+        val secureRandom = SecureRandom()
+        fun getRandomValues(array:V8TypedArray) {
+            val buffer = array.getByteBuffer()
+
+            val bytes = ByteArray(array.length())
+            secureRandom.nextBytes(bytes)
+            for (i in 0 .. buffer.limit() -1) {
+                buffer.put(i, bytes[i])
+            }
         }
     }
 
