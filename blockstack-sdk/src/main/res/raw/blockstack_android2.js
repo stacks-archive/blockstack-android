@@ -1,17 +1,13 @@
 
 blockstack.getFile = function(path, options, uniqueIdentifier) {
     const opts = JSON.parse(options)
-    console.log("opts" + options)
     userSession.getFile(path, opts)
       .then(function(result) {
-         console.log("get file result: " + JSON.stringify(result))
+         console.log("get file result")
          var isArrayBuffer = result instanceof ArrayBuffer
-         console.log("get file result: " + isArrayBuffer)
          var isBuffer = result instanceof Uint8Array
-         console.log("get file result: " + isArrayBuffer + " " + isBuffer)
          var binary = isArrayBuffer || isBuffer
          if (binary) {
-           console.log("binary " + result.byteLength)
            result = Base64.encode(result)
          }
          android.getFileResult(result, uniqueIdentifier, binary)
@@ -25,7 +21,6 @@ blockstack.putFile = function(path, contentString, options, uniqueIdentifier, bi
   var content = null;
   if (binary) {
     content = Base64.decode(contentString)
-    console.log("put file binary length:" + content.byteLength)
   } else {
     content = contentString
   }
@@ -43,7 +38,6 @@ blockstack.putFile = function(path, contentString, options, uniqueIdentifier, bi
 blockstack.encryptContent = function(contentString, options) {
     console.log("encrypt content");
     result = userSession.encryptContent(contentString, JSON.parse(options));
-    console.log("result " + result);
     return result;
 }
 
@@ -64,7 +58,6 @@ function Response(r) {
   this.status = r.status
   if (r.bodyEncoded) {
     this.body = Base64.decode(r.body)
-    console.log("Response body " + this.body + " " + this.body.byteLength)
   } else {
     this.body = r.body
   }
@@ -136,10 +129,11 @@ blockstack.fetchResolve = function(url, response) {
     var resp = new Response(JSON.parse(response))
     console.log('resolved ' + resp.status)
     fetchPromises.resolve(resp)
+    return "success"
   } catch (e) {
     console.log("error:" + e.toString())
+    return "error " + e.toString()
   }
-  return "success"
 }
 
 blockstack.timeout = function() {
@@ -172,13 +166,11 @@ var clearTimeout;
             var fn = timers.shift();
             console.log('run timer ' + fn);
             try {
-                const global = blockstack.global;
                 fn();
             } catch (e) {
                 console.log("error in eventLoop " + e)
                 throw Error("failed to run " + fn, e)
             }
-            console.log('timer len:' + timers.length)
         }
         console.log('fake eventloop exiting, no more timers');
     };
