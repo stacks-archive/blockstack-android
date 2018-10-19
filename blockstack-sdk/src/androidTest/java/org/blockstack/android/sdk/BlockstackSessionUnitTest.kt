@@ -9,6 +9,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Rule
 import org.junit.Test;
 import org.junit.runner.RunWith
+import java.util.concurrent.CountDownLatch
 
 @RunWith(AndroidJUnit4::class)
 class BlockstackSessionUnitTest {
@@ -21,7 +22,14 @@ class BlockstackSessionUnitTest {
     @Test
     fun testMakeAuthResponse() {
         val session = BlockstackSession(rule.activity, "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()))
-        val token = session.makeAuthResponse(PRIVATE_KEY)
+        var result:String? = null
+        val latch = CountDownLatch(1)
+
+        val token = session.makeAuthResponse(PRIVATE_KEY) {
+            result = it.value
+            latch.countDown()
+        }
+        latch.await()
         assertThat(token, `is`(notNullValue()))
     }
 }

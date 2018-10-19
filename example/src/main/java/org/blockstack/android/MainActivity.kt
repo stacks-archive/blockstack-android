@@ -40,12 +40,18 @@ class MainActivity : AppCompatActivity() {
         val config = java.net.URI("https://flamboyant-darwin-d11c17.netlify.com").run {
             org.blockstack.android.sdk.BlockstackConfig(
                     this,
-                    java.net.URI("${this}/redirect"),
-                    java.net.URI("${this}/manifest.json"),
+                    "/redirect",
+                    "/manifest.json",
                     kotlin.arrayOf(org.blockstack.android.sdk.Scope.StoreWrite))
         }
 
-        _blockstackSession = BlockstackSession(config)
+        _blockstackSession = BlockstackSession(this, config,
+                onLoadedCallback = {
+                    // Wait until this callback fires before using any of the
+                    // BlockstackSession API methods
+
+                    signInButton.isEnabled = true
+                })
 
         getStringFileButton.isEnabled = false
         putStringFileButton.isEnabled = false

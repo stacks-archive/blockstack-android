@@ -115,10 +115,14 @@ fetch = function(url, options){
           options.body = Base64.encode(options.body)
           options.bodyEncoded = true
         }
-        android.fetch2(url, JSON.stringify(options))
     } else {
-        android.fetch2(url, "{}")
+      options = {};
     }
+        try {
+          android.fetch2(url, JSON.stringify(options))
+        } catch (e) {
+          console.log("fetch error " + e.toString())
+        }
   })
   return promise
 }

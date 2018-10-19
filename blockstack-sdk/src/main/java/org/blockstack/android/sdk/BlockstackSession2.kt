@@ -5,14 +5,18 @@ import android.preference.PreferenceManager
 import android.util.Base64
 import android.util.Log
 import android.webkit.JavascriptInterface
-import com.eclipsesource.v8.*
+import com.eclipsesource.v8.V8
+import com.eclipsesource.v8.V8Array
+import com.eclipsesource.v8.V8Object
+import com.eclipsesource.v8.V8TypedArray
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
-import org.jetbrains.anko.coroutines.experimental.bg
 import org.json.JSONObject
 import java.security.SecureRandom
 import java.util.*
@@ -21,6 +25,7 @@ import java.util.*
 private val HOSTED_BROWSER_URL_BASE = "https://browser.blockstack.org"
 
 private val TAG = "BlockstackSession2"
+
 /**
  * Main object to interact with blockstack in an activity
  *
@@ -31,11 +36,13 @@ private val TAG = "BlockstackSession2"
  * @param config the configuration for blockstack
  * @param onLoadedCallback the callback for when this object is ready to use
  */
-class BlockstackSession2(context:Context, private val config: BlockstackConfig,
-                        /**
-                         * url of the name lookup service, defaults to core.blockstack.org/v1/names
-                         */
-                        val nameLookupUrl: String = "https://core.blockstack.org/v1/names/") {
+class BlockstackSession2(context: Context, private val config: BlockstackConfig,
+                         /**
+                          * url of the name lookup service, defaults to core.blockstack.org/v1/names
+                          */
+                         val nameLookupUrl: String = "https://core.blockstack.org/v1/names/",
+                         private val sessionStore: SessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context)),
+                         private val executor: Executor = AndroidExecutor()) {
 
     private val TAG = BlockstackSession2::class.qualifiedName
 
@@ -52,12 +59,12 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
     private val lookupProfileCallbacks = HashMap<String, ((Result<Profile>) -> Unit)>()
     private val getFileCallbacks = HashMap<String, ((Result<Any>) -> Unit)>()
     private val putFileCallbacks = HashMap<String, ((Result<String>) -> Unit)>()
-    private val sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context))
 
 
-    private val blockstack:V8Object
+    private val blockstack: V8Object
     private val userSession: V8Object
     private val v8: V8
+
     init {
 
         v8 = V8.createV8Runtime()
@@ -106,7 +113,7 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
         fun log(msg: String)
     }
 
-    class LogConsole: Console {
+    class LogConsole : Console {
         override fun error(msg: String) {
             Log.e(TAG, msg)
         }
@@ -124,14 +131,14 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
         }
     }
 
-    class GlobalCrypto (val v8: V8) {
+    class GlobalCrypto(val v8: V8) {
         val secureRandom = SecureRandom()
-        fun getRandomValues(array:V8TypedArray) {
+        fun getRandomValues(array: V8TypedArray) {
             val buffer = array.getByteBuffer()
 
             val bytes = ByteArray(array.length())
             secureRandom.nextBytes(bytes)
-            for (i in 0 .. buffer.limit() -1) {
+            for (i in 0..buffer.limit() - 1) {
                 buffer.put(i, bytes[i])
             }
         }
@@ -229,38 +236,33 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
      * @options defines how to decrypt the cipherObject
      * @callback called with the plain content as String or ByteArray depending on the given options
      */
-    fun decryptContent(cipherObject: Any, binary:Boolean, options: CryptoOptions, callback: (Result<Any>) -> Unit) {
+    fun decryptContent(cipherObject: Any, binary: Boolean, options: CryptoOptions): Result<Any> {
 
         val valid = cipherObject is String || cipherObject is ByteArray
         if (!valid) {
-            throw IllegalArgumentException("decrypt content only supports JSONObject or ByteArray")
+            throw IllegalArgumentException("decrypt content only supports JSONObject or ByteArray not " + cipherObject::class.java)
         }
 
         val isBinary = cipherObject is ByteArray
 
-        var wasString: Boolean
-
         val plainContent = if (isBinary) {
             val cipherTextString = Base64.encodeToString(cipherObject as ByteArray, Base64.NO_WRAP)
-            wasString = JSONObject(cipherTextString).getBoolean("wasString")
             val params = V8Array(v8).push(cipherTextString).push(options.toJSON().toString()).push(true)
             blockstack.executeStringFunction("decryptContent", params)
         } else {
-            wasString = JSONObject(cipherObject as String).getBoolean("wasString")
             val params = V8Array(v8).push(cipherObject).push(options.toJSON().toString()).push(true)
             blockstack.executeStringFunction("decryptContent", params)
         }
 
 
         if (plainContent != null && !"null".equals(plainContent)) {
-
             if (!binary) {
-                callback(Result(plainContent.removeSurrounding("\"")))
+                return Result(plainContent.removeSurrounding("\""))
             } else {
-                callback(Result(Base64.decode(plainContent, Base64.DEFAULT)))
+                return Result(Base64.decode(plainContent, Base64.DEFAULT))
             }
         } else {
-            callback(Result(null, "failed to decrypt"))
+            return Result(null, "failed to decrypt")
         }
     }
 
@@ -289,7 +291,7 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
         fun fetch2(url: String, options: String)
     }
 
-    private class JavascriptInterface2Object(private val session: BlockstackSession2, val v8:V8, val blockstack:V8Object) : JavaScriptInterface2 {
+    private class JavascriptInterface2Object(private val session: BlockstackSession2, val v8: V8, val blockstack: V8Object) : JavaScriptInterface2 {
 
         @JavascriptInterface
         override fun lookupProfileResult(username: String, userDataString: String) {
@@ -378,26 +380,24 @@ class BlockstackSession2(context:Context, private val config: BlockstackConfig,
                     builder.header(key, headers.getString(key))
                 }
             }
+            session.executor.onWorkerThread {
+                val response = httpClient.newCall(builder.build()).execute()
 
-            async(UI) {
-                val response = bg {
-                    httpClient.newCall(builder.build()).execute()
-                }.await()
-                val r = response.toJSONString()
-                var params = V8Array(v8).push(url).push(r)
-                blockstack.executeVoidFunction("fetchResolve", params)
+                session.executor.onMainThread {
+                    val r = response.toJSONString()
+                    var params = V8Array(v8).push(url).push(r)
+                    blockstack.executeVoidFunction("fetchResolve", params)
+                }
             }
-
         }
-
     }
 }
 
 fun Response.toJSONString(): String {
     val headersJson = JSONObject()
-    headers().names().forEach {headersJson.put(it.toLowerCase(), header(it))}
-    val bodyEncoded:Boolean
-    val bodyJson:String
+    headers().names().forEach { headersJson.put(it.toLowerCase(), header(it)) }
+    val bodyEncoded: Boolean
+    val bodyJson: String
     if (headersJson.optString("content-type")?.contentEquals("application/octet-stream") == true) {
         bodyEncoded = true
         val bytes = body()?.bytes()
@@ -408,7 +408,7 @@ fun Response.toJSONString(): String {
         }
     } else {
         bodyEncoded = false
-        bodyJson = body()?.string()?:""
+        bodyJson = body()?.string() ?: ""
     }
 
 
@@ -418,4 +418,20 @@ fun Response.toJSONString(): String {
             .put("bodyEncoded", bodyEncoded)
             .put("headers", headersJson)
             .toString()
+}
+
+interface Executor {
+    fun onMainThread(function: () -> Unit)
+    fun onWorkerThread(function: suspend () -> Unit)
+}
+
+class AndroidExecutor : Executor {
+    override fun onMainThread(function: () -> Unit) {
+        launch(UI) { function.invoke() }
+    }
+
+    override fun onWorkerThread(function: suspend () -> Unit) {
+        async(CommonPool) { function.invoke() }
+    }
+
 }
