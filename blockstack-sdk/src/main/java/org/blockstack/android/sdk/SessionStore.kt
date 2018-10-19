@@ -9,9 +9,15 @@ val BLOCKSTACK_SESSION = "blockstack_session"
 private val EMPTY_DATA = "{}"
 private val TAG = SessionStore::class.java.simpleName
 
-class SessionStore(private val prefs: SharedPreferences) {
-    var sessionDataObject = SessionData(JSONObject(prefs.getString(BLOCKSTACK_SESSION, EMPTY_DATA)))
+
+interface ISessionStore {
     var sessionData: SessionData
+    fun deleteSessionData()
+}
+
+class SessionStore(private val prefs: SharedPreferences) : ISessionStore {
+    var sessionDataObject = SessionData(JSONObject(prefs.getString(BLOCKSTACK_SESSION, EMPTY_DATA)))
+    override var sessionData: SessionData
         get() = sessionDataObject
         set(value) {
             Log.d(TAG, "set session data in store " + value.json.toString())
@@ -19,7 +25,7 @@ class SessionStore(private val prefs: SharedPreferences) {
             prefs.edit().putString(BLOCKSTACK_SESSION, value.json.toString()).apply()
         }
 
-    fun deleteSessionData() {
+    override fun deleteSessionData() {
         prefs.edit().putString(BLOCKSTACK_SESSION, EMPTY_DATA).apply()
         sessionDataObject = SessionData(JSONObject())
     }

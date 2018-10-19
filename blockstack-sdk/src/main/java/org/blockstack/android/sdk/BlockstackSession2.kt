@@ -18,6 +18,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
 import org.json.JSONObject
+import java.security.InvalidParameterException
 import java.security.SecureRandom
 import java.util.*
 
@@ -36,13 +37,15 @@ private val TAG = "BlockstackSession2"
  * @param config the configuration for blockstack
  * @param onLoadedCallback the callback for when this object is ready to use
  */
-class BlockstackSession2(context: Context, private val config: BlockstackConfig,
+class BlockstackSession2(context:Context? = null, private val config: BlockstackConfig,
                          /**
                           * url of the name lookup service, defaults to core.blockstack.org/v1/names
                           */
                          val nameLookupUrl: String = "https://core.blockstack.org/v1/names/",
-                         private val sessionStore: SessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context)),
-                         private val executor: Executor = AndroidExecutor()) {
+                         private val sessionStore: ISessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context)),
+                         private val executor: Executor = AndroidExecutor(),
+                         scriptRepo: ScriptRepo = if (context != null) AndroidScriptRepo(context) else throw InvalidParameterException("context or scriptRepo required")
+                         ) {
 
     private val TAG = BlockstackSession2::class.qualifiedName
 
@@ -66,7 +69,6 @@ class BlockstackSession2(context: Context, private val config: BlockstackConfig,
     private val v8: V8
 
     init {
-
         v8 = V8.createV8Runtime()
 
         val console = LogConsole()
@@ -79,10 +81,10 @@ class BlockstackSession2(context: Context, private val config: BlockstackConfig,
         v8Console.release()
 
 
-        v8.executeVoidScript(context.resources.openRawResource(R.raw.blockstack).bufferedReader().use { it.readText() });
-        v8.executeVoidScript(context.resources.openRawResource(R.raw.base64).bufferedReader().use { it.readText() });
-        v8.executeVoidScript(context.resources.openRawResource(R.raw.sessionstore_android).bufferedReader().use { it.readText() });
-        v8.executeVoidScript(context.resources.openRawResource(R.raw.blockstack_android2).bufferedReader().use { it.readText() });
+        v8.executeVoidScript(scriptRepo.blockstack());
+        v8.executeVoidScript(scriptRepo.base64());
+        v8.executeVoidScript(scriptRepo.sessionStoreAndroid());
+        v8.executeVoidScript(scriptRepo.blockstackAndroid2());
         blockstack = v8.getObject("blockstack")
 
         val v8crypto = v8.getObject("global").getObject("crypto")
@@ -434,4 +436,19 @@ class AndroidExecutor : Executor {
         async(CommonPool) { function.invoke() }
     }
 
+}
+
+interface ScriptRepo {
+    fun blockstack(): String
+    fun base64(): String
+    fun sessionStoreAndroid(): String
+    fun blockstackAndroid2(): String
+
+}
+
+class AndroidScriptRepo(private val context:Context) : ScriptRepo {
+    override fun blockstack() = context.resources.openRawResource(R.raw.blockstack).bufferedReader().use { it.readText() }
+    override fun base64() = context.resources.openRawResource(R.raw.base64).bufferedReader().use { it.readText() }
+    override fun sessionStoreAndroid() = context.resources.openRawResource(R.raw.sessionstore_android).bufferedReader().use { it.readText() }
+    override fun blockstackAndroid2() = context.resources.openRawResource(R.raw.blockstack_android2).bufferedReader().use { it.readText() }
 }
