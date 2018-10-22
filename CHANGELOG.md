@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Updated `blockstack.js` to branch `storage-strategies`
 - `BlockstackConfig.redirectUrl` and `.manifestUrl` renamed to *path
+- underlying tech from `WebView` to 'j2v8`
 
 ### Removed
 - `Blockstack.makeAuthRequest`
