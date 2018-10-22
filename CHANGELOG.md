@@ -10,6 +10,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+- Parameter `sessionStore`, `executor` and `scriptRepo` to `BlockstackSession` constructor
+- Example for using `Blockstack` in a background service
+
+### Changed
+- Updated `blockstack.js` to branch `storage-strategies`
+- `BlockstackConfig.redirectUrl` and `.manifestUrl` renamed to *path
+
+### Removed
+- `Blockstack.makeAuthRequest`
+- callback parameter from `BlockstackSession.isUserSignedIn`, `.loadUserData`, `encryptContent`, `decryptContent` and `.signUserOut`
+ 
 ## [0.3.0] - 2018-07-27
 
 ### Added
