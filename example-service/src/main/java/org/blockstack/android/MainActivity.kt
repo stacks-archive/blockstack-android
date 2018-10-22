@@ -40,7 +40,9 @@ class MainActivity : AppCompatActivity() {
 
 
         signInButton.setOnClickListener { view: View ->
-            blockstackSession().redirectUserToSignIn()
+            blockstackSession().redirectUserToSignIn {
+
+            }
         }
 
         startServiceButton.setOnClickListener { _ ->
