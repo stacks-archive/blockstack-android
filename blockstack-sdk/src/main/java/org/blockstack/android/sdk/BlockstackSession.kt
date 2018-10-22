@@ -28,7 +28,7 @@ import java.util.*
 
 private val HOSTED_BROWSER_URL_BASE = "https://browser.blockstack.org"
 
-private val TAG = "BlockstackSession2"
+private val TAG = "BlockstackSession"
 
 /**
  * Main object to interact with blockstack in an activity
@@ -40,17 +40,17 @@ private val TAG = "BlockstackSession2"
  * @param config the configuration for blockstack
  * @param onLoadedCallback the callback for when this object is ready to use
  */
-class BlockstackSession2(context: Context? = null, private val config: BlockstackConfig,
-                         /**
+class BlockstackSession(context: Context? = null, private val config: BlockstackConfig,
+                        /**
                           * url of the name lookup service, defaults to core.blockstack.org/v1/names
                           */
                          val nameLookupUrl: String = "https://core.blockstack.org/v1/names/",
-                         private val sessionStore: ISessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context)),
-                         private val executor: Executor = AndroidExecutor(context!!),
-                         scriptRepo: ScriptRepo = if (context != null) AndroidScriptRepo(context) else throw InvalidParameterException("context or scriptRepo required")
+                        private val sessionStore: ISessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context)),
+                        private val executor: Executor = AndroidExecutor(context!!),
+                        scriptRepo: ScriptRepo = if (context != null) AndroidScriptRepo(context) else throw InvalidParameterException("context or scriptRepo required")
 ) {
 
-    private val TAG = BlockstackSession2::class.qualifiedName
+    private val TAG = BlockstackSession::class.qualifiedName
 
     /**
      * Flag indicating whether this object is ready to use
@@ -352,7 +352,7 @@ class BlockstackSession2(context: Context? = null, private val config: Blockstac
         fun setLocation(location: String)
     }
 
-    private class JavascriptInterface2Object(private val session: BlockstackSession2, val v8: V8, val blockstack: V8Object) : JavaScriptInterface2 {
+    private class JavascriptInterface2Object(private val session: BlockstackSession, val v8: V8, val blockstack: V8Object) : JavaScriptInterface2 {
 
         override fun signInSuccess(userDataString: String) {
             Log.d(TAG, "sign in success " + userDataString)

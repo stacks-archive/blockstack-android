@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     private val textFileName = "message.txt"
     private val imageFileName = "team.jpg"
 
-    private var _blockstackSession: BlockstackSession2? = null
+    private var _blockstackSession: BlockstackSession? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        _blockstackSession = BlockstackSession2(this@MainActivity, config)
+        _blockstackSession = BlockstackSession(this@MainActivity, config)
         signInButton.isEnabled = true
 
 
@@ -259,7 +259,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun blockstackSession(): BlockstackSession2 {
+    fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
         if (session != null) {
             return session

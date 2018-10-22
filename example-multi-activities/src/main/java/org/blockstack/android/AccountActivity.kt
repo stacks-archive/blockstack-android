@@ -11,13 +11,13 @@ import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_account.*
-import org.blockstack.android.sdk.BlockstackSession2
+import org.blockstack.android.sdk.BlockstackSession
 
 
 class AccountActivity : AppCompatActivity() {
     private val TAG = AccountActivity::class.java.simpleName
 
-    private var _blockstackSession: BlockstackSession2? = null
+    private var _blockstackSession: BlockstackSession? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +28,7 @@ class AccountActivity : AppCompatActivity() {
         signInButton.isEnabled = false
         signOutButton.isEnabled = false
 
-        _blockstackSession = BlockstackSession2(this, defaultConfig)
+        _blockstackSession = BlockstackSession(this, defaultConfig)
         if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
         }
@@ -109,7 +109,7 @@ class AccountActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    fun blockstackSession(): BlockstackSession2 {
+    fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
         if (session != null) {
             return session

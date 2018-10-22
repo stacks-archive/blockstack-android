@@ -8,14 +8,14 @@ import android.util.Log
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import org.blockstack.android.sdk.BlockstackSession2
+import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.UserData
 
 
 class MainActivity : AppCompatActivity() {
     private val TAG = MainActivity::class.java.simpleName
 
-    private var _blockstackSession: BlockstackSession2? = null
+    private var _blockstackSession: BlockstackSession? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
         signInButton.isEnabled = false
         startServiceButton.isEnabled = false
 
-        _blockstackSession = BlockstackSession2(this, defaultConfig)
+        _blockstackSession = BlockstackSession(this, defaultConfig)
 
         // Wait until this callback fires before using any of the
         // BlockstackSession API methods
@@ -96,7 +96,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun blockstackSession(): BlockstackSession2 {
+    fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
         if (session != null) {
             return session

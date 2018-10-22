@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.preference.PreferenceManager
-import android.support.test.InstrumentationRegistry
 import android.support.test.rule.ActivityTestRule
 import android.support.test.runner.AndroidJUnit4
 import kotlinx.coroutines.experimental.runBlocking
@@ -32,7 +31,7 @@ class BlockstackSession2UnitTest {
 
     private lateinit var sessionStore: SessionStore
     private lateinit var executor: Executor
-    private lateinit var session: BlockstackSession2
+    private lateinit var session: BlockstackSession
 
     @Before
     fun setup() {
@@ -52,7 +51,7 @@ class BlockstackSession2UnitTest {
                 }
             }
         }
-        session = BlockstackSession2(rule.activity, "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
+        session = BlockstackSession(rule.activity, "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStore,
                 executor = executor)
     }

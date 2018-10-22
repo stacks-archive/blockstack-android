@@ -18,7 +18,7 @@ val TAG = CipherActivity::class.java.simpleName
 
 class CipherActivity : AppCompatActivity() {
 
-    private var _blockstackSession: BlockstackSession2? = null
+    private var _blockstackSession: BlockstackSession? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +29,7 @@ class CipherActivity : AppCompatActivity() {
 
         Log.d(TAG, "json " + intent.getStringExtra("json"))
         val userData = UserData(JSONObject(intent.getStringExtra("json")))
-        _blockstackSession = BlockstackSession2(this, defaultConfig)
+        _blockstackSession = BlockstackSession(this, defaultConfig)
     }
 
     override fun onResume() {
@@ -143,7 +143,7 @@ class CipherActivity : AppCompatActivity() {
     }
 
 
-    fun blockstackSession(): BlockstackSession2 {
+    fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
         if (session != null) {
             return session

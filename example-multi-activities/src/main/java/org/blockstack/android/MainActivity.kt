@@ -13,7 +13,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
-import org.blockstack.android.sdk.BlockstackSession2
+import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.UserData
 import org.jetbrains.anko.coroutines.experimental.bg
 import java.net.URL
@@ -22,7 +22,7 @@ import java.net.URL
 class MainActivity : AppCompatActivity() {
     private val TAG = MainActivity::class.java.simpleName
 
-    private var _blockstackSession: BlockstackSession2? = null
+    private var _blockstackSession: BlockstackSession? = null
     private var userData: UserData? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        _blockstackSession = BlockstackSession2(this, defaultConfig)
+        _blockstackSession = BlockstackSession(this, defaultConfig)
         checkLogin()
     }
 
@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun blockstackSession(): BlockstackSession2 {
+    fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
         if (session != null) {
             return session

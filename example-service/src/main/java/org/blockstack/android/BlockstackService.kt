@@ -6,13 +6,13 @@ import android.os.Handler
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.util.Log
-import org.blockstack.android.sdk.BlockstackSession2
+import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.PutFileOptions
 
 class BlockstackService : IntentService("BlockstackExample") {
     private val TAG: String = "BlockstackService"
     private val CHANNEL_ID = "warnings"
-    private lateinit var _blockstackSession: BlockstackSession2
+    private lateinit var _blockstackSession: BlockstackSession
     private lateinit var handler: Handler
 
     override fun onCreate() {
@@ -30,7 +30,7 @@ class BlockstackService : IntentService("BlockstackExample") {
             at android.webkit.WebView.<init>(WebView.java:648)
          */
         runOnUIThread {
-            _blockstackSession = BlockstackSession2(this, defaultConfig)
+            _blockstackSession = BlockstackSession(this, defaultConfig)
             putFileFromService()
         }
     }
