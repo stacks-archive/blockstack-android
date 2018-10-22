@@ -11,13 +11,13 @@ import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_account.*
-import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.BlockstackSession2
 
 
 class AccountActivity : AppCompatActivity() {
     private val TAG = AccountActivity::class.java.simpleName
 
-    private var _blockstackSession: BlockstackSession? = null
+    private var _blockstackSession: BlockstackSession2? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,14 +28,11 @@ class AccountActivity : AppCompatActivity() {
         signInButton.isEnabled = false
         signOutButton.isEnabled = false
 
-        _blockstackSession = BlockstackSession(this, defaultConfig,
-                onLoadedCallback = {
-                    if (intent?.action == Intent.ACTION_VIEW) {
-                        handleAuthResponse(intent)
-                    }
-                    onLoaded()
-                })
-
+        _blockstackSession = BlockstackSession2(this, defaultConfig)
+        if (intent?.action == Intent.ACTION_VIEW) {
+            handleAuthResponse(intent)
+        }
+        onLoaded()
         signInButton.setOnClickListener { _ ->
             blockstackSession().redirectUserToSignIn { _ ->
                 Log.d(TAG, "signed in!")
@@ -46,32 +43,29 @@ class AccountActivity : AppCompatActivity() {
         }
 
         signOutButton.setOnClickListener { _ ->
-            blockstackSession().signUserOut {
-                Log.d(TAG, "signed out!")
-                finish()
-            }
+            blockstackSession().signUserOut()
+            Log.d(TAG, "signed out!")
+            finish()
         }
     }
 
     private fun onLoaded() {
         signInButton.isEnabled = true
         signOutButton.isEnabled = true
-        blockstackSession().isUserSignedIn { signedIn ->
-            if (signedIn) {
-                signInButton.visibility = View.GONE
-                signOutButton.visibility = View.VISIBLE
-            } else {
-                signInButton.visibility = View.VISIBLE
-                signOutButton.visibility = View.GONE
-            }
+        val signedIn = blockstackSession().isUserSignedIn()
+        if (signedIn) {
+            signInButton.visibility = View.GONE
+            signOutButton.visibility = View.VISIBLE
+        } else {
+            signInButton.visibility = View.VISIBLE
+            signOutButton.visibility = View.GONE
         }
+
     }
 
     private fun onSignIn() {
-        blockstackSession().loadUserData {
-            finish()
-        }
-
+        blockstackSession().loadUserData()
+        finish()
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -115,7 +109,7 @@ class AccountActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    fun blockstackSession(): BlockstackSession {
+    fun blockstackSession(): BlockstackSession2 {
         val session = _blockstackSession
         if (session != null) {
             return session

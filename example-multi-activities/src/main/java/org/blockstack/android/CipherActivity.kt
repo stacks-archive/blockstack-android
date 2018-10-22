@@ -41,10 +41,10 @@ class CipherActivity : AppCompatActivity() {
 
     fun checkLogin() {
         if (blockstackSession().isUserSignedIn()) {
-            //encryptDecryptString()
+            encryptDecryptString()
+            encryptDecryptImage()
             //putFileGetFile()
-            putFileGetFileImage()
-            //encryptDecryptImage()
+            //putFileGetFileImage()
         } else {
             navigateToAccount()
         }
@@ -95,15 +95,14 @@ class CipherActivity : AppCompatActivity() {
         Log.d(TAG, "result encryptDecryptString " + cipherResult.toString())
         if (cipherResult.hasValue) {
             val cipher = cipherResult.value!!
-            blockstackSession().decryptContent(cipher.json.toString(), false, options) { plainContentResult ->
-                if (plainContentResult.hasValue) {
-                    val plainContent: String = plainContentResult.value as String
-                    runOnUiThread {
-                        textView.setText(plainContent)
-                    }
-                } else {
-                    Toast.makeText(this, "error: " + plainContentResult.error, Toast.LENGTH_SHORT).show()
+            val plainContentResult = blockstackSession().decryptContent(cipher.json.toString(), false, options)
+            if (plainContentResult.hasValue) {
+                val plainContent: String = plainContentResult.value as String
+                runOnUiThread {
+                    textView.setText(plainContent)
                 }
+            } else {
+                Toast.makeText(this, "error: " + plainContentResult.error, Toast.LENGTH_SHORT).show()
             }
         } else {
             Toast.makeText(this, "error: " + cipherResult.error, Toast.LENGTH_SHORT).show()
@@ -126,18 +125,17 @@ class CipherActivity : AppCompatActivity() {
 
         if (cipherResult.hasValue) {
             val cipher = cipherResult.value!!
-            blockstackSession().decryptContent(cipher.json.toString(), true, options) { plainContentResult ->
-                if (plainContentResult.hasValue) {
-                    Log.d(TAG, "decrypted " + plainContentResult.toString())
-                    val plainContent: ByteArray = plainContentResult.value as ByteArray
-                    val imageByteArray = plainContent
-                    val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
-                    runOnUiThread {
-                        imageView.setImageBitmap(bitmap)
-                    }
-                } else {
-                    Toast.makeText(this, "error: " + plainContentResult.error, Toast.LENGTH_SHORT).show()
+            val plainContentResult = blockstackSession().decryptContent(cipher.json.toString(), true, options)
+            if (plainContentResult.hasValue) {
+                Log.d(TAG, "decrypted " + plainContentResult.toString())
+                val plainContent: ByteArray = plainContentResult.value as ByteArray
+                val imageByteArray = plainContent
+                val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+                runOnUiThread {
+                    imageView.setImageBitmap(bitmap)
                 }
+            } else {
+                Toast.makeText(this, "error: " + plainContentResult.error, Toast.LENGTH_SHORT).show()
             }
         } else {
             Toast.makeText(this, "error: " + cipherResult.error, Toast.LENGTH_SHORT).show()

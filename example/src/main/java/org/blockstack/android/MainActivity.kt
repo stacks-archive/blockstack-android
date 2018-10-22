@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     private val textFileName = "message.txt"
     private val imageFileName = "team.jpg"
 
-    private var _blockstackSession: BlockstackSession? = null
+    private var _blockstackSession: BlockstackSession2? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,13 +45,12 @@ class MainActivity : AppCompatActivity() {
                     kotlin.arrayOf(org.blockstack.android.sdk.Scope.StoreWrite))
         }
 
-        _blockstackSession = BlockstackSession(this, config,
-                onLoadedCallback = {
-                    // Wait until this callback fires before using any of the
-                    // BlockstackSession API methods
 
-                    signInButton.isEnabled = true
-                })
+        _blockstackSession = BlockstackSession2(this@MainActivity, config)
+        signInButton.isEnabled = true
+
+
+
 
         getStringFileButton.isEnabled = false
         putStringFileButton.isEnabled = false
@@ -151,7 +150,7 @@ class MainActivity : AppCompatActivity() {
             val username = "dev_android_sdk.id.blockstack";
             val zoneFileLookupUrl = URL("https://core.blockstack.org/v1/names")
             fileFromUserContentsTextView.text = "Downloading file from other user..."
-            blockstackSession().lookupProfile(username, zoneFileLookupURL = zoneFileLookupUrl) { profileResult ->
+            blockstackSession().lookupProfile(username, zoneFileLookupURL = zoneFileLookupUrl ) { profileResult ->
                 if (profileResult.hasValue) {
                     val profile = profileResult.value!!
                     runOnUiThread {
@@ -222,14 +221,13 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onNewIntent")
 
         if (intent?.action == Intent.ACTION_MAIN) {
-            blockstackSession().loadUserData { userData ->
-                if (userData != null) {
-                    runOnUiThread {
-                        onSignIn(userData)
-                    }
-                } else {
-                    Toast.makeText(this, "no user data", Toast.LENGTH_SHORT).show()
+            val userData = blockstackSession().loadUserData()
+            if (userData != null) {
+                runOnUiThread {
+                    onSignIn(userData)
                 }
+            } else {
+                Toast.makeText(this, "no user data", Toast.LENGTH_SHORT).show()
             }
         } else if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
@@ -245,7 +243,8 @@ class MainActivity : AppCompatActivity() {
             if (authResponseTokens.size > 1) {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: ${authResponse}")
-                blockstackSession().handlePendingSignIn(authResponse, { userDataResult ->
+                blockstackSession().handlePendingSignIn(authResponse) { userDataResult: Result<UserData> ->
+
                     if (userDataResult.hasValue) {
                         val userData = userDataResult.value!!
                         Log.d(TAG, "signed in!")
@@ -255,12 +254,12 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         Toast.makeText(this, "error: " + userDataResult.error, Toast.LENGTH_SHORT).show()
                     }
-                })
+                }
             }
         }
     }
 
-    fun blockstackSession(): BlockstackSession {
+    fun blockstackSession(): BlockstackSession2 {
         val session = _blockstackSession
         if (session != null) {
             return session

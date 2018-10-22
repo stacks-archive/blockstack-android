@@ -1,10 +1,12 @@
 package org.blockstack.android.sdk
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.preference.PreferenceManager
+import android.support.v4.content.ContextCompat.startActivity
 import android.util.Base64
 import android.util.Log
-import android.webkit.JavascriptInterface
 import com.eclipsesource.v8.V8
 import com.eclipsesource.v8.V8Array
 import com.eclipsesource.v8.V8Object
@@ -18,6 +20,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
 import org.json.JSONObject
+import java.net.URL
 import java.security.InvalidParameterException
 import java.security.SecureRandom
 import java.util.*
@@ -37,15 +40,15 @@ private val TAG = "BlockstackSession2"
  * @param config the configuration for blockstack
  * @param onLoadedCallback the callback for when this object is ready to use
  */
-class BlockstackSession2(context:Context? = null, private val config: BlockstackConfig,
+class BlockstackSession2(context: Context? = null, private val config: BlockstackConfig,
                          /**
                           * url of the name lookup service, defaults to core.blockstack.org/v1/names
                           */
                          val nameLookupUrl: String = "https://core.blockstack.org/v1/names/",
                          private val sessionStore: ISessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context)),
-                         private val executor: Executor = AndroidExecutor(),
+                         private val executor: Executor = AndroidExecutor(context!!),
                          scriptRepo: ScriptRepo = if (context != null) AndroidScriptRepo(context) else throw InvalidParameterException("context or scriptRepo required")
-                         ) {
+) {
 
     private val TAG = BlockstackSession2::class.qualifiedName
 
@@ -94,6 +97,11 @@ class BlockstackSession2(context:Context? = null, private val config: Blockstack
         val android = JavascriptInterface2Object(this, v8, blockstack)
         val v8android = V8Object(v8)
         v8.add("android", v8android)
+
+        v8android.registerJavaMethod(android, "lookupProfileResult", "lookupProfileResult", arrayOf<Class<*>>(String::class.java, String::class.java))
+        v8android.registerJavaMethod(android, "lookupProfileFailure", "lookupProfileFailure", arrayOf<Class<*>>(String::class.java, String::class.java))
+        v8android.registerJavaMethod(android, "signInSuccess", "signInSuccess", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "signInFailure", "signInFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getSessionData", "getSessionData", arrayOf<Class<*>>())
         v8android.registerJavaMethod(android, "setSessionData", "setSessionData", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "deleteSessionData", "deleteSessionData", arrayOf<Class<*>>())
@@ -102,10 +110,13 @@ class BlockstackSession2(context:Context? = null, private val config: Blockstack
         v8android.registerJavaMethod(android, "putFileResult", "putFileResult", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "putFileFailure", "putFileFailure", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "fetch2", "fetch2", arrayOf<Class<*>>(String::class.java, String::class.java))
-
-        v8.executeVoidScript("var appConfig = new blockstack.AppConfig('${config.appDomain}');var userSession = new blockstack.UserSession({appConfig:appConfig, sessionStore:androidSessionStore});")
+        v8android.registerJavaMethod(android, "setLocation", "setLocation", arrayOf<Class<*>>(String::class.java))
+        val scopesString = Scope.scopesArrayToJSONString(config.scopes)
+        v8.executeVoidScript("var appConfig = new blockstack.AppConfig(${scopesString}, '${config.appDomain}', '${config.redirectPath}','${config.manifestPath}');var userSession = new blockstack.UserSession({appConfig:appConfig, sessionStore:androidSessionStore});")
         userSession = v8.getObject("userSession")
+
         loaded = true
+        Log.d(TAG, "session loaded")
     }
 
     internal interface Console {
@@ -149,9 +160,50 @@ class BlockstackSession2(context:Context? = null, private val config: Blockstack
     fun isUserSignedIn(): Boolean {
         Log.d(TAG, "isUserSignedIn start")
         val result = userSession.executeBooleanFunction("isUserSignedIn", null)
-        Log.d(TAG, "isUserSignedIn end")
+        Log.d(TAG, "isUserSignedIn end result:" + result.toString())
         return result
     }
+
+    fun redirectUserToSignIn(callback: (Result<UserData>) -> Unit) {
+
+        Log.d(TAG, "redirectUserToSignIn")
+
+        try {
+            val params = V8Array(v8)
+                    .push(nameLookupUrl)
+            userSession.executeFunction("redirectToSignIn", params)
+        } catch (e: Exception) {
+            Log.e(TAG, "redirectUserToSignIn", e)
+        }
+    }
+
+    fun handlePendingSignIn(authResponse: String, callback: (Result<UserData>) -> Unit) {
+        this.signInCallback = callback
+        val params = V8Array(v8)
+                .push(authResponse)
+        Log.d(TAG, "handling " + authResponse)
+        blockstack.executeFunction("handlePendingSignIn", params)
+    }
+
+    fun loadUserData(): UserData? {
+        try {
+            val result = blockstack.executeStringFunction("loadUserData2", null)
+            Log.d(TAG, "userData " + result)
+            return UserData(JSONObject(result))
+        } catch (e: Exception) {
+            Log.d(TAG, "error in loadUserData " + e.toString(), e)
+            return null
+        }
+    }
+
+    fun lookupProfile(username: String, zoneFileLookupURL: URL, callback: (Result<Profile>) -> Unit) {
+        lookupProfileCallbacks.put(username, callback)
+        val params = V8Array(v8)
+                .push(username)
+                .push(zoneFileLookupURL.toString())
+        blockstack.executeVoidFunction("lookupProfile2", params)
+    }
+
 
     /**
      * Retrieves the specified file from the app's data store.
@@ -280,7 +332,13 @@ class BlockstackSession2(context:Context? = null, private val config: Blockstack
         return uniqueIdentifier
     }
 
+    fun signUserOut() {
+        userSession.executeFunction("signUserOut", null)
+    }
+
     private interface JavaScriptInterface2 {
+        fun signInSuccess(userDataString: String)
+        fun signInFailure(error: String)
         fun lookupProfileResult(username: String, userDataString: String)
         fun lookupProfileFailure(username: String, error: String)
         fun getFileResult(content: String, uniqueIdentifier: String, isBinary: Boolean)
@@ -291,22 +349,35 @@ class BlockstackSession2(context:Context? = null, private val config: Blockstack
         fun setSessionData(sessionData: String)
         fun deleteSessionData()
         fun fetch2(url: String, options: String)
+        fun setLocation(location: String)
     }
 
     private class JavascriptInterface2Object(private val session: BlockstackSession2, val v8: V8, val blockstack: V8Object) : JavaScriptInterface2 {
 
-        @JavascriptInterface
+        override fun signInSuccess(userDataString: String) {
+            Log.d(TAG, "sign in success " + userDataString)
+            val userData = JSONObject(userDataString)
+            if (session.signInCallback != null) {
+                session.signInCallback!!.invoke(Result(UserData(userData)))
+            }
+        }
+
+        override fun signInFailure(error: String) {
+            Log.d(TAG, "sign in error " + error)
+            if (session.signInCallback != null) {
+                session.signInCallback!!.invoke(Result(null, error))
+            }
+        }
+
         override fun lookupProfileResult(username: String, userDataString: String) {
             val userData = JSONObject(userDataString)
             session.lookupProfileCallbacks[username]?.invoke(Result(Profile(userData)))
         }
 
-        @JavascriptInterface
         override fun lookupProfileFailure(username: String, error: String) {
             session.lookupProfileCallbacks[username]?.invoke(Result(null, error))
         }
 
-        @JavascriptInterface
         override fun getFileResult(content: String, uniqueIdentifier: String, isBinary: Boolean) {
             Log.d(session.TAG, "getFileResult isBinary? " + isBinary)
 
@@ -319,13 +390,11 @@ class BlockstackSession2(context:Context? = null, private val config: Blockstack
             session.getFileCallbacks.remove(uniqueIdentifier)
         }
 
-        @JavascriptInterface
         override fun getFileFailure(error: String, uniqueIdentifier: String) {
             session.getFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
             session.getFileCallbacks.remove(uniqueIdentifier)
         }
 
-        @JavascriptInterface
         override fun putFileResult(readURL: String, uniqueIdentifier: String) {
             Log.d(session.TAG, "putFileResult")
 
@@ -333,30 +402,25 @@ class BlockstackSession2(context:Context? = null, private val config: Blockstack
             session.putFileCallbacks.remove(uniqueIdentifier)
         }
 
-        @JavascriptInterface
         override fun putFileFailure(error: String, uniqueIdentifier: String) {
             session.putFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
             session.putFileCallbacks.remove(uniqueIdentifier)
         }
 
-        @JavascriptInterface
         override fun getSessionData(): String {
             return session.sessionStore.sessionData.json.toString()
         }
 
-        @JavascriptInterface
         override fun setSessionData(sessionData: String) {
             session.sessionStore.sessionData = SessionData(JSONObject(sessionData))
         }
 
-        @JavascriptInterface
         override fun deleteSessionData() {
             return session.sessionStore.deleteSessionData()
         }
 
         private val httpClient = OkHttpClient()
 
-        @JavascriptInterface
         override fun fetch2(url: String, optionsString: String) {
             val options = JSONObject(optionsString)
 
@@ -392,6 +456,12 @@ class BlockstackSession2(context:Context? = null, private val config: Blockstack
                 }
             }
         }
+
+        override fun setLocation(location: String) {
+            session.executor.onMainThread {
+                startActivity(it, Intent(Intent.ACTION_VIEW, Uri.parse(location)), null)
+            }
+        }
     }
 }
 
@@ -423,17 +493,26 @@ fun Response.toJSONString(): String {
 }
 
 interface Executor {
-    fun onMainThread(function: () -> Unit)
+    fun onMainThread(function: (Context) -> Unit)
     fun onWorkerThread(function: suspend () -> Unit)
 }
 
-class AndroidExecutor : Executor {
-    override fun onMainThread(function: () -> Unit) {
-        launch(UI) { function.invoke() }
+class AndroidExecutor(private val ctx: Context) : Executor {
+    override fun onMainThread(function: (ctx: Context) -> Unit) {
+        launch(UI) { function.invoke(ctx) }
     }
 
     override fun onWorkerThread(function: suspend () -> Unit) {
-        async(CommonPool) { function.invoke() }
+        async(CommonPool) {
+            try {
+                Log.d(TAG, "onWorkerThread" + function::class.java.toString())
+                function.invoke()
+                Log.d(TAG, "onWorkerThread" + function::class.java.toString())
+            } catch (e: Exception) {
+                Log.e(TAG, "onWorkerThread", e)
+            }
+
+        }
     }
 
 }
@@ -446,7 +525,7 @@ interface ScriptRepo {
 
 }
 
-class AndroidScriptRepo(private val context:Context) : ScriptRepo {
+class AndroidScriptRepo(private val context: Context) : ScriptRepo {
     override fun blockstack() = context.resources.openRawResource(R.raw.blockstack).bufferedReader().use { it.readText() }
     override fun base64() = context.resources.openRawResource(R.raw.base64).bufferedReader().use { it.readText() }
     override fun sessionStoreAndroid() = context.resources.openRawResource(R.raw.sessionstore_android).bufferedReader().use { it.readText() }

@@ -1,3 +1,33 @@
+blockstack.handlePendingSignIn = function(authResponseToken) {
+  userSession.handlePendingSignIn(authResponseToken)
+  .then(function(userData) {
+    console.log("user data")
+    var userDataString = JSON.stringify(userData)
+    console.log("userData " + userDataString)
+    android.signInSuccess(userDataString)
+  }, function(error) {
+  console.log("user data"  + error.toString())
+    android.signInFailure(error.toString())
+  })
+}
+
+blockstack.loadUserData2 = function() {
+  var userData = userSession.loadUserData()
+  if (userData != null) {
+    return JSON.stringify(userData)
+  } else {
+    return null
+  }
+}
+
+blockstack.lookupProfile2 = function(username, zoneLookupFileURL) {
+  blockstack.lookupProfile(username, zoneLookupFileURL)
+  .then(function(userData) {
+      android.lookupProfileResult(username, JSON.stringify(userData))
+  }, function(error) {
+      android.lookupProfileFailure(username, error.toString())
+  })
+}
 
 blockstack.getFile = function(path, options, uniqueIdentifier) {
     const opts = JSON.parse(options)
@@ -185,4 +215,14 @@ function uuidv4() {
     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
+}
+
+setLocation = (location) => {
+  console.log("location " + location)
+  var auth = location.substring(location.indexOf("?") + 13)
+  blockstack.verifyAuthRequest(auth).then(function(result) {
+    console.log("result " + result.toString())
+    android.setLocation(location)
+  }, function(error) { console.log("error " + error.toString())})
+
 }
