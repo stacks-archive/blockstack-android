@@ -1,6 +1,7 @@
 package org.blockstack.android
 
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
@@ -18,7 +19,7 @@ import org.blockstack.android.sdk.UserData
 import org.jetbrains.anko.coroutines.experimental.bg
 import java.net.URL
 
-
+@SuppressLint("SetTextI18n")
 class MainActivity : AppCompatActivity() {
     private val TAG = MainActivity::class.java.simpleName
 

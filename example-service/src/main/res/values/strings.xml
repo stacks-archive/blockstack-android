@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Blockstack Demo Service</string>
+    <string name="start_service">Start service to put file</string>
 </resources>
