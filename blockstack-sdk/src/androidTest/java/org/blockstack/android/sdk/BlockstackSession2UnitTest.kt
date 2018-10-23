@@ -276,6 +276,12 @@ class BlockstackSession2UnitTest {
         latch.await()
         assertThat(proofList, notNullValue())
         assertThat(proofList!!.size, `is`(3))
+        assertThat(proofList!![0].service, `is`("twitter"))
+        assertThat(proofList!![0].valid, `is`(true))
+        assertThat(proofList!![1].service, `is`("facebook"))
+        assertThat(proofList!![1].valid, `is`(false)) // facebook friedger.mueffke is indeed invalid
+        assertThat(proofList!![2].service, `is`("github"))
+        assertThat(proofList!![2].valid, `is`(true))
     }
 
 
