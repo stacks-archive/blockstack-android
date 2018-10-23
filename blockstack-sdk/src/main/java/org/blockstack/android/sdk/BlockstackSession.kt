@@ -83,10 +83,9 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8Console.registerJavaMethod(console, "warn", "warn", arrayOf<Class<*>>(String::class.java))
         v8Console.release()
 
-
+        v8.executeVoidScript(scriptRepo.globals())
         v8.executeVoidScript(scriptRepo.blockstack());
         v8.executeVoidScript(scriptRepo.base64());
-        v8.executeVoidScript(scriptRepo.sessionStoreAndroid());
         v8.executeVoidScript(scriptRepo.blockstackAndroid2());
         blockstack = v8.getObject("blockstack")
 
@@ -518,16 +517,16 @@ class AndroidExecutor(private val ctx: Context) : Executor {
 }
 
 interface ScriptRepo {
+    fun globals(): String
     fun blockstack(): String
     fun base64(): String
-    fun sessionStoreAndroid(): String
     fun blockstackAndroid2(): String
 
 }
 
 class AndroidScriptRepo(private val context: Context) : ScriptRepo {
+    override fun globals() = context.resources.openRawResource(R.raw.globals).bufferedReader().use { it.readText() }
     override fun blockstack() = context.resources.openRawResource(R.raw.blockstack).bufferedReader().use { it.readText() }
     override fun base64() = context.resources.openRawResource(R.raw.base64).bufferedReader().use { it.readText() }
-    override fun sessionStoreAndroid() = context.resources.openRawResource(R.raw.sessionstore_android).bufferedReader().use { it.readText() }
     override fun blockstackAndroid2() = context.resources.openRawResource(R.raw.blockstack_android2).bufferedReader().use { it.readText() }
 }

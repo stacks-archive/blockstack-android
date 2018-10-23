@@ -1,3 +1,4 @@
+blockstack = module.exports
 blockstack.handlePendingSignIn = function(authResponseToken) {
   userSession.handlePendingSignIn(authResponseToken)
   .then(function(userData) {
@@ -76,13 +77,30 @@ blockstack.decryptContent = function(cipherTextString, options, binary) {
     return userSession.decryptContent(cipherTextString, JSON.parse(options))
 }
 
-
 /**
- * Response class
- *
- * @param   Object  opts  Response options
- * @return  Void
+ * Stores session data in Android delegated via global Android object.
+ * @type {InstanceDataStore}
  */
+var androidSessionStore = {
+
+  getSessionData: function() {
+    var sessionData = android.getSessionData()
+    return JSON.parse(sessionData)
+  },
+
+  setSessionData: function(sessionData) {
+    android.setSessionData(JSON.stringify(sessionData))
+    return true
+  },
+
+  deleteSessionData: function() {
+    return android.deleteSessionData()
+  }
+}
+
+/*****************
+ Methods related to javascript fetch
+******************/
 
 function Response(r) {
   this.status = r.status
@@ -98,11 +116,7 @@ function Response(r) {
   this.ok = this.status >= 200 && this.status < 300;
 }
 
-/**
- * Decode response as json
- *
- * @return  Promise
- */
+
 Response.prototype.json = function() {
 
   return this.text().then(function(text) {
@@ -111,11 +125,7 @@ Response.prototype.json = function() {
 
 }
 
-/**
- * Decode response body as text
- *
- * @return  Promise
- */
+
 Response.prototype.text = function() {
 
   var _this = this;
@@ -217,12 +227,12 @@ function uuidv4() {
   });
 }
 
+/****************
+Methods related to redirect in blockstack.js
+****************/
 setLocation = (location) => {
-  console.log("location " + location)
   var auth = location.substring(location.indexOf("?") + 13)
   blockstack.verifyAuthRequest(auth).then(function(result) {
-    console.log("result " + result.toString())
     android.setLocation(location)
   }, function(error) { console.log("error " + error.toString())})
-
 }
