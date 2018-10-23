@@ -44,7 +44,7 @@ class BlockstackSession2Test {
                 return this.javaClass.classLoader.getResourceAsStream("sessionstore_android.js").bufferedReader().use { it.readText() }
             }
 
-            override fun blockstackAndroid2(): String {
+            override fun blockstackAndroid(): String {
                 return this.javaClass.classLoader.getResourceAsStream("blockstack_android.js").bufferedReader().use { it.readText() }
             }
 
