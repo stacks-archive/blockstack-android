@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.preference.PreferenceManager
 import android.support.v4.content.ContextCompat
-import android.support.v4.content.ContextCompat.startActivity
 import android.util.Base64
 import android.util.Log
 import com.eclipsesource.v8.V8
