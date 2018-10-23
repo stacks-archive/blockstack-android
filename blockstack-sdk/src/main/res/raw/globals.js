@@ -12,6 +12,7 @@ if (!global.crypto){
     }
   };
 }
+var self = global;
 var module = {
 };
 var exports = {};
