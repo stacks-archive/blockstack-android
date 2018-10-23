@@ -42,9 +42,9 @@ private val TAG = "BlockstackSession"
  */
 class BlockstackSession(context: Context? = null, private val config: BlockstackConfig,
                         /**
-                          * url of the name lookup service, defaults to core.blockstack.org/v1/names
-                          */
-                         val nameLookupUrl: String = "https://core.blockstack.org/v1/names/",
+                         * url of the name lookup service, defaults to core.blockstack.org/v1/names
+                         */
+                        val nameLookupUrl: String = "https://core.blockstack.org/v1/names/",
                         private val sessionStore: ISessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context)),
                         private val executor: Executor = AndroidExecutor(context!!),
                         scriptRepo: ScriptRepo = if (context != null) AndroidScriptRepo(context) else throw InvalidParameterException("context or scriptRepo required")
@@ -179,7 +179,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      * @param appDomain the origin of this app
      * @param expiresAt the time at which this request is no longer valid
      */
-    fun makeAuthRequest(transitPrivateKey: String, redirectURI: String, manifestURI: String, scopes: Array<String>, appDomain: String, expiresAt: Number):String {
+    fun makeAuthRequest(transitPrivateKey: String, redirectURI: String, manifestURI: String, scopes: Array<String>, appDomain: String, expiresAt: Number): String {
         val params = V8Array(v8)
                 .push(transitPrivateKey)
                 .push(redirectURI)
@@ -189,6 +189,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                 .push(expiresAt)
         return blockstack.executeStringFunction("makeAuthRequest", params)
     }
+
     /**
      * Process a pending sign in. This method should be called by your app when it
      * receives a request to the app's custom protocol handler.
@@ -466,7 +467,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
 
     @Suppress("unused")
-    private class BlockstackAndroidV8Bridge(private val blockstackSession: BlockstackSession, val v8: V8, val v8blockstack: V8Object)  {
+    private class BlockstackAndroidV8Bridge(private val blockstackSession: BlockstackSession, val v8: V8, val v8blockstack: V8Object) {
 
         private val httpClient = OkHttpClient()
 
