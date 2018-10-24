@@ -4,8 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.preference.PreferenceManager
-import android.support.test.rule.ActivityTestRule
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.rule.ActivityTestRule
+import androidx.test.runner.AndroidJUnit4
 import kotlinx.coroutines.experimental.runBlocking
 import org.blockstack.android.sdk.test.R
 import org.blockstack.android.sdk.test.TestActivity
