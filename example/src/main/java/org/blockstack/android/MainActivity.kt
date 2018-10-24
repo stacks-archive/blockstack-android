@@ -75,6 +75,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        signOutButton.setOnClickListener { _: View ->
+            blockstackSession().signUserOut {
+                onSignOut()
+            }
+        }
+
         validateProofsButton.setOnClickListener { _ ->
             validateProofsText.text = "Validating..."
             blockstackSession().loadUserData {
@@ -247,6 +253,19 @@ class MainActivity : AppCompatActivity() {
         getImageFileButton.isEnabled = true
         getStringFileFromUserButton.isEnabled = true
         getAppBucketUrlButton.isEnabled = true
+    }
+
+    fun onSignOut() {
+        userDataTextView.text = "Signed out"
+        signInButton.isEnabled = true
+
+        validateProofsButton.isEnabled = false
+        getStringFileButton.isEnabled = false
+        putStringFileButton.isEnabled = false
+        putImageFileButton.isEnabled = false
+        getImageFileButton.isEnabled = false
+        getStringFileFromUserButton.isEnabled = false
+        getAppBucketUrlButton.isEnabled = false
     }
 
     private fun showUserAvatar(avatarImage: String?) {
