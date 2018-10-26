@@ -1,6 +1,7 @@
 package org.blockstack.android
 
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -19,7 +20,7 @@ import org.jetbrains.anko.coroutines.experimental.bg
 import java.io.ByteArrayOutputStream
 import java.net.URL
 
-
+@SuppressLint("SetTextI18n")
 class MainActivity : AppCompatActivity() {
     private val TAG = MainActivity::class.java.simpleName
 
@@ -33,25 +34,18 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        signInButton.isEnabled = false
-        getUserAppFileUrlButton.isEnabled = false
-
         val config = java.net.URI("https://flamboyant-darwin-d11c17.netlify.com").run {
             org.blockstack.android.sdk.BlockstackConfig(
                     this,
-                    java.net.URI("${this}/redirect"),
-                    java.net.URI("${this}/manifest.json"),
+                    "/redirect",
+                    "/manifest.json",
                     kotlin.arrayOf(org.blockstack.android.sdk.Scope.StoreWrite))
         }
 
-        _blockstackSession = BlockstackSession(this, config,
-                onLoadedCallback = {
-                    // Wait until this callback fires before using any of the
-                    // BlockstackSession API methods
 
-                    signInButton.isEnabled = true
-                    getUserAppFileUrlButton.isEnabled = true
-                })
+        _blockstackSession = BlockstackSession(this@MainActivity, config)
+        signInButton.isEnabled = true
+        getUserAppFileUrlButton.isEnabled = true
 
         validateProofsButton.isEnabled = false
         getStringFileButton.isEnabled = false
@@ -63,32 +57,24 @@ class MainActivity : AppCompatActivity() {
 
 
         signInButton.setOnClickListener { _: View ->
-            blockstackSession().redirectUserToSignIn { userDataResult ->
-                if (userDataResult.hasValue) {
-                    Log.d(TAG, "signed in!")
-                    runOnUiThread {
-                        onSignIn(userDataResult.value!!)
-                    }
-                } else {
-                    Toast.makeText(this, "error: " + userDataResult.error, Toast.LENGTH_SHORT).show()
+            blockstackSession().redirectUserToSignIn { errorResult ->
+                if (errorResult.hasErrors) {
+                    Toast.makeText(this, "error: " + errorResult.error, Toast.LENGTH_SHORT).show()
                 }
             }
         }
 
         validateProofsButton.setOnClickListener { _ ->
             validateProofsText.text = "Validating..."
-            blockstackSession().loadUserData {
-                it?.let {
-                    val ownerAddress = it.decentralizedID.split(":")[2]
-                    blockstackSession().validateProofs(it.profile!!, ownerAddress, it.json.optString("username")) {result ->
-                        runOnUiThread {
-                            validateProofsText.text = "${result.value?.size} proofs found."
-                        }
+            val it = blockstackSession().loadUserData()
+            it?.let {
+                val ownerAddress = it.decentralizedID.split(":")[2]
+                blockstackSession().validateProofs(it.profile!!, ownerAddress, it.json.optString("username")) { result ->
+                    runOnUiThread {
+                        validateProofsText.text = "${result.value?.size} proofs found."
                     }
                 }
-
             }
-
         }
 
         getStringFileButton.setOnClickListener { _ ->
@@ -201,20 +187,18 @@ class MainActivity : AppCompatActivity() {
 
         getAppBucketUrlButton.setOnClickListener { _ ->
             getAppBucketUrlText.text = "Getting url ..."
-            blockstackSession().loadUserData {
-                it?.let {
-                    blockstackSession().getAppBucketUrl(it.hubUrl, it.appPrivateKey) {result ->
-                        runOnUiThread {
-                            getAppBucketUrlText.text =
-                                    if (result.hasValue) {
-                                        result.value
-                                    } else {
-                                        result.error
-                                    }
-                        }
+            val it = blockstackSession().loadUserData()
+            it?.let {
+                blockstackSession().getAppBucketUrl(it.hubUrl, it.appPrivateKey) { result ->
+                    runOnUiThread {
+                        getAppBucketUrlText.text =
+                                if (result.hasValue) {
+                                    result.value
+                                } else {
+                                    result.error
+                                }
                     }
                 }
-
             }
         }
 
@@ -274,14 +258,13 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onNewIntent")
 
         if (intent?.action == Intent.ACTION_MAIN) {
-            blockstackSession().loadUserData { userData ->
-                if (userData != null) {
-                    runOnUiThread {
-                        onSignIn(userData)
-                    }
-                } else {
-                    Toast.makeText(this, "no user data", Toast.LENGTH_SHORT).show()
+            val userData = blockstackSession().loadUserData()
+            if (userData != null) {
+                runOnUiThread {
+                    onSignIn(userData)
                 }
+            } else {
+                Toast.makeText(this, "no user data", Toast.LENGTH_SHORT).show()
             }
         } else if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
@@ -297,7 +280,8 @@ class MainActivity : AppCompatActivity() {
             if (authResponseTokens.size > 1) {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: ${authResponse}")
-                blockstackSession().handlePendingSignIn(authResponse, { userDataResult ->
+                blockstackSession().handlePendingSignIn(authResponse) { userDataResult: Result<UserData> ->
+
                     if (userDataResult.hasValue) {
                         val userData = userDataResult.value!!
                         Log.d(TAG, "signed in!")
@@ -307,7 +291,7 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         Toast.makeText(this, "error: " + userDataResult.error, Toast.LENGTH_SHORT).show()
                     }
-                })
+                }
             }
         }
     }

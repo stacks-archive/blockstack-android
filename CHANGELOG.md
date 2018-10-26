@@ -17,11 +17,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `BlockstackSession.getAppBucketUrl` method to retrieve the user's bucket url of the app.
 - `BlockstackSession.getUserAppFileUrl` method to retrieve a user's file of an app with a given path.
 - `UserData.hubUrl` property for use with `getUserAppFileUrl`
+- Parameter `sessionStore`, `executor` and `scriptRepo` to `BlockstackSession` constructor
+- Example for using `Blockstack` in a background service
+
 
 ### Changed
-- `BlockstackSession.makeAuthResponse` has a new parameter `privateAppKey`
 - improved integration tests
+- Updated `blockstack.js` to branch `storage-strategies`
+- `BlockstackConfig.redirectUrl` and `.manifestUrl` renamed to *path
+- underlying tech from `WebView` to 'j2v8`
 
+
+### Removed
+- `Blockstack.makeAuthRequest`
+- callback parameter from `BlockstackSession.isUserSignedIn`, `.loadUserData`, `encryptContent`, `decryptContent` and `.signUserOut`
+ 
 ## [0.3.0] - 2018-07-27
 
 ### Added

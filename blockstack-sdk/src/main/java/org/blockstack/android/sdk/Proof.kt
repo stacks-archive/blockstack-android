@@ -32,7 +32,7 @@ class Proof(private val jsonObject: JSONObject) {
      * The validity of the proof.
      */
     val valid: Boolean
-      get() = jsonObject.optBoolean("valid")
+        get() = jsonObject.optBoolean("valid")
 
     /**
      * The `JSONObject` that backs this object. You use this object to

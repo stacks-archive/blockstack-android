@@ -37,9 +37,13 @@ dokka {
 }
 
 dependencies {
+    implementation 'com.eclipsesource.j2v8:j2v8:4.8.2@aar'
+    implementation "org.jetbrains.anko:anko-coroutines:$anko_version"
     implementation 'com.android.support:customtabs:27.1.1'
     implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.squareup.okhttp3:okhttp:3.11.0'
     testImplementation 'junit:junit:4.12'
+    testImplementation 'org.json:json:20180130'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test:rules:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'

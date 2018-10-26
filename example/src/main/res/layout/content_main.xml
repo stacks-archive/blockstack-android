@@ -5,7 +5,8 @@
                                              android:layout_width="match_parent"
                                              android:layout_height="match_parent"
                                              tools:context="org.blockstack.android.MainActivity"
-                                             tools:showIn="@layout/activity_main">
+                                             tools:showIn="@layout/activity_main"
+                                             tools:ignore="HardcodedText">
 
     <org.blockstack.android.sdk.ui.BlockstackSignInButton
         android:id="@+id/signInButton"
@@ -25,7 +26,7 @@
         app:layout_constraintEnd_toStartOf="@+id/userDataTextView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/signInButton"
-        />
+        tools:ignore="ContentDescription"/>
 
     <TextView
         android:id="@+id/userDataTextView"
@@ -121,7 +122,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/getImageFileButton"
-        app:srcCompat="@android:color/background_light"/>
+        app:srcCompat="@android:color/background_light"
+        tools:ignore="ContentDescription"/>
 
     <Button
         android:id="@+id/getStringFileFromUserButton"
