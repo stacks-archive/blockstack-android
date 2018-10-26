@@ -69,17 +69,16 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     private val v8blockstackAndroid: V8Object
     private val v8userSessionAndroid: V8Object
     private val v8userSession: V8Object
-    private val v8: V8
+    private val v8 = V8.createV8Runtime()
 
     init {
-        v8 = V8.createV8Runtime()
-
         registerConsoleMethods()
 
         v8.executeVoidScript(scriptRepo.globals())
         v8.executeVoidScript(scriptRepo.blockstack());
         v8.executeVoidScript(scriptRepo.base64());
         v8.executeVoidScript(scriptRepo.blockstackAndroid());
+
         v8blockstackAndroid = v8.getObject("blockstackAndroid")
         v8userSessionAndroid = v8.getObject("userSessionAndroid")
 
@@ -89,7 +88,6 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         val scopesString = Scope.scopesArrayToJSONString(config.scopes)
         v8.executeVoidScript("var appConfig = new blockstack.AppConfig(${scopesString}, '${config.appDomain}', '${config.redirectPath}','${config.manifestPath}');var userSession = new blockstack.UserSession({appConfig:appConfig, sessionStore:androidSessionStore});")
         v8userSession = v8.getObject("userSession")
-
 
         loaded = true
     }
@@ -118,12 +116,14 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "fetchAndroid", "fetchAndroid", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "setLocation", "setLocation", arrayOf<Class<*>>(String::class.java))
-
-        v8.executeVoidScript("console.log(JSON.stringify(android))")
+        v8android.release()
     }
 
     private fun registerCryptoMethods() {
-        val v8crypto = v8.getObject("global").getObject("crypto")
+        val v8global = v8.getObject("global")
+        val v8crypto = v8global.getObject("crypto")
+        v8global.release()
+
         val crypto = GlobalCrypto()
         v8crypto.registerJavaMethod(crypto, "getRandomValues", "getRandomValues", arrayOf<Class<*>>(V8TypedArray::class.java))
         v8crypto.release()
@@ -159,7 +159,10 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      * Releases resources of the users blockstack session
      */
     fun release() {
-
+        v8userSession.release()
+        v8userSessionAndroid.release()
+        v8blockstackAndroid.release()
+        v8.release()
     }
     /**
      * Generates an authentication request that can be sent to the Blockstack browser

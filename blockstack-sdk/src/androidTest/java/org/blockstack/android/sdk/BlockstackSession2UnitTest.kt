@@ -15,11 +15,8 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.Matchers.notNullValue
 import org.json.JSONObject
-import org.junit.Assert
+import org.junit.*
 import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.CountDownLatch
@@ -62,6 +59,11 @@ class BlockstackSession2UnitTest {
         session = BlockstackSession(rule.activity, "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStore,
                 executor = executor)
+    }
+
+    @After
+    fun teardown() {
+        session.release()
     }
 
     @Test
