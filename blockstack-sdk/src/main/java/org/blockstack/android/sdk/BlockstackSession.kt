@@ -19,15 +19,13 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
+import org.blockstack.android.sdk.j2v8.LogConsole
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
 import java.security.InvalidParameterException
 import java.security.SecureRandom
 import java.util.*
-
-
-private val TAG = "BlockstackSession"
 
 /**
  * Main object to interact with blockstack in an activity
@@ -49,7 +47,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                         scriptRepo: ScriptRepo = if (context != null) AndroidScriptRepo(context) else throw InvalidParameterException("context or scriptRepo required")
 ) {
 
-    private val TAG = BlockstackSession::class.qualifiedName
+    private val TAG = BlockstackSession::class.simpleName
 
     /**
      * Flag indicating whether this object is ready to use
@@ -68,33 +66,36 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     private var getUserAppFileUrlCallback: ((Result<String>) -> Unit)? = null
 
 
-    private val blockstack: V8Object
-    private val userSession: V8Object
+    private val v8blockstackAndroid: V8Object
+    private val v8userSessionAndroid: V8Object
+    private val v8userSession: V8Object
     private val v8: V8
 
     init {
         v8 = V8.createV8Runtime()
 
-        val console = LogConsole()
-        val v8Console = V8Object(v8)
-        v8.add("console", v8Console)
-        v8Console.registerJavaMethod(console, "log", "log", arrayOf<Class<*>>(String::class.java))
-        v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(String::class.java))
-        v8Console.registerJavaMethod(console, "debug", "debug", arrayOf<Class<*>>(String::class.java))
-        v8Console.registerJavaMethod(console, "warn", "warn", arrayOf<Class<*>>(String::class.java))
-        v8Console.release()
+        registerConsoleMethods()
 
         v8.executeVoidScript(scriptRepo.globals())
         v8.executeVoidScript(scriptRepo.blockstack());
         v8.executeVoidScript(scriptRepo.base64());
         v8.executeVoidScript(scriptRepo.blockstackAndroid());
-        blockstack = v8.getObject("blockstack")
+        v8blockstackAndroid = v8.getObject("blockstackAndroid")
+        v8userSessionAndroid = v8.getObject("userSessionAndroid")
 
-        val v8crypto = v8.getObject("global").getObject("crypto")
-        val crypto = GlobalCrypto(v8)
-        v8crypto.registerJavaMethod(crypto, "getRandomValues", "getRandomValues", arrayOf<Class<*>>(V8TypedArray::class.java))
+        registerCryptoMethods()
+        registerJSAndroidBridgeMethods(v8blockstackAndroid)
 
-        val android = BlockstackAndroidV8Bridge(this, v8, blockstack)
+        val scopesString = Scope.scopesArrayToJSONString(config.scopes)
+        v8.executeVoidScript("var appConfig = new blockstack.AppConfig(${scopesString}, '${config.appDomain}', '${config.redirectPath}','${config.manifestPath}');var userSession = new blockstack.UserSession({appConfig:appConfig, sessionStore:androidSessionStore});")
+        v8userSession = v8.getObject("userSession")
+
+
+        loaded = true
+    }
+
+    private fun registerJSAndroidBridgeMethods(v8blockstack: V8Object) {
+        val android = JSAndroidBridge(this, v8, v8blockstack)
         val v8android = V8Object(v8)
         v8.add("android", v8android)
 
@@ -117,41 +118,32 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "fetchAndroid", "fetchAndroid", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "setLocation", "setLocation", arrayOf<Class<*>>(String::class.java))
-        val scopesString = Scope.scopesArrayToJSONString(config.scopes)
-        v8.executeVoidScript("var appConfig = new blockstack.AppConfig(${scopesString}, '${config.appDomain}', '${config.redirectPath}','${config.manifestPath}');var userSession = new blockstack.UserSession({appConfig:appConfig, sessionStore:androidSessionStore});")
-        userSession = v8.getObject("userSession")
 
-        loaded = true
+        v8.executeVoidScript("console.log(JSON.stringify(android))")
     }
 
-    internal interface Console {
-        fun error(msg: String)
-        fun warn(msg: String)
-        fun debug(msg: String)
-        fun log(msg: String)
+    private fun registerCryptoMethods() {
+        val v8crypto = v8.getObject("global").getObject("crypto")
+        val crypto = GlobalCrypto()
+        v8crypto.registerJavaMethod(crypto, "getRandomValues", "getRandomValues", arrayOf<Class<*>>(V8TypedArray::class.java))
+        v8crypto.release()
     }
 
-    class LogConsole : Console {
-        override fun error(msg: String) {
-            Log.e(TAG, msg)
-        }
-
-        override fun warn(msg: String) {
-            Log.w(TAG, msg)
-        }
-
-        override fun log(msg: String) {
-            Log.i(TAG, msg)
-        }
-
-        override fun debug(msg: String) {
-            Log.d(TAG, msg)
-        }
+    private fun registerConsoleMethods() {
+        val console = LogConsole()
+        val v8Console = V8Object(v8)
+        v8.add("console", v8Console)
+        v8Console.registerJavaMethod(console, "log", "log", arrayOf<Class<*>>(String::class.java))
+        v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(String::class.java))
+        v8Console.registerJavaMethod(console, "debug", "debug", arrayOf<Class<*>>(String::class.java))
+        v8Console.registerJavaMethod(console, "warn", "warn", arrayOf<Class<*>>(String::class.java))
+        v8Console.release()
     }
+
 
     @Suppress("unused")
-    class GlobalCrypto(val v8: V8) {
-        val secureRandom = SecureRandom()
+    private class GlobalCrypto {
+        private val secureRandom = SecureRandom()
         fun getRandomValues(array: V8TypedArray) {
             val buffer = array.getByteBuffer()
 
@@ -163,6 +155,12 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
     }
 
+    /**
+     * Releases resources of the users blockstack session
+     */
+    fun release() {
+
+    }
     /**
      * Generates an authentication request that can be sent to the Blockstack browser
      * for the user to approve sign in. This authentication request can then be used for
@@ -179,14 +177,16 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      * @param expiresAt the time at which this request is no longer valid
      */
     fun makeAuthRequest(transitPrivateKey: String, redirectURI: String, manifestURI: String, scopes: Array<String>, appDomain: String, expiresAt: Number): String {
-        val params = V8Array(v8)
+        val v8params = V8Array(v8)
                 .push(transitPrivateKey)
                 .push(redirectURI)
                 .push(manifestURI)
                 .push(scopes)
                 .push(appDomain)
                 .push(expiresAt)
-        return blockstack.executeStringFunction("makeAuthRequest", params)
+        val result = v8blockstackAndroid.executeStringFunction("makeAuthRequest", v8params)
+        v8params.release()
+        return result
     }
 
     /**
@@ -199,25 +199,27 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      */
     fun handlePendingSignIn(authResponse: String, signInCallback: (Result<UserData>) -> Unit) {
         this.signInCallback = signInCallback
-        val params = V8Array(v8)
+
+        val v8params = V8Array(v8)
                 .push(authResponse)
-        blockstack.executeFunction("handlePendingSignIn", params)
+        v8userSessionAndroid.executeVoidFunction("handlePendingSignIn", v8params)
+        v8params.release()
     }
 
     /**
      * Generates an authentication request opens an activity that allows the user to
      * sign with an existing Blockstack ID already on the device or create a new one.
      *
-     * @param signInCallback a function that is called with `UserData`
-     * when authentication succeeds.
+     * @param errorCallback a function that is called when the redirection failed.
      */
-    fun redirectUserToSignIn(signInCallback: (Result<UserData>) -> Unit) {
+    fun redirectUserToSignIn(errorCallback: (Result<Unit>) -> Unit) {
         try {
-            val params = V8Array(v8)
+            val v8params = V8Array(v8)
                     .push(nameLookupUrl)
-            userSession.executeFunction("redirectToSignIn", params)
+            v8userSessionAndroid.executeVoidFunction("redirectToSignIn", v8params)
+            v8params.release()
         } catch (e: Exception) {
-            signInCallback(Result(null, e.toString()))
+            errorCallback(Result(null, e.toString()))
         }
     }
 
@@ -228,7 +230,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      */
     fun loadUserData(): UserData? {
         try {
-            val result = blockstack.executeStringFunction("loadUserData", null)
+            val result = v8userSessionAndroid.executeStringFunction("loadUserData", null)
             return UserData(JSONObject(result))
         } catch (e: Exception) {
             Log.d(TAG, "error in loadUserData " + e.toString(), e)
@@ -242,16 +244,17 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      * @param callback a function that is called with a flag that is `true` if the user is signed in, `false` if not.
      */
     fun isUserSignedIn(): Boolean {
-        val result = userSession.executeBooleanFunction("isUserSignedIn", null)
+        val result = v8userSession.executeBooleanFunction("isUserSignedIn", null)
         return result
     }
 
     /**
      * Sign the user out
-     *
      */
     fun signUserOut() {
-        userSession.executeFunction("signUserOut", null)
+        v8userSession.executeVoidFunction("signUserOut", null)
+        v8userSession.release()
+        sessionStore.deleteSessionData()
     }
 
     /**
@@ -263,10 +266,11 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      */
     fun lookupProfile(username: String, zoneFileLookupURL: URL, callback: (Result<Profile>) -> Unit) {
         lookupProfileCallbacks.put(username, callback)
-        val params = V8Array(v8)
+        val v8params = V8Array(v8)
                 .push(username)
                 .push(zoneFileLookupURL.toString())
-        blockstack.executeVoidFunction("lookupProfileAndroid", params)
+        v8blockstackAndroid.executeVoidFunction("lookupProfile", v8params)
+        v8params.release()
     }
 
     /**
@@ -287,7 +291,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         if (name != null) {
             params.push(name)
         }
-        blockstack.executeVoidFunction("validateProofsAndroid", params)
+        v8blockstackAndroid.executeVoidFunction("validateProofs", params)
+        params.release()
     }
 
     /* Public storage methods */
@@ -305,8 +310,9 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         Log.d(TAG, "getFile: path: ${path} options: ${options}")
 
         val uniqueIdentifier = addGetFileCallback(callback)
-        val params = V8Array(v8).push(path).push(options.toJSON().toString()).push(uniqueIdentifier)
-        blockstack.executeVoidFunction("getFile", params)
+        val v8params = V8Array(v8).push(path).push(options.toJSON().toString()).push(uniqueIdentifier)
+        v8userSessionAndroid.executeVoidFunction("getFile", v8params)
+        v8params.release()
     }
 
     /**
@@ -329,17 +335,19 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             throw IllegalArgumentException("putFile content only supports String or ByteArray")
         }
 
-        val isBinary = content is ByteArray
         val uniqueIdentifier = addPutFileCallback(callback)
 
-        return if (isBinary) {
+        val v8params: V8Array
+        val isBinary = content is ByteArray
+        if (isBinary) {
             val contentString = Base64.encodeToString(content as ByteArray, Base64.NO_WRAP)
-            val params = V8Array(v8).push(path).push(contentString).push(options.toJSON().toString()).push(uniqueIdentifier).push(true)
-            blockstack.executeVoidFunction("putFile", params)
+            v8params = V8Array(v8).push(path).push(contentString).push(options.toJSON().toString()).push(uniqueIdentifier).push(true)
         } else {
-            val params = V8Array(v8).push(path).push(content).push(options.toJSON().toString()).push(uniqueIdentifier).push(false)
-            blockstack.executeVoidFunction("putFile", params)
+            v8params = V8Array(v8).push(path).push(content).push(options.toJSON().toString()).push(uniqueIdentifier).push(false)
         }
+
+        v8userSessionAndroid.executeVoidFunction("putFile", v8params)
+        v8params.release()
 
     }
 
@@ -359,23 +367,24 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             throw IllegalArgumentException("encrypt content only supports String or ByteArray")
         }
 
+        val v8params: V8Array
         val isBinary = plainContent is ByteArray
-
-        val result = if (isBinary) {
+        if (isBinary) {
             val contentString = Base64.encodeToString(plainContent as ByteArray, Base64.NO_WRAP)
-            val params = V8Array(v8).push(contentString).push(options.toJSON().toString())
-            blockstack.executeStringFunction("encryptContent", params)
+            v8params = V8Array(v8).push(contentString).push(options.toJSON().toString())
         } else {
-            val params = V8Array(v8).push(plainContent as String).push(options.toJSON().toString())
-            blockstack.executeStringFunction("encryptContent", params)
+            v8params = V8Array(v8).push(plainContent as String).push(options.toJSON().toString())
         }
+
+        val result = v8userSessionAndroid.executeStringFunction("encryptContent", v8params)
+        v8params.release()
+
         if (result != null && !"null".equals(result)) {
             val cipherObject = JSONObject(result)
             return Result(CipherObject(cipherObject))
         } else {
             return Result(null, "failed to encrypt")
         }
-
     }
 
     /**
@@ -392,17 +401,16 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             throw IllegalArgumentException("decrypt content only supports JSONObject or ByteArray not " + cipherObject::class.java)
         }
 
+        val v8params: V8Array
         val isBinary = cipherObject is ByteArray
-
-        val plainContent = if (isBinary) {
+        if (isBinary) {
             val cipherTextString = Base64.encodeToString(cipherObject as ByteArray, Base64.NO_WRAP)
-            val params = V8Array(v8).push(cipherTextString).push(options.toJSON().toString()).push(true)
-            blockstack.executeStringFunction("decryptContent", params)
+            v8params = V8Array(v8).push(cipherTextString).push(options.toJSON().toString()).push(true)
         } else {
-            val params = V8Array(v8).push(cipherObject).push(options.toJSON().toString()).push(true)
-            blockstack.executeStringFunction("decryptContent", params)
+            v8params = V8Array(v8).push(cipherObject).push(options.toJSON().toString()).push(true)
         }
-
+        val plainContent = v8userSessionAndroid.executeStringFunction("decryptContent", v8params)
+        v8params.release()
 
         if (plainContent != null && !"null".equals(plainContent)) {
             if (!binary) {
@@ -424,10 +432,11 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      */
     fun getAppBucketUrl(gaiaHubUrl: String, appPrivateKey: String, callback: (Result<String>) -> Unit) {
         getAppBucketUrlCallback = callback
-        val params = V8Array(v8)
+        val v8params = V8Array(v8)
                 .push(gaiaHubUrl)
                 .push(appPrivateKey)
-        blockstack.executeVoidFunction("getAppBucketUrlAndroid", params)
+        v8blockstackAndroid.executeVoidFunction("getAppBucketUrl", v8params)
+        v8params.release()
     }
 
     /**
@@ -441,15 +450,16 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      */
     fun getUserAppFileUrl(path: String, username: String, appOrigin: String, zoneFileLookupURL: String?, callback: (Result<String>) -> Unit) {
         getUserAppFileUrlCallback = callback
-        val params = V8Array(v8)
+        val v8params = V8Array(v8)
                 .push(path)
                 .push(username)
                 .push(appOrigin)
 
         if (zoneFileLookupURL != null) {
-            params.push(zoneFileLookupURL)
+            v8params.push(zoneFileLookupURL)
         }
-        blockstack.executeVoidFunction("getUserAppFileUrlAndroid", params)
+        v8blockstackAndroid.executeVoidFunction("getUserAppFileUrl", v8params)
+        v8params.release()
     }
 
     private fun addGetFileCallback(callback: (Result<Any>) -> Unit): String {
@@ -466,7 +476,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
 
     @Suppress("unused")
-    private class BlockstackAndroidV8Bridge(private val blockstackSession: BlockstackSession, val v8: V8, val v8blockstack: V8Object) {
+    private class JSAndroidBridge(private val blockstackSession: BlockstackSession, private val v8: V8, private val v8blockstackAndroid: V8Object) {
 
         private val httpClient = OkHttpClient()
 
@@ -486,12 +496,12 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun validateProofsResult(proofs: String) {
-            val proofs = JSONArray(proofs)
-            val proofArray = arrayListOf<Proof>()
-            for (i in 0..proofs.length() - 1) {
-                proofArray.add(Proof(proofs.getJSONObject(i)))
+            val proofArray = JSONArray(proofs)
+            val proofList = arrayListOf<Proof>()
+            for (i in 0..proofArray.length() - 1) {
+                proofList.add(Proof(proofArray.getJSONObject(i)))
             }
-            blockstackSession.validateProofsCallback?.invoke(Result(proofArray))
+            blockstackSession.validateProofsCallback?.invoke(Result(proofList))
         }
 
         fun validateProofsFailure(error: String) {
@@ -587,11 +597,11 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             }
             blockstackSession.executor.onWorkerThread {
                 val response = httpClient.newCall(builder.build()).execute()
-
                 blockstackSession.executor.onMainThread {
                     val r = response.toJSONString()
-                    var params = V8Array(v8).push(url).push(r)
-                    v8blockstack.executeVoidFunction("fetchResolve", params)
+                    val v8params = V8Array(v8).push(url).push(r)
+                    v8blockstackAndroid.executeVoidFunction("fetchResolve", v8params)
+                    v8params.release()
                 }
             }
         }
@@ -610,6 +620,7 @@ interface Executor {
 }
 
 class AndroidExecutor(private val ctx: Context) : Executor {
+    private val TAG = AndroidExecutor::class.simpleName
     override fun onMainThread(function: (ctx: Context) -> Unit) {
         launch(UI) { function.invoke(ctx) }
     }

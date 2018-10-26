@@ -1,6 +1,8 @@
 blockstack = module.exports
+var blockstackAndroid = {}
+var userSessionAndroid = {}
 
-blockstack.handlePendingSignIn = function(authResponseToken) {
+userSessionAndroid.handlePendingSignIn = function(authResponseToken) {
   userSession.handlePendingSignIn(authResponseToken)
   .then(function(userData) {
     var userDataString = JSON.stringify(userData)
@@ -11,7 +13,7 @@ blockstack.handlePendingSignIn = function(authResponseToken) {
   })
 }
 
-blockstack.getAppBucketUrlAndroid = function(gaiaHubUrl, appPrivateKey) {
+blockstackAndroid.getAppBucketUrl = function(gaiaHubUrl, appPrivateKey) {
   blockstack.getAppBucketUrl(gaiaHubUrl, appPrivateKey)
   .then(function(url) {
         android.getAppBucketUrlResult(url)
@@ -20,7 +22,7 @@ blockstack.getAppBucketUrlAndroid = function(gaiaHubUrl, appPrivateKey) {
     })
   }
 
-blockstack.getUserAppFileUrlAndroid = function(path, username, appOrigin) {
+blockstackAndroid.getUserAppFileUrl = function(path, username, appOrigin) {
     blockstack.getUserAppFileUrl(path, username, appOrigin)
     .then(function(url) {
       if (url != null) {
@@ -33,7 +35,7 @@ blockstack.getUserAppFileUrlAndroid = function(path, username, appOrigin) {
     })
 }
 
-blockstack.loadUserData = function() {
+userSessionAndroid.loadUserData = function() {
   var userData = userSession.loadUserData()
   if (userData != null) {
     return JSON.stringify(userData)
@@ -42,7 +44,7 @@ blockstack.loadUserData = function() {
   }
 }
 
-blockstack.lookupProfileAndroid = function(username, zoneLookupFileURL) {
+blockstackAndroid.lookupProfile = function(username, zoneLookupFileURL) {
   blockstack.lookupProfile(username, zoneLookupFileURL)
   .then(function(userData) {
       android.lookupProfileResult(username, JSON.stringify(userData))
@@ -51,7 +53,7 @@ blockstack.lookupProfileAndroid = function(username, zoneLookupFileURL) {
   })
 }
 
-blockstack.validateProofsAndroid = function(profile, ownerAddress, name) {
+blockstackAndroid.validateProofs = function(profile, ownerAddress, name) {
   blockstack.validateProofs(JSON.parse(profile), ownerAddress, name)
   .then(function(proofs) {
     android.validateProofsResult(JSON.stringify(proofs))
@@ -60,7 +62,7 @@ blockstack.validateProofsAndroid = function(profile, ownerAddress, name) {
   })
 }
 
-blockstack.getFile = function(path, options, uniqueIdentifier) {
+userSessionAndroid.getFile = function(path, options, uniqueIdentifier) {
     const opts = JSON.parse(options)
     userSession.getFile(path, opts)
       .then(function(result) {
@@ -77,7 +79,7 @@ blockstack.getFile = function(path, options, uniqueIdentifier) {
       })
 }
 
-blockstack.putFile = function(path, contentString, options, uniqueIdentifier, binary) {
+userSessionAndroid.putFile = function(path, contentString, options, uniqueIdentifier, binary) {
   var content = null;
   if (binary) {
     content = Base64.decode(contentString)
@@ -94,11 +96,11 @@ blockstack.putFile = function(path, contentString, options, uniqueIdentifier, bi
 }
 
 
-blockstack.encryptContent = function(contentString, options) {
+userSessionAndroid.encryptContent = function(contentString, options) {
     return userSession.encryptContent(contentString, JSON.parse(options));
 }
 
-blockstack.decryptContent = function(cipherTextString, options, binary) {
+userSessionAndroid.decryptContent = function(cipherTextString, options, binary) {
     return userSession.decryptContent(cipherTextString, JSON.parse(options))
 }
 
@@ -181,16 +183,17 @@ fetch = function(url, options){
     } else {
       options = {};
     }
-        try {
-          android.fetchAndroid(url, JSON.stringify(options))
-        } catch (e) {
-          console.log("fetch error " + e.toString())
-        }
+    try {
+      console.log("android " + JSON.stringify(android))
+      android.fetchAndroid(url, JSON.stringify(options))
+    } catch (e) {
+      console.log("fetch error " + e.toString())
+    }
   })
   return promise
 }
 
-blockstack.fetchResolve = function(url, response) {
+blockstackAndroid.fetchResolve = function(url, response) {
   try {
     var resp = new Response(JSON.parse(response))
     fetchPromises.resolve(resp)
