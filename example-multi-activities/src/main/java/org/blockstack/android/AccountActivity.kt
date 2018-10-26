@@ -35,10 +35,7 @@ class AccountActivity : AppCompatActivity() {
         onLoaded()
         signInButton.setOnClickListener { _ ->
             blockstackSession().redirectUserToSignIn { _ ->
-                Log.d(TAG, "signed in!")
-                runOnUiThread {
-                    onSignIn()
-                }
+                Log.d(TAG, "signed in error!")
             }
         }
 
