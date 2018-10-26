@@ -57,14 +57,9 @@ class MainActivity : AppCompatActivity() {
 
 
         signInButton.setOnClickListener { _: View ->
-            blockstackSession().redirectUserToSignIn { userDataResult ->
-                if (userDataResult.hasValue) {
-                    Log.d(TAG, "signed in!")
-                    runOnUiThread {
-                        onSignIn(userDataResult.value!!)
-                    }
-                } else {
-                    Toast.makeText(this, "error: " + userDataResult.error, Toast.LENGTH_SHORT).show()
+            blockstackSession().redirectUserToSignIn { errorResult ->
+                if (errorResult.hasErrors) {
+                    Toast.makeText(this, "error: " + errorResult.error, Toast.LENGTH_SHORT).show()
                 }
             }
         }

@@ -228,7 +228,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         try {
             val v8params = V8Array(v8)
                     .push(nameLookupUrl)
-            v8userSessionAndroid.executeVoidFunction("redirectToSignIn", v8params)
+            v8userSession.executeVoidFunction("redirectToSignIn", v8params)
             v8params.release()
         } catch (e: Exception) {
             errorCallback(Result(null, e.toString()))
