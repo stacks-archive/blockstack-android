@@ -164,6 +164,15 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8blockstackAndroid.release()
         v8.release()
     }
+
+    fun releaseThreadLock() {
+        v8.locker.release()
+    }
+
+    fun aquireThreadLock() {
+        v8.locker.acquire()
+    }
+
     /**
      * Generates an authentication request that can be sent to the Blockstack browser
      * for the user to approve sign in. This authentication request can then be used for
