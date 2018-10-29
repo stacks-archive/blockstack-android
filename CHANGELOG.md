@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [0.4.0] - 2018-10-29
 
 ### Added
 - `BlockstackSession.validateProofs` method and `Proof` object to verify social acounts.
@@ -18,20 +18,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `BlockstackSession.getUserAppFileUrl` method to retrieve a user's file of an app with a given path.
 - `UserData.hubUrl` property for use with `getUserAppFileUrl`
 - Parameter `sessionStore`, `executor` and `scriptRepo` to `BlockstackSession` constructor
-- Example for using `Blockstack` in a background service
+- New example for using `Blockstack` in a background service
 
 
 ### Changed
-- improved integration tests
+- Improved integration tests
 - Updated `blockstack.js` to branch `storage-strategies`
-- `BlockstackConfig.redirectUrl` and `.manifestUrl` renamed to *path
-- underlying tech from `WebView` to 'j2v8`
-
+- `BlockstackConfig.redirectUrl` and `.manifestUrl` take a relative path
+  instead of fully-qualified URL
+- Switched javascript engine from `WebView` to `j2v8` which enables
+  usage of SDK as a background service and improved execution speed
 
 ### Removed
 - `Blockstack.makeAuthRequest`
 - callback parameter from `BlockstackSession.isUserSignedIn`, `.loadUserData`, `encryptContent`, `decryptContent` and `.signUserOut`
- 
+
 ## [0.3.0] - 2018-07-27
 
 ### Added
