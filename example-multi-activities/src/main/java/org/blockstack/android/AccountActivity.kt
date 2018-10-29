@@ -28,46 +28,40 @@ class AccountActivity : AppCompatActivity() {
         signInButton.isEnabled = false
         signOutButton.isEnabled = false
 
-        _blockstackSession = BlockstackSession(this, defaultConfig,
-                onLoadedCallback = {
-                    if (intent?.action == Intent.ACTION_VIEW) {
-                        handleAuthResponse(intent)
-                    }
-                    onLoaded()
-                })
-
+        _blockstackSession = BlockstackSession(this, defaultConfig)
+        if (intent?.action == Intent.ACTION_VIEW) {
+            handleAuthResponse(intent)
+        }
+        onLoaded()
         signInButton.setOnClickListener { _ ->
             blockstackSession().redirectUserToSignIn { _ ->
-                Log.d(TAG, "signed in!")
-                runOnUiThread {
-                    onSignIn()
-                }
+                Log.d(TAG, "signed in error!")
             }
         }
 
         signOutButton.setOnClickListener { _ ->
-            blockstackSession().signUserOut {
-                Log.d(TAG, "signed out!")
-                finish()
-            }
+            blockstackSession().signUserOut()
+            Log.d(TAG, "signed out!")
+            finish()
         }
     }
 
     private fun onLoaded() {
         signInButton.isEnabled = true
         signOutButton.isEnabled = true
-        blockstackSession().isUserSignedIn { signedIn ->
-            if (signedIn) {
-                signInButton.visibility = View.GONE
-                signOutButton.visibility = View.VISIBLE
-            } else {
-                signInButton.visibility = View.VISIBLE
-                signOutButton.visibility = View.GONE
-            }
+        val signedIn = blockstackSession().isUserSignedIn()
+        if (signedIn) {
+            signInButton.visibility = View.GONE
+            signOutButton.visibility = View.VISIBLE
+        } else {
+            signInButton.visibility = View.VISIBLE
+            signOutButton.visibility = View.GONE
         }
+
     }
 
     private fun onSignIn() {
+        blockstackSession().loadUserData()
         finish()
     }
 

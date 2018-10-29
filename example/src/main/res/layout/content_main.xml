@@ -5,7 +5,8 @@
                                              android:layout_width="match_parent"
                                              android:layout_height="match_parent"
                                              tools:context="org.blockstack.android.MainActivity"
-                                             tools:showIn="@layout/activity_main">
+                                             tools:showIn="@layout/activity_main"
+                                             tools:ignore="HardcodedText">
 
     <org.blockstack.android.sdk.ui.BlockstackSignInButton
         android:id="@+id/signInButton"
@@ -25,7 +26,7 @@
         app:layout_constraintEnd_toStartOf="@+id/userDataTextView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/signInButton"
-        />
+        tools:ignore="ContentDescription"/>
 
     <TextView
         android:id="@+id/userDataTextView"
@@ -36,6 +37,23 @@
         app:layout_constraintTop_toBottomOf="@id/signInButton"
         />
 
+    <Button android:id="@+id/validateProofsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Validate proofs"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/userDataTextView"
+        />
+
+    <TextView
+        android:id="@+id/validateProofsText"
+        android:layout_width="match_parent"
+        android:layout_height="37dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/validateProofsButton"/>
+
     <Button
         android:id="@+id/putStringFileButton"
         android:layout_width="match_parent"
@@ -43,7 +61,7 @@
         android:text="Put String File"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/userDataTextView"
+        app:layout_constraintTop_toBottomOf="@id/validateProofsText"
         />
 
     <TextView
@@ -104,7 +122,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/getImageFileButton"
-        app:srcCompat="@android:color/background_light"/>
+        app:srcCompat="@android:color/background_light"
+        tools:ignore="ContentDescription"/>
 
     <Button
         android:id="@+id/getStringFileFromUserButton"
@@ -122,5 +141,39 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/getStringFileFromUserButton"/>
+
+    <Button
+        android:id="@+id/getAppBucketUrlButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get app bucket url"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/fileFromUserContentsTextView"/>
+
+    <TextView
+        android:id="@+id/getAppBucketUrlText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/getAppBucketUrlButton"/>
+
+    <Button
+        android:id="@+id/getUserAppFileUrlButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get user app file url"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/getAppBucketUrlText"/>
+
+    <TextView
+        android:id="@+id/getUserAppFileUrlText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/getUserAppFileUrlButton"/>
 
 </android.support.constraint.ConstraintLayout>
