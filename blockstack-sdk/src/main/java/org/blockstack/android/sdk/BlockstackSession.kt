@@ -638,19 +638,21 @@ interface Executor {
 class AndroidExecutor(private val ctx: Context) : Executor {
     private val TAG = AndroidExecutor::class.simpleName
     override fun onMainThread(function: (ctx: Context) -> Unit) {
-        launch(UI) { function.invoke(ctx) }
+        launch(UI) {
+            function(ctx)
+        }
     }
 
     override fun onV8Thread(function: () -> Unit) {
         launch(UI) {
-            function.invoke()
+            function()
         }
     }
 
     override fun onNetworkThread(function: suspend () -> Unit) {
         async(CommonPool) {
             try {
-                function.invoke()
+                function()
             } catch (e: Exception) {
                 Log.e(TAG, "onNetworkThread", e)
             }
