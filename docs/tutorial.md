@@ -1,27 +1,16 @@
-# Blockstack Android SDK Tutorial (Pre-release)
+---
+layout: learn
+permalink: /:collection/:path.html
+---
+# Android SDK Tutorial (Pre-release)
+{:.no_toc}
 
 This tutorial is written for readers who are new to either or both Blockstack
 and Android to create a decentralized application. It contains the following
 content:
 
-- [Blockstack Android SDK Tutorial (Pre-release)](#blockstack-android-sdk-tutorial-pre-release)
-- [Understand the sample application flow](#understand-the-sample-application-flow)
-- [Set up your environment](#set-up-your-environment)
-	- [Install Android Studio](#install-android-studio)
-	- [Create a Blockstack ID for testing](#create-a-blockstack-id-for-testing)
-	- [Do you have npm?](#do-you-have-npm)
-	- [Use npm to install Yeoman and the Blockstack App Generator](#use-npm-to-install-yeoman-and-the-blockstack-app-generator)
-- [Build the Blockstack hello-world](#build-the-blockstack-hello-world)
-	- [Generate and launch your hello-blockstack application](#generate-and-launch-your-hello-blockstack-application)
-	- [Add a redirect end point to your application](#add-a-redirect-end-point-to-your-application)
-- [Create the hello-android project](#create-the-hello-android-project)
-	- [Create a simple project](#create-a-simple-project)
-	- [Run the app in an emulator](#run-the-app-in-an-emulator)
-	- [Configure your application with the Blockstack SDK](#configure-your-application-with-the-blockstack-sdk)
-	- [Add a simple interface](#add-a-simple-interface)
-	- [Add session & authentication code](#add-session-authentication-code)
-	- [Run the final app in the emulator](#run-the-final-app-in-the-emulator)
-- [Where to go next](#where-to-go-next)
+* TOC
+{:toc}
 
 This tutorial was extensively tested using Android Studio 3.1 on a MacBook Air
 running High Sierra 10.13.4. If your environment is different, you may encounter
@@ -54,7 +43,7 @@ application by doing the following:
 
 ## Set up your environment
 
-This sample application has two code bases, a BlockStack `hello-blockstack`
+This sample application has two code bases, a Blockstack `hello-blockstack`
 application and a `hello-andriod` Android application. Before you start
 developing the sample, there are a few elements you need in your environment.
 
@@ -71,61 +60,6 @@ Depending on your network connection, this can take between 15-30 minutes.
 
 ![](images/studio-download.png)
 
-### Create a Blockstack ID for testing
-
-Skip this section if you already have a Blockstack ID.
-
-The Blockstack Browser gives users the ability to explore and use the
-decentralized applications (dapps).  For this example, you should make sure you
-have an existing identity before you begin developing your mobile app.
-
-To create an inititial Blockstack ID, do the following:
-
-1. Open the [Blockstack web application in your browser](https://browser.blockstack.org/sign-up?redirect=%2F).
-
-   The application prompts you for an email address.
-
-   ![](images/create-id-0.png)
-
-   Blockstack uses this email address to send you recovery information. Your
-   email is not stored by BlockStack.
-
-2. Enter an email address and press **Next**.
-
-   The application prompts you to enter a password. Blockstack uses this
-   password to encrypt your recovery code. You must record and save this
-   initial password.
-
-   **NOTE**:The Blockstack team cannot restore your password for you.
-
-3. Enter a password, confirm it, and press **Next**.
-
-   ![](images/create-id-1.png)
-
-   The browser prompts you to register a unique username in the `id.blockstack`
-   domain. This is your identity in the decentralized internet. The format of the id
-   is:
-
-    _`username`_`.id.blockstack`
-
-    You'll use this initial ID to access the Blockstack Browser.
-
-3.  Enter a unique username and press **Check Availability**.
-
-    ![](images/create-id-2.png)
-
-
-4.  Press **Continue**.
-
-    The system prompts you to save your **recovery code**. A recovery code is a
-    sequence  of words.  These words allow you to recover an `id.blockstack`
-    that you've created.  You should store the words along with their order, for
-    example,  `#1 applied` and so forth.
-
-5. Click **I have written down all the words** when you are done.
-
-   The system places you in the Blockstack browser.
-
 ### Do you have npm?
 
 The Blockstack code in this tutorial relies on the `npm` dependency manager.
@@ -137,7 +71,25 @@ $ which npm
 /usr/local/bin/npm
 ```
 
-If you don't find `npm` in your system, [install it](https://www.npmjs.com/get-npm).
+If you don't find `npm` in your system, [install
+it](https://www.npmjs.com/get-npm).
+
+### Install the Blockstack test rig
+
+Users interact with Blockstack-enabled applications through a web browser. You
+can Blockstack in test mode, on `localhost` or you can interact with completed
+apps through the Blockstack webapp which is available at
+[https://browser.blockstack.org/].
+
+If you have already installed Blockstack for testing locally and have an
+existing Blockstack ID, skip this section.  Otherwise, continue onto install
+Blockstack.
+
+1. Go to  [Blockstack](https://blockstack.org/install)
+
+    ![](images/blockstack-install.png)
+
+2. Install the version appropriate for your operating system.
 
 
 ### Use npm to install Yeoman and the Blockstack App Generator
@@ -200,12 +152,12 @@ In this section, you build an initial React.js application called
          _-----_     ╭──────────────────────────╮
         |       |    │      Welcome to the      │
         |--(o)--|    │      Blockstack app      │
-       `---------´   │        generator!        │
-        ( _´U`_ )    ╰──────────────────────────╯
+        ---------    │        generator!        │
+        ( _U_ )      ╰──────────────────────────╯
         /___A___\   /
          |  ~  |
        __'.___.'__
-     ´   `  |° ´ Y `
+            |°  Y
 
     ? Are you ready to build a Blockstack app in React? (Y/n)
     ```
@@ -224,7 +176,7 @@ In this section, you build an initial React.js application called
 5. Run the initial application.
 
     ```bash
-    npm start
+    $ npm start
 
     > hello-blockstack@0.0.0 start /Users/moxiegirl/repos/hello-blockstack
     > webpack-dev-server
@@ -289,7 +241,7 @@ application directory.
 
 3. Open `redirect.html` and add code to the endpoint.
 
-    ```
+    ```html
     <!DOCTYPE html>
     <html>
     <head>
@@ -320,8 +272,6 @@ application directory.
 5. Close and save the `redirect.html` file.
 6. Ensure your Blockstack compiles successfully.
 
-
-
 ## Create the hello-android project
 
 In this section, you'll create an Android application in Android Studio.  You'll
@@ -349,7 +299,7 @@ iniatial state by creating an emulator to run it in. Open Android Studio and do 
       <td><code><i>USERNAME</i>.example.com</code></td>
     </tr>
     <tr>
-      <th>Project location</td>
+      <th>Project location</th>
       <td><code>/Users/<i>USERNAME</i>/AndroidStudioProjects/helloandroid</code></td>
     </tr>
     <tr>
@@ -411,6 +361,16 @@ In this section, you run the appliation and create an emulator when prompted.
 Now that you have created your initial project and verified it running in an emulator, you are ready to begin configuring the application for use with Blockstack.
 
 1. In studio, open the `AndroidManifest.xml` file.
+2. Add the a `launchMode` to the `.MainActivity` definition.
+
+    ```XML
+    <activity android:name=".MainActivity" android:launchMode="singleTask">
+    ```
+
+   Blockstack requires that the activity that starts the sign-in process also
+   handles the auth reponse token. This means that the activity needs to run in
+   `singleTask` launch mode.
+
 2. Add an `<intent-filter>` with the custom handler for Blockstack.
 
     ```XML
