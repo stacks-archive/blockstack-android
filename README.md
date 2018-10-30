@@ -20,9 +20,9 @@ repository](https://github.com/blockstack/blockstack-android/issues).
 ## Get started
 
 Use the [detailed tutorial](docs/tutorial.md) and to build your first Blockstack
-Android application with React. You can also work through two example apps in
-module ([`/example`](examples/)) and
-([`/example-multi-activity`](example-multi-activity/))
+Android application with React. You can also work through three example apps in
+module ([`/example`](examples/)),
+([`/example-multi-activity`](example-multi-activity/)) and ([`/example-service`](example-service/)).
 
 ## Adding to your project
 ```
@@ -31,22 +31,12 @@ module ([`/example`](examples/)) and
     }
 
     dependencies {
-        implementation 'com.github.blockstack:blockstack-android:0.3.0'
+        implementation 'com.github.blockstack:blockstack-android:$blockstack_sdk_version'
     }
 ```
 
 ## Handling Blockstack sessions
-The current implementation of the Blockstack Android SDK uses a webview and blockstack.js. 
-
-### Sign-In Actitivity
-The current implementation requires that the activity that starts the sign-in process also handles the auth reponse token. This means that the activity needs to run in singleTask launch mode. Add the launch mode to the activity tag in the Android manifest like this:
-```
-   <activity android:name="./SignInActivity"
-     ...
-     android:launchMode="singleTask">
-   ...
-   </activity>
-```
+The current implementation of the Blockstack Android SDK uses the j2v8 engine and blockstack.js. 
 
 ### Redirect with app links
 The example applications and tutorial uses a custom url scheme to handle the redirect from the sign-in process. In production, the redirect should be handled by [app links](https://developer.android.com/studio/write/app-link-indexing) such that no other apps could hijack the custom url scheme. (There is no security risk, it is just a bad user experience if an app chooser pops up and the user has to choose how to finish the sign-in.)
@@ -65,10 +55,26 @@ Replace the custom scheme intent filter with the intent filter with your domain/
    </activity>
 ```           
    
-Note, when using app links you do not need a web server anymore that redirects to the custom scheme. All you need to host is a `manifest.json` file for the app details and the assetlinks.json file for the app links.
+Note, when using app links you do not need a web server anymore that redirects to the custom scheme. 
+All you need to host is a `manifest.json` file for the app details and the assetlinks.json file for the app links.
+
+### Thread Handling
+The j2v8 engine requires that calls to the Blockstack session are made from only one thread.
+
+The SDK comes with a default implementation of an `Executor` that manages thread switching. 
+By default, network threads are done in the background, calls to the Blockstack session are done
+on the main thread.
+
+If the Blockstack session is not created on the main thread then a custom implementation of `Excecutor`
+needs to be provided in the constructor of the Blockstack session. See the service example for some code.   
+
+It is also possible to manually switch threads buy using `.releaseThreadLock` and `.aquireThreadLock`.
+These methods allow to make calls to the Blockstack session on a different thread. The thread lock
+needs to be released on the current thread of the session. Then the new thread can aquire the thread lock.
+This is used in the Blockstack react native component.
 
 ## API Reference Documentation
-Please see [generated documenatation](https://31-124568327-gh.circle-artifacts.com/0/javadoc/blockstack-sdk/index.html)
+Please see [generated documenatation](https://124-124568327-gh.circle-artifacts.com/0/javadoc/blockstack-sdk/index.html)
 on the project's circle CI.
 
 ## Contributing
