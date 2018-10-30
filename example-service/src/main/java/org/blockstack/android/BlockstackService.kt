@@ -7,32 +7,63 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Handler
+import android.os.HandlerThread
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
+import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
+import org.blockstack.android.sdk.AndroidExecutor
 import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.Executor
 import org.blockstack.android.sdk.PutFileOptions
 
 
 class BlockstackService : IntentService("BlockstackExample") {
+
     private val TAG: String = "BlockstackService"
     private val CHANNEL_ID = "progress"
     private lateinit var _blockstackSession: BlockstackSession
+    private lateinit var handlerThread:HandlerThread
     private lateinit var handler: Handler
 
     override fun onCreate() {
         super.onCreate()
-        handler = Handler()
+        handlerThread = HandlerThread("BlockstackService")
+        handlerThread.start()
+        handler = Handler(handlerThread.looper)
+
     }
 
     override fun onHandleIntent(intent: Intent?) {
-        runOnUIThread {
-            _blockstackSession = BlockstackSession(this, defaultConfig)
+        runOnV8Thread {
+            _blockstackSession = BlockstackSession(this, defaultConfig, executor = object: Executor {
+                override fun onMainThread(function: (Context) -> Unit) {
+                    launch(UI) {
+                        function.invoke(applicationContext)
+                    }
+                }
+
+                override fun onV8Thread(function: () -> Unit) {
+                    runOnV8Thread {
+                        function.invoke()
+                    }
+                }
+
+                override fun onNetworkThread(function: suspend () -> Unit) {
+                    async(CommonPool) {
+                        function.invoke()
+                    }
+                }
+            })
             putFileFromService()
         }
     }
 
-    fun runOnUIThread(runnable: () -> Unit) {
+    fun runOnV8Thread(runnable: () -> Unit) {
         handler.post(runnable)
     }
 
@@ -70,6 +101,7 @@ class BlockstackService : IntentService("BlockstackExample") {
                         .build()
 
                 NotificationManagerCompat.from(this).notify(0, notif2)
+                LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(ACTION_DONE))
             }
         } else {
             val notif = NotificationCompat.Builder(this, CHANNEL_ID)
@@ -78,5 +110,9 @@ class BlockstackService : IntentService("BlockstackExample") {
             NotificationManagerCompat.from(this).notify(0, notif)
         }
 
+    }
+
+    companion object {
+        val ACTION_DONE = "org.blockstack.intent.action.DONE"
     }
 }
