@@ -265,7 +265,6 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      */
     fun signUserOut() {
         v8userSession.executeVoidFunction("signUserOut", null)
-        v8userSession.release()
         sessionStore.deleteSessionData()
     }
 
