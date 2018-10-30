@@ -506,7 +506,7 @@ Now that you have created your initial project and verified it running in an emu
     import android.os.Bundle
     import android.support.v7.app.AppCompatActivity
     import android.view.View
-    import kotlinx.android.synthetic.main.content_main.*
+    import kotlinx.android.synthetic.main.activity_main.*
     import org.blockstack.android.sdk.BlockstackSession
     import org.blockstack.android.sdk.Scope
     import org.blockstack.android.sdk.UserData
