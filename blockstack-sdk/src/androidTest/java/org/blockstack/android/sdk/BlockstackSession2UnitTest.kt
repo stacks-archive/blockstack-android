@@ -50,10 +50,14 @@ class BlockstackSession2UnitTest {
                 function(rule.activity)
             }
 
-            override fun onWorkerThread(function: suspend () -> Unit) {
+            override fun onNetworkThread(function: suspend () -> Unit) {
                 runBlocking {
                     function()
                 }
+            }
+
+            override fun onV8Thread(function: () -> Unit) {
+                function()
             }
         }
         session = BlockstackSession(rule.activity, "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),

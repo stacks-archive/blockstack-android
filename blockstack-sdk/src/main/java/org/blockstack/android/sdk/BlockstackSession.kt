@@ -607,13 +607,17 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                     builder.header(key, headers.getString(key))
                 }
             }
-            blockstackSession.executor.onWorkerThread {
+            blockstackSession.executor.onNetworkThread {
                 val response = httpClient.newCall(builder.build()).execute()
-                blockstackSession.executor.onMainThread {
-                    val r = response.toJSONString()
-                    val v8params = V8Array(v8).push(url).push(r)
-                    v8blockstackAndroid.executeVoidFunction("fetchResolve", v8params)
-                    v8params.release()
+                blockstackSession.executor.onV8Thread {
+                    try {
+                        val r = response.toJSONString()
+                        val v8params = V8Array(v8).push(url).push(r)
+                        v8blockstackAndroid.executeVoidFunction("fetchResolve", v8params)
+                        v8params.release()
+                    } catch (e: Exception) {
+                        Log.d("BlockstackSession", "onfetch", e)
+                    }
                 }
             }
         }
@@ -628,7 +632,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
 interface Executor {
     fun onMainThread(function: (Context) -> Unit)
-    fun onWorkerThread(function: suspend () -> Unit)
+    fun onV8Thread(function: () -> Unit)
+    fun onNetworkThread(function: suspend () -> Unit)
 }
 
 class AndroidExecutor(private val ctx: Context) : Executor {
@@ -637,12 +642,18 @@ class AndroidExecutor(private val ctx: Context) : Executor {
         launch(UI) { function.invoke(ctx) }
     }
 
-    override fun onWorkerThread(function: suspend () -> Unit) {
+    override fun onV8Thread(function: () -> Unit) {
+        launch(UI) {
+            function.invoke()
+        }
+    }
+
+    override fun onNetworkThread(function: suspend () -> Unit) {
         async(CommonPool) {
             try {
                 function.invoke()
             } catch (e: Exception) {
-                Log.e(TAG, "onWorkerThread", e)
+                Log.e(TAG, "onNetworkThread", e)
             }
 
         }
