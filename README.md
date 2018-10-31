@@ -71,7 +71,6 @@ needs to be provided in the constructor of the Blockstack session. See the servi
 It is also possible to manually switch threads buy using `.releaseThreadLock` and `.aquireThreadLock`.
 These methods allow to make calls to the Blockstack session on a different thread. The thread lock
 needs to be released on the current thread of the session. Then the new thread can aquire the thread lock.
-This is used in the Blockstack react native component.
 
 ## API Reference Documentation
 Please see [generated documenatation](https://124-124568327-gh.circle-artifacts.com/0/javadoc/blockstack-sdk/index.html)
