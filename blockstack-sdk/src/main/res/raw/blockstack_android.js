@@ -8,7 +8,7 @@ userSessionAndroid.handlePendingSignIn = function(authResponseToken) {
     var userDataString = JSON.stringify(userData)
     android.signInSuccess(userDataString)
   }, function(error) {
-    console.log("user data"  + error.toString())
+    console.log("handlePendingSignIn "  + error.toString())
     android.signInFailure(error.toString())
   })
 }
@@ -170,11 +170,15 @@ Response.prototype.arrayBuffer = function() {
   });
 }
 
+function normalizeUrl(url) {
+  return url.replace(/[:\/\.]+/g, "")
+}
+
 var fetchPromises = {}
 fetch = function(url, options){
   var promise = new Promise(function(resolve, reject) {
-    console.log('fetch ' + url)
-    fetchPromises.resolve = resolve
+    console.log('fetch ' + normalizeUrl(url))
+    fetchPromises[normalizeUrl(url)] = {resolve:resolve, reject:reject}
     if (options) {
         if (options.body instanceof ArrayBuffer) {
           options.body = Base64.encode(options.body)
@@ -184,7 +188,6 @@ fetch = function(url, options){
       options = {};
     }
     try {
-      console.log("android " + JSON.stringify(android))
       android.fetchAndroid(url, JSON.stringify(options))
     } catch (e) {
       console.log("fetch error " + e.toString())
@@ -196,9 +199,11 @@ fetch = function(url, options){
 blockstackAndroid.fetchResolve = function(url, response) {
   try {
     var resp = new Response(JSON.parse(response))
-    fetchPromises.resolve(resp)
+    console.log("resolve " + normalizeUrl(url))
+    fetchPromises[normalizeUrl(url)].resolve(resp)
     return "success"
   } catch (e) {
+    console.log("error fetchResolve "+ e.toString())
     return "error " + e.toString()
   }
 }
