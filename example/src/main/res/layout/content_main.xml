@@ -176,4 +176,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/getUserAppFileUrlButton"/>
 
+    <Button
+        android:id="@+id/listFilesButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="List files"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/getUserAppFileUrlText"/>
+
+    <TextView
+        android:id="@+id/listFilesText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/listFilesButton"/>
+
 </android.support.constraint.ConstraintLayout>

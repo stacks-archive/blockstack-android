@@ -64,6 +64,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     private val putFileCallbacks = HashMap<String, ((Result<String>) -> Unit)>()
     private var getAppBucketUrlCallback: ((Result<String>) -> Unit)? = null
     private var getUserAppFileUrlCallback: ((Result<String>) -> Unit)? = null
+    private var listFilesCallback: ((Result<String>) -> Boolean)? = null
+    private var listFilesCountCallback: ((Result<Int>) -> Unit)? = null
 
 
     private val v8blockstackAndroid: V8Object
@@ -83,7 +85,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8userSessionAndroid = v8.getObject("userSessionAndroid")
 
         registerCryptoMethods()
-        registerJSAndroidBridgeMethods(v8blockstackAndroid)
+        registerJSAndroidBridgeMethods(v8blockstackAndroid, v8userSessionAndroid)
 
         val scopesString = Scope.scopesArrayToJSONString(config.scopes)
         v8.executeVoidScript("var appConfig = new blockstack.AppConfig(${scopesString}, '${config.appDomain}', '${config.redirectPath}','${config.manifestPath}');var userSession = new blockstack.UserSession({appConfig:appConfig, sessionStore:androidSessionStore});")
@@ -92,8 +94,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         loaded = true
     }
 
-    private fun registerJSAndroidBridgeMethods(v8blockstack: V8Object) {
-        val android = JSAndroidBridge(this, v8, v8blockstack)
+    private fun registerJSAndroidBridgeMethods(v8blockstack: V8Object, v8userSessionAndroid: V8Object) {
+        val android = JSAndroidBridge(this, v8, v8blockstack, v8userSessionAndroid)
         val v8android = V8Object(v8)
         v8.add("android", v8android)
 
@@ -114,6 +116,10 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8android.registerJavaMethod(android, "getAppBucketUrlFailure", "getAppBucketUrlFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "listFilesResult", "listFilesResult", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "listFilesFailure", "listFilesFailure", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "listFilesCountResult", "listFilesCountResult", arrayOf<Class<*>>(Int::class.java))
+        v8android.registerJavaMethod(android, "listFilesCountFailure", "listFilesCountFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "fetchAndroid", "fetchAndroid", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "setLocation", "setLocation", arrayOf<Class<*>>(String::class.java))
         v8android.release()
@@ -308,6 +314,12 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
     /* Public storage methods */
 
+    fun listFiles(callback: (Result<String>) -> Boolean, countCallback:(Result<Int>) -> Unit): Unit {
+        Log.d(TAG, "listFiles")
+        listFilesCallback = callback
+        listFilesCountCallback = countCallback
+        v8userSessionAndroid.executeVoidFunction("listFiles", null)
+    }
     /**
      * Retrieves the specified file from the app's data store.
      *
@@ -487,7 +499,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
 
     @Suppress("unused")
-    private class JSAndroidBridge(private val blockstackSession: BlockstackSession, private val v8: V8, private val v8blockstackAndroid: V8Object) {
+    private class JSAndroidBridge(private val blockstackSession: BlockstackSession, private val v8: V8, private val v8blockstackAndroid: V8Object, private val v8userSessionAndroid:V8Object) {
 
         private val httpClient = OkHttpClient()
 
@@ -565,8 +577,28 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             blockstackSession.getUserAppFileUrlCallback?.invoke(Result(url))
         }
 
-        fun getUserAppFileUrlFailre(error: String) {
+        fun getUserAppFileUrlFailure(error: String) {
             blockstackSession.getAppBucketUrlCallback?.invoke(Result(null, error))
+        }
+
+        fun listFilesResult(url:String) {
+            val cont = blockstackSession.listFilesCallback?.invoke(Result(url))
+            val params = V8Array(v8)
+            params.push(cont)
+            v8userSessionAndroid.executeVoidFunction("listFilesCallback", params)
+            params.release()
+        }
+
+        fun listFilesFailure(error:String) {
+            blockstackSession.listFilesCallback?.invoke(Result(null, error))
+        }
+
+        fun listFilesCountResult(count:Int) {
+            blockstackSession.listFilesCountCallback?.invoke(Result(count))
+        }
+
+        fun listFilesCountFailure(error:String) {
+            blockstackSession.listFilesCountCallback?.invoke(Result(null, error))
         }
 
         fun getSessionData(): String {

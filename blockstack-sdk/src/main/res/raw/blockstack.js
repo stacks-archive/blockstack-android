@@ -8746,7 +8746,7 @@ function listFilesLoop(hubConfig, page, callCount, fileCount, callback) {
       return listFilesLoop(hubConfig, nextPage, callCount + 1, fileCount + entries.length, callback);
     } else {
       // no more entries -- end of data
-      return Promise.resolve(fileCount);
+      return Promise.resolve(fileCount + entries.length);
     }
   });
 }
