@@ -1,11 +1,14 @@
 package org.blockstack.android
 
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import org.blockstack.android.sdk.BlockstackSession
@@ -17,6 +20,8 @@ class MainActivity : AppCompatActivity() {
 
     private var _blockstackSession: BlockstackSession? = null
 
+    private lateinit var broadcastReceiver: BroadcastReceiver
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -24,11 +29,10 @@ class MainActivity : AppCompatActivity() {
 
         signInButton.isEnabled = false
         startServiceButton.isEnabled = false
+        signOutButton.isEnabled = false
 
         _blockstackSession = BlockstackSession(this, defaultConfig)
 
-        // Wait until this callback fires before using any of the
-        // BlockstackSession API methods
         val signedIn = _blockstackSession?.isUserSignedIn()
         if (signedIn!!) {
             val userData = _blockstackSession?.loadUserData()
@@ -36,27 +40,50 @@ class MainActivity : AppCompatActivity() {
         } else {
             signInButton.isEnabled = true
             startServiceButton.isEnabled = false
+            signOutButton.isEnabled = false
         }
 
 
-        signInButton.setOnClickListener { view: View ->
+        signInButton.setOnClickListener {
             blockstackSession().redirectUserToSignIn {
-
+                Log.e(TAG, it.error)
             }
         }
 
-        startServiceButton.setOnClickListener { _ ->
+        signOutButton.setOnClickListener {
+            signOutButton.isEnabled = false
+            blockstackSession().signUserOut()
+            signInButton.isEnabled = true
+            startServiceButton.isEnabled = false
+
+        }
+
+        startServiceButton.setOnClickListener {
+            startServiceButton.isEnabled = false
             startService(Intent(this, BlockstackService::class.java))
         }
 
         if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
         }
+
+        broadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                onUploadDone()
+            }
+
+        }
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, IntentFilter(BlockstackService.ACTION_DONE))
+    }
+
+    private fun onUploadDone() {
+        startServiceButton.isEnabled = true
     }
 
     private fun onSignIn(userData: UserData) {
         signInButton.isEnabled = false
         startServiceButton.isEnabled = true
+        signOutButton.isEnabled = true
     }
 
     override fun onNewIntent(intent: Intent?) {

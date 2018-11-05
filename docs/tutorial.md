@@ -361,15 +361,6 @@ In this section, you run the appliation and create an emulator when prompted.
 Now that you have created your initial project and verified it running in an emulator, you are ready to begin configuring the application for use with Blockstack.
 
 1. In studio, open the `AndroidManifest.xml` file.
-2. Add the a `launchMode` to the `.MainActivity` definition.
-
-    ```XML
-    <activity android:name=".MainActivity" android:launchMode="singleTask">
-    ```
-
-   Blockstack requires that the activity that starts the sign-in process also
-   handles the auth reponse token. This means that the activity needs to run in
-   `singleTask` launch mode.
 
 2. Add an `<intent-filter>` with the custom handler for Blockstack.
 
@@ -424,12 +415,13 @@ Now that you have created your initial project and verified it running in an emu
     ```JS
     dependencies {
         implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-        implementation 'com.android.support:appcompat-v7:27.1.0'
-        implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+        implementation 'com.android.support:appcompat-v7:27.1.1'
+        implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+        implementation 'com.android.support:design:27.1.1'
         testImplementation 'junit:junit:4.12'
         androidTestImplementation 'com.android.support.test:runner:1.0.2'
         androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-        implementation 'com.github.blockstack:blockstack-android:0.3.0'
+        implementation 'com.github.blockstack:blockstack-android:0.4.0'
     }
 
     ```
@@ -459,7 +451,7 @@ Now that you have created your initial project and verified it running in an emu
 
    The new interface includes a `BlockstackSignInButton` which is provided by
    the SDK. This SDK includes a themed "Sign in with Blockstack" button
-   (`BlockstackSignInButton`). You use this button in your here with the
+   (`BlockstackSignInButton`). You use this button here with the
    `org.blockstack.android.sdk.ui.BlockstackSignInButton` class.
 
     ```XML
@@ -489,7 +481,7 @@ Now that you have created your initial project and verified it running in an emu
         tools:layout_editor_absoluteX="6dp"
         tools:layout_editor_absoluteY="70dp" />
 
-    </android
+    </android>
     ```
 
     This codes adds a button and some text to your application.
@@ -510,30 +502,27 @@ Now that you have created your initial project and verified it running in an emu
     When you are done, your imports should appear as follows:
 
     ```kotlin
-
-    import android.support.v7.app.AppCompatActivity
+    import android.content.Intent
     import android.os.Bundle
-
     import android.support.v7.app.AppCompatActivity
     import android.view.View
     import kotlinx.android.synthetic.main.activity_main.*
     import org.blockstack.android.sdk.BlockstackSession
     import org.blockstack.android.sdk.Scope
     import org.blockstack.android.sdk.UserData
-    import java.net.URI
+    import org.blockstack.android.sdk.toBlockstackConfig
     ```
 3. Add a variable for the Blockstack session before `onCreate`.
 
    ```kotlin
    class MainActivity : AppCompatActivity() {
 
-    private var _blockstackSession: BlockstackSession? = null
+       private var _blockstackSession: BlockstackSession? = null
 
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-      }
+       override fun onCreate(savedInstanceState: Bundle?) {
+         super.onCreate(savedInstanceState)
+         setContentView(R.layout.activity_main)
+       }
     }
    ```
 
@@ -543,36 +532,19 @@ Now that you have created your initial project and verified it running in an emu
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        signInButton.isEnabled = false
-
-        val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
-        val redirectURI = URI("${appDomain}/redirect")
-        val manifestURI = URI("${appDomain}/manifest.json")
+      
         val scopes = arrayOf(Scope.StoreWrite)
+	    val config = "https://flamboyant-darwin-d11c17.netlify.com"
+                        .toBlockstackConfig(scopes)
 
-	val config = java.net.URI("https://flamboyant-darwin-d11c17.netlify.com").run {
-            org.blockstack.android.sdk.BlockstackConfig(
-                    this,
-                    redirectURI,
-                    manifestURI,
-                    scopes
-        }
-
-        _blockstackSession = BlockstackSession(this, config,
-                onLoadedCallback = {
-                    signInButton.isEnabled = true
-                })
-
+        _blockstackSession = BlockstackSession(this, config)
+     
+        signInButton.isEnabled = true                
 
         signInButton.setOnClickListener { view: View ->
-            blockstackSession().redirectUserToSignIn { userData ->
-                if (userData.hasValue) {
-                    runOnUiThread {
-                        onSignIn(userData.value!!)
-                    }
-                }
-            }
+            blockstackSession().redirectUserToSignIn {
+               // only called on error
+          }
         }
         if (intent?.action == Intent.ACTION_VIEW) {
             // handle the redirect from sign in
@@ -584,13 +556,13 @@ Now that you have created your initial project and verified it running in an emu
     This new `onCreate` does several things:
 
     * Define the initial state for the `signInButton`.
-    * Supply authentication information for connecting to your Blockstack app: `appDomain`, `redirectURI`, `manifestURI` and `scopes`
+    * Supply authentication information for connecting to your Blockstack app: `appDomain` and `scopes` (for `redirectURI`, `manifestURI` the default values are used) 
     * Add a listener for the button click.
 
     Notice that the application in this example is a URI you have not set up.
     Registering and application name takes time, so in time's interest you'll
     use an existing app that is identical to the `hello-world` you created
-    earlier. For a produciton verison, you'll need to replace `appDomain`,
+    earlier. For a production version, you'll need to replace `appDomain`,
     `redirectURI`, `manifestURI` and `scopes` with values appropriate for your
     app.
 
@@ -599,9 +571,7 @@ Now that you have created your initial project and verified it running in an emu
     ```kotlin
     private fun onSignIn(userData: UserData) {
     		userDataTextView.text = "Signed in as ${userData.decentralizedID}"
-
     		signInButton.isEnabled = false
-
     }
     ```
 
@@ -664,30 +634,22 @@ Now that you have created your initial project and verified it running in an emu
 
         private var _blockstackSession: BlockstackSession? = null
 
-
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             setContentView(R.layout.activity_main)
 
             signInButton.isEnabled = false
 
-            val appDomain = URI("https://flamboyant-darwin-d11c17.netlify.com")
-            val redirectURI = URI("${appDomain}/redirect")
-            val manifestURI = URI("${appDomain}/manifest.json")
             val scopes = arrayOf(Scope.StoreWrite)
+	        val config = "https://flamboyant-darwin-d11c17.netlify.com"
+                        .toBlockstackConfig(scopes)
 
-            _blockstackSession = BlockstackSession(this, appDomain, redirectURI, manifestURI, scopes,
-                    onLoadedCallback = {signInButton.isEnabled = true
-                    })
-
+            _blockstackSession = BlockstackSession(this, config)
+            signInButton.isEnabled = true                    
 
             signInButton.setOnClickListener { view: View ->
-                blockstackSession().redirectUserToSignIn { userData ->
-                    if (userData.hasValue) {
-                        runOnUiThread {
-                            onSignIn(userData)
-                        }
-                    }
+                blockstackSession().redirectUserToSignIn { 
+                   // only called on error
                 }
             }
             if (intent?.action == Intent.ACTION_VIEW) {
@@ -699,7 +661,6 @@ Now that you have created your initial project and verified it running in an emu
             userDataTextView.text = "Signed in as ${userData.decentralizedID}"
 
             signInButton.isEnabled = false
-
         }
 
         override fun onNewIntent(intent: Intent?) {
@@ -738,8 +699,6 @@ Now that you have created your initial project and verified it running in an emu
                 throw IllegalStateException("No session.")
             }
         }
-
-
     }
     ```
 

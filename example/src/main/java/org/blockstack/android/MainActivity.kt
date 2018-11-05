@@ -34,13 +34,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        val config = java.net.URI("https://flamboyant-darwin-d11c17.netlify.com").run {
-            org.blockstack.android.sdk.BlockstackConfig(
-                    this,
-                    "/redirect",
-                    "/manifest.json",
-                    kotlin.arrayOf(org.blockstack.android.sdk.Scope.StoreWrite))
-        }
+        val config = "https://flamboyant-darwin-d11c17.netlify.com"
+                .toBlockstackConfig(kotlin.arrayOf(org.blockstack.android.sdk.Scope.StoreWrite))
 
 
         _blockstackSession = BlockstackSession(this@MainActivity, config)
@@ -215,6 +210,10 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+
+        if (intent?.action == Intent.ACTION_VIEW) {
+            handleAuthResponse(intent)
         }
 
     }
