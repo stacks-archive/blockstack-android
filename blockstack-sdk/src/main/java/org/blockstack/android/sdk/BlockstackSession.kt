@@ -314,7 +314,15 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
     /* Public storage methods */
 
-    fun listFiles(callback: (Result<String>) -> Boolean, countCallback:(Result<Int>) -> Unit): Unit {
+    /**
+     * List the set of files in this application's Gaia storage bucket.
+     *
+     * @property callback invoked on each named file, should return true to continue the listing
+     * operation or false to end it
+     * @property countCallback called after the list operation with the number of files that
+     * were listed (not necessarily the total number of files, e.g. if aborted early)
+     */
+    fun listFiles(callback: (Result<String>) -> Boolean, countCallback:(Result<Int>) -> Unit) {
         Log.d(TAG, "listFiles")
         listFilesCallback = callback
         listFilesCountCallback = countCallback
