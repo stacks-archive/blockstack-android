@@ -291,6 +291,32 @@ class BlockstackSession2UnitTest {
     }
 
 
+    @Test
+    fun getNameInfoReturnsCorrectInfo() {
+        val latch = CountDownLatch(1)
+        var result: Result<NameInfo>? = null
+        session.getNameInfo("dev_android_sdk.id.blockstack") {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+        assertThat(result?.hasValue, `is`(true))
+        assertThat(result?.value?.json.toString(), `is`("{\"address\":\"1Akc4hagxfYfDq9suMp1wjjyC5RwxJ7D3H\",\"blockchain\":\"bitcoin\",\"did\":\"did:stack:v0:SX3c6YMqh2jrk8wLSno6VdtXqrfNjmF81U-0\",\"last_txid\":\"536e596a4f6bf96656e3db202ea6842eb3f427143e8010cdf388399265ac6568\",\"status\":\"registered_subdomain\",\"zonefile\":\"\$ORIGIN dev_android_sdk.id.blockstack\\n\$TTL 3600\\n_http._tcp\\tIN\\tURI\\t10\\t1\\t\\\"https:\\/\\/gaia.blockstack.org\\/hub\\/1Akc4hagxfYfDq9suMp1wjjyC5RwxJ7D3H\\/profile.json\\\"\\n\\n\",\"zonefile_hash\":\"c146ad093f6152d67233b871f4fa181d98754f9f\"}"))
+    }
+
+    @Test
+    fun getNameInfoReturnsNoInfoForBadName() {
+        val latch = CountDownLatch(1)
+        var result: Result<NameInfo>? = null
+        session.getNameInfo("a_name_that_is_not_valid_and_does_not_exist.id.blockstack") {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+        assertThat(result?.hasValue, `is`(false))
+    }
     private fun getImageBytes(): ByteArray {
         val drawable: BitmapDrawable = rule.activity.resources.getDrawable(R.drawable.blockstackteam) as BitmapDrawable
 
