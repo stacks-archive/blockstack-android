@@ -20,6 +20,8 @@ import org.jetbrains.anko.coroutines.experimental.bg
 import java.io.ByteArrayOutputStream
 import java.net.URL
 
+private const val username = "dev_android_sdk.id.blockstack";
+
 @SuppressLint("SetTextI18n")
 class MainActivity : AppCompatActivity() {
     private val TAG = MainActivity::class.java.simpleName
@@ -148,7 +150,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         getStringFileFromUserButton.setOnClickListener { _ ->
-            val username = "dev_android_sdk.id.blockstack";
+
             val zoneFileLookupUrl = URL("https://core.blockstack.org/v1/names")
             fileFromUserContentsTextView.text = "Downloading file from other user..."
             blockstackSession().lookupProfile(username, zoneFileLookupURL = zoneFileLookupUrl) { profileResult ->
@@ -199,7 +201,6 @@ class MainActivity : AppCompatActivity() {
 
         getUserAppFileUrlButton.setOnClickListener { _ ->
             getUserAppFileUrlText.text = "Getting url ..."
-            val username = "dev_android_sdk.id.blockstack";
             val zoneFileLookupUrl = "https://core.blockstack.org/v1/names"
             blockstackSession().getUserAppFileUrl(textFileName, username, "https://flamboyant-darwin-d11c17.netlify.com", zoneFileLookupUrl) {
                 runOnUiThread {
@@ -212,6 +213,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        getNameInfoButton.setOnClickListener { _ ->
+            getNameInfoText.text = "Getting info ..."
+            blockstackSession().getNameInfo(username) {
+                runOnUiThread {
+                    Log.d(TAG, it.value?.json.toString())
+                    getNameInfoText.text = if (it.hasValue) {
+                        it.value?.json.toString()
+                    } else {
+                        it.error
+                    }
+                }
+            }
+        }
         if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
         }

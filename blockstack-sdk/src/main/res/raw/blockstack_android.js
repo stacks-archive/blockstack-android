@@ -35,6 +35,20 @@ blockstackAndroid.getUserAppFileUrl = function(path, username, appOrigin) {
     })
 }
 
+blockstackAndroid.getNameInfo = function(fullyQualifiedName) {
+  blockstack.config.network.getNameInfo(fullyQualifiedName)
+  .then(function(nameInfo) {
+    console.log("nameInfo " + JSON.stringify(nameInfo))
+    if (nameInfo != null) {
+      android.getNameInfoResult(JSON.stringify(nameInfo))
+    } else {
+      android.getNameInfoFailure("NO_NAME_INFO")
+    }
+  }, function(error) {
+    android.getNameInfoFailure(error.toString())
+  })
+}
+
 userSessionAndroid.loadUserData = function() {
   var userData = userSession.loadUserData()
   if (userData != null) {
