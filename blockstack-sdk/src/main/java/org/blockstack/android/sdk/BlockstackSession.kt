@@ -64,11 +64,18 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     private val putFileCallbacks = HashMap<String, ((Result<String>) -> Unit)>()
     private var getAppBucketUrlCallback: ((Result<String>) -> Unit)? = null
     private var getUserAppFileUrlCallback: ((Result<String>) -> Unit)? = null
-    private var getNameInfoCallback: ((Result<NameInfo>) -> Unit)? = null
 
-    private val v8blockstackAndroid: V8Object
+    internal val v8blockstackAndroid: V8Object
     private val v8userSessionAndroid: V8Object
+    private val v8networkAndroid: V8Object
     private val v8userSession: V8Object
+
+    /**
+     * @property network object that is used in this blockstack user session
+     */
+    val network: Network
+
+
     private val v8 = V8.createV8Runtime()
 
     init {
@@ -81,6 +88,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         v8blockstackAndroid = v8.getObject("blockstackAndroid")
         v8userSessionAndroid = v8.getObject("userSessionAndroid")
+        v8networkAndroid = v8.getObject("networkAndroid")
 
         registerCryptoMethods()
         registerJSAndroidBridgeMethods(v8blockstackAndroid)
@@ -88,6 +96,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         val scopesString = Scope.scopesArrayToJSONString(config.scopes)
         v8.executeVoidScript("var appConfig = new blockstack.AppConfig(${scopesString}, '${config.appDomain}', '${config.redirectPath}','${config.manifestPath}');var userSession = new blockstack.UserSession({appConfig:appConfig, sessionStore:androidSessionStore});")
         v8userSession = v8.getObject("userSession")
+
+        network = Network(v8networkAndroid, v8)
 
         loaded = true
     }
@@ -114,8 +124,6 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8android.registerJavaMethod(android, "getAppBucketUrlFailure", "getAppBucketUrlFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getUserAppFileUrlFailure", "getUserAppFileUrlFailure", arrayOf<Class<*>>(String::class.java))
-        v8android.registerJavaMethod(android, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8android.registerJavaMethod(android, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
 
         v8android.registerJavaMethod(android, "fetchAndroid", "fetchAndroid", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "setLocation", "setLocation", arrayOf<Class<*>>(String::class.java))
@@ -163,6 +171,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      */
     fun release() {
         v8userSession.release()
+        v8networkAndroid.release()
         v8userSessionAndroid.release()
         v8blockstackAndroid.release()
         v8.release()
@@ -476,13 +485,6 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8params.release()
     }
 
-    fun getNameInfo(fullyQualifiedName: String, callback: (Result<NameInfo>) -> Unit) {
-        getNameInfoCallback = callback
-        val v8params = V8Array(v8)
-                .push(fullyQualifiedName)
-        v8blockstackAndroid.executeVoidFunction("getNameInfo", v8params)
-        v8params.release()
-    }
 
     private fun addGetFileCallback(callback: (Result<Any>) -> Unit): String {
         val uniqueIdentifier = UUID.randomUUID().toString()
@@ -578,14 +580,6 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         fun getUserAppFileUrlFailure(error: String) {
             blockstackSession.getAppBucketUrlCallback?.invoke(Result(null, error))
-        }
-
-        fun getNameInfoResult(nameInfo: String) {
-            blockstackSession.getNameInfoCallback?.invoke(Result(NameInfo(JSONObject(nameInfo))))
-        }
-
-        fun getNameInfoFailure(error:String) {
-            blockstackSession.getNameInfoCallback?.invoke(Result(null, error))
         }
 
         fun getSessionData(): String {

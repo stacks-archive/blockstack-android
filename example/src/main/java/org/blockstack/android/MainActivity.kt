@@ -215,7 +215,7 @@ class MainActivity : AppCompatActivity() {
 
         getNameInfoButton.setOnClickListener { _ ->
             getNameInfoText.text = "Getting info ..."
-            blockstackSession().getNameInfo(username) {
+            blockstackSession().network.getNameInfo(username) {
                 runOnUiThread {
                     Log.d(TAG, it.value?.json.toString())
                     getNameInfoText.text = if (it.hasValue) {

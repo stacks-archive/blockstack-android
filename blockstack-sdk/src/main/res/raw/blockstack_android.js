@@ -1,16 +1,20 @@
 blockstack = module.exports
 var blockstackAndroid = {}
 var userSessionAndroid = {}
+var networkAndroid = {}
 
 userSessionAndroid.handlePendingSignIn = function(authResponseToken) {
-  userSession.handlePendingSignIn(authResponseToken)
-  .then(function(userData) {
-    var userDataString = JSON.stringify(userData)
-    android.signInSuccess(userDataString)
-  }, function(error) {
-    console.log("handlePendingSignIn "  + error.toString())
+  try {
+    userSession.handlePendingSignIn(authResponseToken)
+    .then(function(userData) {
+        var userDataString = JSON.stringify(userData)
+        android.signInSuccess(userDataString)
+    }, function(error) {
+        android.signInFailure(error.toString())
+    })
+  } catch(error) {
     android.signInFailure(error.toString())
-  })
+  }
 }
 
 blockstackAndroid.getAppBucketUrl = function(gaiaHubUrl, appPrivateKey) {
@@ -118,6 +122,17 @@ userSessionAndroid.decryptContent = function(cipherTextString, options, binary) 
     return userSession.decryptContent(cipherTextString, JSON.parse(options))
 }
 
+networkAndroid.getNameInfo = function(fullyQualifiedName) {
+    blockstack.config.network.getNameInfo(fullyQualifiedName).then(function(nameInfo) {
+        try {
+            networkAndroid.getNameInfoResult(JSON.stringify(nameInfo))
+        } catch (e) {
+            networkAndroid.getNameInfoFailure(e.toString())
+        }
+    }, function(error) {
+        networkAndroid.getNameInfoFailure(error.toString())
+    })
+}
 /**
  * Stores session data in Android delegated via global Android object.
  * @type {InstanceDataStore}

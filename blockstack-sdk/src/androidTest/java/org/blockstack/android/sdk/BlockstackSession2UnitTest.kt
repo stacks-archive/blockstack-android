@@ -295,7 +295,7 @@ class BlockstackSession2UnitTest {
     fun getNameInfoReturnsCorrectInfo() {
         val latch = CountDownLatch(1)
         var result: Result<NameInfo>? = null
-        session.getNameInfo("dev_android_sdk.id.blockstack") {
+        session.network.getNameInfo("dev_android_sdk.id.blockstack") {
             result = it
             latch.countDown()
         }
@@ -309,14 +309,16 @@ class BlockstackSession2UnitTest {
     fun getNameInfoReturnsNoInfoForBadName() {
         val latch = CountDownLatch(1)
         var result: Result<NameInfo>? = null
-        session.getNameInfo("a_name_that_is_not_valid_and_does_not_exist.id.blockstack") {
+        session.network.getNameInfo("a_name_that_is_not_valid_and_does_not_exist.id.blockstack") {
             result = it
             latch.countDown()
         }
 
         latch.await()
         assertThat(result?.hasValue, `is`(false))
+        assertThat(result?.error, `is`("Error: Name not found"))
     }
+
     private fun getImageBytes(): ByteArray {
         val drawable: BitmapDrawable = rule.activity.resources.getDrawable(R.drawable.blockstackteam) as BitmapDrawable
 
