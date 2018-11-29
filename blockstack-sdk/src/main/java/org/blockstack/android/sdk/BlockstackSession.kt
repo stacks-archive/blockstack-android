@@ -28,14 +28,17 @@ import java.security.SecureRandom
 import java.util.*
 
 /**
- * Main object to interact with blockstack in an activity
+ * Main object to interact with blockstack in an activity or service
  *
- * The current implementation is a wrapper for blockstack.js using a WebView.
- * This means that methods must be called on the UI thread e.g. using
- * `runOnUIThread`
+ * The current implementation is a wrapper for blockstack.js using a j2v8 javascript engine.
  *
+ * @param context the context used to define shared preferences for storing session data, to locate resources for this SDK.
+ * Can be null if SessionStore, executor and scriptRepo is defined.
  * @param config the configuration for blockstack
- * @param onLoadedCallback the callback for when this object is ready to use
+ * @param sessionStore the location where session data should be stored. Defaults to the default shared preferences of the app using the SDK
+ * @param executor defines where functions of this SDK should be executed. Defaults to @see AndroidExecutor with given context
+ * @param scriptRepo required to locate this SDK's resources. Defaults to AndroidScriptRepo with given context.
+ * Can be AndroidScriptRepo with application context as well.
  */
 class BlockstackSession(context: Context? = null, private val config: BlockstackConfig,
                         /**
@@ -71,7 +74,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     private val v8userSession: V8Object
 
     /**
-     * @property network object that is used in this blockstack user session
+     * Object that is used in this blockstack user session.
+     * It can be used already before the user is logged in.
      */
     val network: Network
 
@@ -642,12 +646,21 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     }
 }
 
+/**
+ * Executor defines where functions are executed. Three different cases are distinguished:
+ * 1. main thread: to start an intent launching the login process. This has to be the UI thread
+ * 1. network thread: to make network calls. This must not be the UI thread, it is usually a thread from CommonPool
+ * 1. v8 thread: to continue after network calls. This must be on the thread that is currently used by the j2v8 engine.
+ */
 interface Executor {
     fun onMainThread(function: (Context) -> Unit)
-    fun onV8Thread(function: () -> Unit)
     fun onNetworkThread(function: suspend () -> Unit)
+    fun onV8Thread(function: () -> Unit)
 }
 
+/**
+ * Standard executor for using Blockstack session in an activity.
+ */
 class AndroidExecutor(private val ctx: Context) : Executor {
     private val TAG = AndroidExecutor::class.simpleName
     override fun onMainThread(function: (ctx: Context) -> Unit) {
@@ -675,6 +688,10 @@ class AndroidExecutor(private val ctx: Context) : Executor {
 
 }
 
+/**
+ * Repository to access script files used for this SDK
+ * Application developers should use {@Link AndroidScriptRepo}
+ */
 interface ScriptRepo {
     fun globals(): String
     fun blockstack(): String
@@ -683,11 +700,16 @@ interface ScriptRepo {
 
 }
 
+/**
+ * Repository that provides script files for this SDK from the resources
+ *
+ * @param context can also be the application context
+ */
 class AndroidScriptRepo(private val context: Context) : ScriptRepo {
-    override fun globals() = context.resources.openRawResource(R.raw.globals).bufferedReader().use { it.readText() }
-    override fun blockstack() = context.resources.openRawResource(R.raw.blockstack).bufferedReader().use { it.readText() }
-    override fun base64() = context.resources.openRawResource(R.raw.base64).bufferedReader().use { it.readText() }
-    override fun blockstackAndroid() = context.resources.openRawResource(R.raw.blockstack_android).bufferedReader().use { it.readText() }
+    override fun globals() = context.resources.openRawResource(R.raw.org_blockstack_globals).bufferedReader().use { it.readText() }
+    override fun blockstack() = context.resources.openRawResource(R.raw.org_blockstack_blockstack).bufferedReader().use { it.readText() }
+    override fun base64() = context.resources.openRawResource(R.raw.org_blockstack_base64).bufferedReader().use { it.readText() }
+    override fun blockstackAndroid() = context.resources.openRawResource(R.raw.org_blockstack_blockstack_android).bufferedReader().use { it.readText() }
 }
 
 private fun Response.toJSONString(): String {

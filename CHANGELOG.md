@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Added
-- `BlockstackSession.getNameInfo` method
+- `Network` added, providing API methods for the blockstack network
+- `BlockstackSession.network` added, giving access to the blockstack network used in this session
 
 ## [0.4.1] - 2018-11-05
 
