@@ -104,6 +104,13 @@ class BlockstackSession2UnitTest {
     }
 
     @Test
+    fun isUserSignedInIsFalseAfterSignOut() {
+        assertThat(session.isUserSignedIn(), `is`(true))
+        session.signUserOut()
+        assertThat(session.isUserSignedIn(), `is`(false))
+    }
+
+    @Test
     fun testEncryptDecryptString() {
         assertTrue(session.isUserSignedIn())
         val options = CryptoOptions()
