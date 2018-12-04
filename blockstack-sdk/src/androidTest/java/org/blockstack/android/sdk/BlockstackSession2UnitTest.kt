@@ -126,6 +126,31 @@ class BlockstackSession2UnitTest {
     }
 
     @Test
+    fun testPutStringFileTwice() {
+        var result1: String? = null
+        var result2: String? = null
+        val latch = CountDownLatch(2)
+
+        if (session.isUserSignedIn()) {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(false), {
+                result1 = it.value as String
+                latch.countDown()
+            })
+            session.putFile("try2.txt", "Hello Test2", PutFileOptions(false), {
+                result2 = it.value as String
+                latch.countDown()
+            })
+        } else {
+            latch.countDown()
+            latch.countDown()
+        }
+        latch.await()
+        assertThat(result1, `is`(notNullValue()))
+        assertThat(result2, `is`(notNullValue()))
+    }
+
+
+    @Test
     fun testPutGetStringFile() {
         var result: String? = null
         val latch = CountDownLatch(1)
