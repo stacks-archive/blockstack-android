@@ -4,9 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.support.test.rule.ActivityTestRule
 import android.support.test.runner.AndroidJUnit4
-import org.blockstack.android.sdk.test.R
 import org.blockstack.android.sdk.test.TestActivity
-import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
 import org.junit.Assert.assertTrue
@@ -65,6 +64,25 @@ class BlockstackSessionStorageTest {
         assertTrue(encResult.hasValue)
         val decResult = session.decryptContent(encResult.value!!.json.toString(), true, options)
         assertThat((decResult.value as ByteArray).size, `is`(binaryContent.size))
+    }
+
+    @Test
+    fun testGetFileFor404File() {
+        var result: Result<Any>? = null
+        val latch = CountDownLatch(1)
+
+        if (session.isUserSignedIn()) {
+            session.getFile("404file.txt", GetFileOptions(false)) {
+                result = it
+                latch.countDown()
+            }
+        } else {
+            latch.countDown()
+        }
+        latch.await()
+        assertThat(result, `is`(notNullValue()))
+        assertThat(result?.value, `is`(nullValue()))
+        assertThat(result?.error, `is`(nullValue()))
     }
 
     @Test
@@ -218,7 +236,7 @@ class BlockstackSessionStorageTest {
     }
 
     private fun getImageBytes(): ByteArray {
-        val drawable: BitmapDrawable = rule.activity.resources.getDrawable(R.drawable.blockstackteam) as BitmapDrawable
+        val drawable: BitmapDrawable = rule.activity.resources.getDrawable(org.blockstack.android.sdk.test.R.drawable.blockstackteam) as BitmapDrawable
 
         val bitmap = drawable.getBitmap()
         val stream = ByteArrayOutputStream()
