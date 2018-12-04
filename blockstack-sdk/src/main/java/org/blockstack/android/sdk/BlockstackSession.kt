@@ -528,7 +528,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             blockstackSession.lookupProfileCallbacks[username]?.invoke(Result(null, error))
         }
 
-        fun getFileResult(content: String, uniqueIdentifier: String, isBinary: Boolean) {
+        fun getFileResult(content: String?, uniqueIdentifier: String, isBinary: Boolean) {
             if (isBinary) {
                 val binaryContent: ByteArray = Base64.decode(content, Base64.NO_WRAP)
                 blockstackSession.getFileCallbacks[uniqueIdentifier]?.invoke(Result(binaryContent))

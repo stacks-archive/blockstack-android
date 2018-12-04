@@ -9,6 +9,7 @@ import android.support.test.runner.AndroidJUnit4
 import kotlinx.coroutines.experimental.runBlocking
 import org.blockstack.android.sdk.test.R
 import org.blockstack.android.sdk.test.TestActivity
+import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
@@ -123,6 +124,25 @@ class BlockstackSession2UnitTest {
         assertTrue(encResult.hasValue)
         val decResult = session.decryptContent(encResult.value!!.json.toString(), true, options)
         assertThat((decResult.value as ByteArray).size, `is`(binaryContent.size))
+    }
+
+    @Test
+    fun testGetFileFor404File() {
+        var result: Result<Any>? = null
+        val latch = CountDownLatch(1)
+
+        if (session.isUserSignedIn()) {
+            session.getFile("404file.txt", GetFileOptions(false)) {
+                result = it
+                latch.countDown()
+            }
+        } else {
+            latch.countDown()
+        }
+        latch.await()
+        assertThat(result, `is`(CoreMatchers.notNullValue()))
+        assertThat(result?.value, `is`(nullValue()))
+        assertThat(result?.error, `is`(nullValue()))
     }
 
     @Test
