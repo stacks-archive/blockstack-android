@@ -114,7 +114,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8android.registerJavaMethod(android, "getAppBucketUrlFailure", "getAppBucketUrlFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
-        v8android.registerJavaMethod(android, "fetchAndroid", "fetchAndroid", arrayOf<Class<*>>(String::class.java, String::class.java))
+        v8android.registerJavaMethod(android, "fetchAndroid", "fetchAndroid", arrayOf<Class<*>>(String::class.java, String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "setLocation", "setLocation", arrayOf<Class<*>>(String::class.java))
         v8android.release()
     }
@@ -528,7 +528,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             blockstackSession.lookupProfileCallbacks[username]?.invoke(Result(null, error))
         }
 
-        fun getFileResult(content: String, uniqueIdentifier: String, isBinary: Boolean) {
+        fun getFileResult(content: String?, uniqueIdentifier: String, isBinary: Boolean) {
             if (isBinary) {
                 val binaryContent: ByteArray = Base64.decode(content, Base64.NO_WRAP)
                 blockstackSession.getFileCallbacks[uniqueIdentifier]?.invoke(Result(binaryContent))
@@ -581,7 +581,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             return blockstackSession.sessionStore.deleteSessionData()
         }
 
-        fun fetchAndroid(url: String, optionsString: String) {
+        fun fetchAndroid(url: String, optionsString: String, keyForFetchUrl:String) {
             val options = JSONObject(optionsString)
 
             val builder = Request.Builder()
@@ -611,7 +611,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                 blockstackSession.executor.onV8Thread {
                     try {
                         val r = response.toJSONString()
-                        val v8params = V8Array(v8).push(url).push(r)
+                        val v8params = V8Array(v8).push(keyForFetchUrl).push(r)
                         v8blockstackAndroid.executeVoidFunction("fetchResolve", v8params)
                         v8params.release()
                     } catch (e: Exception) {

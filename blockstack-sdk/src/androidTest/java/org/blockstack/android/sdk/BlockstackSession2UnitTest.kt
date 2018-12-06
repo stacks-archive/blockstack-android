@@ -9,6 +9,7 @@ import android.support.test.runner.AndroidJUnit4
 import kotlinx.coroutines.experimental.runBlocking
 import org.blockstack.android.sdk.test.R
 import org.blockstack.android.sdk.test.TestActivity
+import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
@@ -124,6 +125,50 @@ class BlockstackSession2UnitTest {
         val decResult = session.decryptContent(encResult.value!!.json.toString(), true, options)
         assertThat((decResult.value as ByteArray).size, `is`(binaryContent.size))
     }
+
+    @Test
+    fun testGetFileFor404File() {
+        var result: Result<Any>? = null
+        val latch = CountDownLatch(1)
+
+        if (session.isUserSignedIn()) {
+            session.getFile("404file.txt", GetFileOptions(false)) {
+                result = it
+                latch.countDown()
+            }
+        } else {
+            latch.countDown()
+        }
+        latch.await()
+        assertThat(result, `is`(CoreMatchers.notNullValue()))
+        assertThat(result?.value, `is`(nullValue()))
+        assertThat(result?.error, `is`(nullValue()))
+    }
+
+    @Test
+    fun testPutStringFileTwice() {
+        var result1: String? = null
+        var result2: String? = null
+        val latch = CountDownLatch(2)
+
+        if (session.isUserSignedIn()) {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(false), {
+                result1 = it.value as String
+                latch.countDown()
+            })
+            session.putFile("try2.txt", "Hello Test2", PutFileOptions(false), {
+                result2 = it.value as String
+                latch.countDown()
+            })
+        } else {
+            latch.countDown()
+            latch.countDown()
+        }
+        latch.await()
+        assertThat(result1, `is`(notNullValue()))
+        assertThat(result2, `is`(notNullValue()))
+    }
+
 
     @Test
     fun testPutGetStringFile() {
