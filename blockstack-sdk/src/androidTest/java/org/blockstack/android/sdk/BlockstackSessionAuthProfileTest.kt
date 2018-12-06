@@ -78,6 +78,13 @@ class BlockstackSessionAuthProfileTest {
     }
 
     @Test
+    fun isUserSignedInIsFalseAfterSignOut() {
+        assertThat(session.isUserSignedIn(), `is`(true))
+        session.signUserOut()
+        assertThat(session.isUserSignedIn(), `is`(false))
+    }
+
+    @Test
     fun verifyProofsReturnsEmptyListForEmptyProfile() {
         val latch = CountDownLatch(1)
         var proofList: ArrayList<Proof>? = null
