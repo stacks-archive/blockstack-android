@@ -128,8 +128,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8android.registerJavaMethod(android, "getAppBucketUrlFailure", "getAppBucketUrlFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getUserAppFileUrlFailure", "getUserAppFileUrlFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8android.registerJavaMethod(android, "fetchAndroid", "fetchAndroid", arrayOf<Class<*>>(String::class.java, String::class.java))
+        v8android.registerJavaMethod(android, "fetchAndroid", "fetchAndroid", arrayOf<Class<*>>(String::class.java, String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "setLocation", "setLocation", arrayOf<Class<*>>(String::class.java))
         v8android.release()
     }
@@ -489,7 +488,6 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8params.release()
     }
 
-
     private fun addGetFileCallback(callback: (Result<Any>) -> Unit): String {
         val uniqueIdentifier = UUID.randomUUID().toString()
         getFileCallbacks[uniqueIdentifier] = callback
@@ -598,7 +596,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             return blockstackSession.sessionStore.deleteSessionData()
         }
 
-        fun fetchAndroid(url: String, optionsString: String) {
+        fun fetchAndroid(url: String, optionsString: String, keyForFetchUrl: String) {
             val options = JSONObject(optionsString)
 
             val builder = Request.Builder()
@@ -628,7 +626,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                 blockstackSession.executor.onV8Thread {
                     try {
                         val r = response.toJSONString()
-                        val v8params = V8Array(v8).push(url).push(r)
+                        val v8params = V8Array(v8).push(keyForFetchUrl).push(r)
                         v8blockstackAndroid.executeVoidFunction("fetchResolve", v8params)
                         v8params.release()
                     } catch (e: Exception) {
@@ -648,8 +646,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
 /**
  * Executor defines where functions are executed. Three different cases are distinguished:
- * 1. main thread: to start an intent launching the login process. This has to be the UI thread
- * 1. network thread: to make network calls. This must not be the UI thread, it is usually a thread from CommonPool
+ * 1. main thread: to start an intent launching the login process. This has to be the UI thread.
+ * 1. network thread: to make network calls. This must not be the UI thread, it is usually a thread from CommonPool.
  * 1. v8 thread: to continue after network calls. This must be on the thread that is currently used by the j2v8 engine.
  */
 interface Executor {
