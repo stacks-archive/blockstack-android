@@ -35,6 +35,25 @@ blockstackAndroid.getUserAppFileUrl = function(path, username, appOrigin) {
     })
 }
 
+userSessionAndroid.continueListFiles = false
+
+userSessionAndroid.listFiles = function() {
+  var fileCount = userSession.listFiles(function(name) {
+     android.listFilesResult(name)
+     return userSessionAndroid.continueListFiles
+  }).then(function(fileCount) {
+    console.log("file count " + String(fileCount))
+    android.listFilesCountResult(fileCount)
+  }, function(error) {
+    android.listFilesCountFailure(error.toString())
+  })
+}
+
+
+userSessionAndroid.listFilesCallback = function(cont) {
+    userSessionAndroid.continueListFiles = cont === true
+}
+
 userSessionAndroid.loadUserData = function() {
   var userData = userSession.loadUserData()
   if (userData != null) {
