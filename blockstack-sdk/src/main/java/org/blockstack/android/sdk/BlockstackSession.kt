@@ -1,10 +1,10 @@
 package org.blockstack.android.sdk
 
 import android.content.Context
-import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.preference.PreferenceManager
-import android.support.v4.content.ContextCompat
+import android.support.customtabs.CustomTabsIntent
 import android.util.Base64
 import android.util.Log
 import com.eclipsesource.v8.V8
@@ -26,6 +26,7 @@ import java.net.URL
 import java.security.InvalidParameterException
 import java.security.SecureRandom
 import java.util.*
+
 
 /**
  * Main object to interact with blockstack in an activity
@@ -115,7 +116,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8android.registerJavaMethod(android, "getAppBucketUrlResult", "getAppBucketUrlResult", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getAppBucketUrlFailure", "getAppBucketUrlFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
-        v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "getUserAppFileUrlFailure", "getUserAppFileUrlFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "listFilesResult", "listFilesResult", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "listFilesFailure", "listFilesFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "listFilesCountResult", "listFilesCountResult", arrayOf<Class<*>>(Int::class.java))
@@ -663,7 +664,18 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         fun setLocation(location: String) {
             blockstackSession.executor.onMainThread {
-                ContextCompat.startActivity(it, Intent(Intent.ACTION_VIEW, Uri.parse(location)), null)
+                val builder = CustomTabsIntent.Builder()
+                val options = BitmapFactory.Options()
+                options.outWidth = 24
+                options.outHeight = 24
+                options.inScaled = true
+                val backButton = BitmapFactory.decodeResource(it.resources, R.drawable.ic_arrow_back, options);
+                builder.setCloseButtonIcon(backButton)
+                builder.setToolbarColor(it.resources.getColor(R.color.org_blockstack_purple_50_logos_types))
+                builder.setToolbarColor(it.resources.getColor(R.color.org_blockstack_purple_85_lines))
+                builder.setShowTitle(true)
+                val customTabsIntent = builder.build()
+                customTabsIntent.launchUrl(it, Uri.parse(location))
             }
         }
     }

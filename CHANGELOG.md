@@ -15,7 +15,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - `BlockstackSession.listFiles` iterates through the user's app files   
 - `Scope.fromJSName` creates `Scope` from its javascript name as used in blockstack.js
- 
+
+## [0.4.2] - 2018-12-08
+
+### Changed
+- fixed issues #117 and #118 for putFile and getFile
+- Uses custom tabs instead of normal browser view for auth
+
 ## [0.4.1] - 2018-11-05
 
 ### Changed
