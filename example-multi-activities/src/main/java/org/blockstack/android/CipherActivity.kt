@@ -14,6 +14,7 @@ import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
+import org.blockstack.android.sdk.model.UserData
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 

@@ -18,6 +18,8 @@ import kotlinx.coroutines.experimental.async
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
+import org.blockstack.android.sdk.model.UserData
+import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.jetbrains.anko.coroutines.experimental.bg
 import java.io.ByteArrayOutputStream
 import java.net.URL
