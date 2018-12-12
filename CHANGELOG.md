@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `BlockstackSession.network` added, giving access to the blockstack network used in this session
 - `BlockstackSession.listFiles` iterates through the user's app files   
 - `Scope.fromJSName` creates `Scope` from its javascript name as used in blockstack.js
- 
+
 ## [0.4.2] - 2018-12-08
 
 ### Changed
