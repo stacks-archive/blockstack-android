@@ -1,5 +1,6 @@
 package org.blockstack.android.sdk
 
+import android.util.Log
 import com.eclipsesource.v8.V8
 import com.eclipsesource.v8.V8Array
 import com.eclipsesource.v8.V8Object
@@ -7,6 +8,7 @@ import org.blockstack.android.sdk.model.network.AccountStatus
 import org.blockstack.android.sdk.model.network.Denomination
 import org.blockstack.android.sdk.model.network.NameInfo
 import org.blockstack.android.sdk.model.network.NamespaceInfo
+import org.json.JSONArray
 import org.json.JSONObject
 import java.math.BigInteger
 
@@ -24,50 +26,47 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private fun registerJSNetworkBridgeMethods() {
         val network = JSNetworkBridge(this)
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getNamePriceResult", "getNamePriceResult", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getNamePriceFailure", "getNamePriceFailure", arrayOf<Class<*>>(String::class.java))
+
+        v8networkAndroid.registerJavaMethod(network, "getNamespacePriceResult", "getNamespacePriceResult", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getNamespacePriceFailure", "getNamespacePriceFailure", arrayOf<Class<*>>(String::class.java))
+
+        v8networkAndroid.registerJavaMethod(network, "getGracePeriodResult", "getGracePeriodResult", arrayOf<Class<*>>(Int::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getGracePeriodFailure", "getGracePeriodFailure", arrayOf<Class<*>>(String::class.java))
+
+        v8networkAndroid.registerJavaMethod(network, "getNamesOwnedResult", "getNamesOwnedResult", arrayOf<Class<*>>(V8Array::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getNamesOwnedFailure", "getNamesOwnedFailure", arrayOf<Class<*>>(String::class.java))
+
+        v8networkAndroid.registerJavaMethod(network, "getNamespaceBurnAddressResult", "getNamespaceBurnAddressResult", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getNamespaceBurnAddressFailure", "getNamespaceBurnAddressFailure", arrayOf<Class<*>>(String::class.java))
 
         v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
         v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
 
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getNamespaceInfoResult", "getNamespaceInfoResult", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getNamespaceInfoFailure", "getNamespaceInfoFailure", arrayOf<Class<*>>(String::class.java))
 
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getZonefileResult", "getZonefileResult", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getZonefileFailure", "getZonefileFailure", arrayOf<Class<*>>(String::class.java))
 
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getAccountStatusResult", "getAccountStatusResult", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getAccountStatusFailure", "getAccountStatusFailure", arrayOf<Class<*>>(String::class.java))
 
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getAccountHistoryPageResult", "getAccountHistoryPageResult", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getAccountHistoryPageFailure", "getAccountHistoryPageFailure", arrayOf<Class<*>>(String::class.java))
 
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getAccountAtResult", "getAccountAtResult", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getAccountAtFailure", "getAccountAtFailure", arrayOf<Class<*>>(String::class.java))
 
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getAccountTokensResult", "getAccountTokensResult", arrayOf<Class<*>>(V8Array::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getAccountTokensFailure", "getAccountTokensFailure", arrayOf<Class<*>>(String::class.java))
 
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getAccountBalanceResult", "getAccountBalanceResult", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "getAccountBalanceFailure", "getAccountBalanceFailure", arrayOf<Class<*>>(String::class.java))
 
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "estimateTokenTransferResult", "estimateTokenTransferResult", arrayOf<Class<*>>(String::class.java))
+        v8networkAndroid.registerJavaMethod(network, "estimateTokenTransferFailure", "estimateTokenTransferFailure", arrayOf<Class<*>>(String::class.java))
     }
 
     fun getNamePrice(fullyQualifiedName: String, callback: (Result<Denomination>) -> Unit) {
@@ -199,12 +198,12 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private var estimateTokenTransferCallback: ((Result<BigInteger>) -> Unit)? = null
 
-    fun estimateTokenTransfer(recipientAddress: String, tokenType: String, tokenAmount: BigInteger, scratchArea: String, senderUtxos: Number = 1, additionalOutputs: Number = 1, callback: (Result<BigInteger>) -> Unit) {
+    fun estimateTokenTransfer(recipientAddress: String, tokenType: String, tokenAmount: BigInteger, scratchArea: String, senderUtxos: Int = 1, additionalOutputs: Int = 1, callback: (Result<BigInteger>) -> Unit) {
         estimateTokenTransferCallback = callback
         val v8Params = V8Array(v8)
                 .push(recipientAddress)
                 .push(tokenType)
-                .push(tokenAmount)
+                .push(tokenAmount.toString())
                 .push(scratchArea)
                 .push(senderUtxos)
                 .push(additionalOutputs)
@@ -224,6 +223,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         fun getNamespacePriceResult(namespacePrice: String) {
             network.getNamespacePriceCallback?.invoke(Result(Denomination(JSONObject(namespacePrice))))
         }
+
         fun getNamespacePriceFailure(error: String) {
             network.getNamespacePriceCallback?.invoke(Result(null, error))
         }
@@ -231,13 +231,20 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         fun getGracePeriodResult(gracePeriod: Int) {
             network.getGracePeriodCallback?.invoke(Result(gracePeriod))
         }
+
         fun getGracePeriodFailure(error: String) {
             network.getGracePeriodCallback?.invoke(Result(null, error))
         }
 
-        fun getNamesOwnedResult(names: List<String>) {
-            network.getNamesOwnedCallback?.invoke(Result(names))
+        fun getNamesOwnedResult(names: V8Array) {
+            val nameList = ArrayList<String>()
+            for (index in 0 until names.length()) {
+                nameList.add(names.getString(index))
+            }
+            names.release()
+            network.getNamesOwnedCallback?.invoke(Result(nameList))
         }
+
         fun getNamesOwnedFailure(error: String) {
             network.getNamesOwnedCallback?.invoke(Result(null, error))
         }
@@ -245,6 +252,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         fun getNamespaceBurnAddressResult(burnAddress: String) {
             network.getNamespaceBurnAddressCallback?.invoke(Result(burnAddress))
         }
+
         fun getNamespaceBurnAddressFailure(error: String) {
             network.getNamespaceBurnAddressCallback?.invoke(Result(null, error))
         }
@@ -252,80 +260,90 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         fun getNameInfoResult(nameInfo: String) {
             network.getNameInfoCallback?.invoke(Result(NameInfo(JSONObject(nameInfo))))
         }
+
         fun getNameInfoFailure(error: String) {
             network.getNameInfoCallback?.invoke(Result(null, error))
         }
 
-        fun getNamespaceInfo(namespaceInfo: String) {
+        fun getNamespaceInfoResult(namespaceInfo: String) {
             network.getNamespaceInfoCallback?.invoke(Result(NamespaceInfo(JSONObject(namespaceInfo))))
         }
+
         fun getNamespaceInfoFailure(error: String) {
             network.getNamespaceInfoCallback?.invoke(Result(null, error))
         }
 
-        fun getNameInfoResult(nameInfo: String) {
-            network.getNameInfoCallback?.invoke(Result(NameInfo(JSONObject(nameInfo))))
+        fun getZonefileResult(zoneFileContent: String) {
+            network.getZonefileCallback?.invoke(Result(zoneFileContent))
         }
 
-        fun getNameInfoFailure(error: String) {
-            network.getNameInfoCallback?.invoke(Result(null, error))
-        }
-        fun getNameInfoResult(nameInfo: String) {
-            network.getNameInfoCallback?.invoke(Result(NameInfo(JSONObject(nameInfo))))
+        fun getZonefileFailure(error: String) {
+            network.getZonefileCallback?.invoke(Result(null, error))
         }
 
-        fun getNameInfoFailure(error: String) {
-            network.getNameInfoCallback?.invoke(Result(null, error))
-        }
-        fun getNameInfoResult(nameInfo: String) {
-            network.getNameInfoCallback?.invoke(Result(NameInfo(JSONObject(nameInfo))))
+        fun getAccountStatusResult(accountStatus: String) {
+            network.getAccountStatusCallback?.invoke(Result(AccountStatus(JSONObject(accountStatus))))
         }
 
-        fun getNameInfoFailure(error: String) {
-            network.getNameInfoCallback?.invoke(Result(null, error))
-        }
-        fun getNameInfoResult(nameInfo: String) {
-            network.getNameInfoCallback?.invoke(Result(NameInfo(JSONObject(nameInfo))))
+        fun getAccountStatusFailure(error: String) {
+            network.getAccountStatusCallback?.invoke(Result(null, error))
         }
 
-        fun getNameInfoFailure(error: String) {
-            network.getNameInfoCallback?.invoke(Result(null, error))
-        }
-        fun getNameInfoResult(nameInfo: String) {
-            network.getNameInfoCallback?.invoke(Result(NameInfo(JSONObject(nameInfo))))
-        }
-
-        fun getNameInfoFailure(error: String) {
-            network.getNameInfoCallback?.invoke(Result(null, error))
-        }
-        fun getNameInfoResult(nameInfo: String) {
-            network.getNameInfoCallback?.invoke(Result(NameInfo(JSONObject(nameInfo))))
+        fun getAccountHistoryPageResult(accountStati: String) {
+            val list = JSONArray(accountStati)
+            val accountHistoryPage = ArrayList<AccountStatus>(list.length())
+            for (index in 0..list.length() - 1) {
+                accountHistoryPage.add(AccountStatus(list.getJSONObject(index)))
+            }
+            network.getAccountHistoryPageCallback?.invoke(Result(accountHistoryPage))
         }
 
-        fun getNameInfoFailure(error: String) {
-            network.getNameInfoCallback?.invoke(Result(null, error))
-        }
-        fun getNameInfoResult(nameInfo: String) {
-            network.getNameInfoCallback?.invoke(Result(NameInfo(JSONObject(nameInfo))))
+        fun getAccountHistoryPageFailure(error: String) {
+            network.getAccountHistoryPageCallback?.invoke(Result(null, error))
         }
 
-        fun getNameInfoFailure(error: String) {
-            network.getNameInfoCallback?.invoke(Result(null, error))
-        }
-        fun getNameInfoResult(nameInfo: String) {
-            network.getNameInfoCallback?.invoke(Result(NameInfo(JSONObject(nameInfo))))
-        }
-
-        fun getNameInfoFailure(error: String) {
-            network.getNameInfoCallback?.invoke(Result(null, error))
+        fun getAccountAtResult(accountStati: String) {
+            val list = JSONArray(accountStati)
+            val account = ArrayList<AccountStatus>(list.length())
+            for (index in 0..list.length() - 1) {
+                account.add(AccountStatus(list.getJSONObject(index)))
+            }
+            network.getAccountAtCallback?.invoke(Result(account))
         }
 
-        fun getNameInfoResult(nameInfo: String) {
-            network.getNameInfoCallback?.invoke(Result(NameInfo(JSONObject(nameInfo))))
+        fun getAccountAtFailure(error: String) {
+            network.getAccountAtCallback?.invoke(Result(null, error))
         }
 
-        fun getNameInfoFailure(error: String) {
-            network.getNameInfoCallback?.invoke(Result(null, error))
+        fun getAccountTokensResult(tokens: V8Array) {
+            Log.d("network", "received " + tokens.length())
+            val tokenList = ArrayList<String>()
+            for (index in 0 until tokens.length()) {
+                tokenList.add(tokens.getString(index))
+            }
+            tokens.release()
+            network.getAccountTokensCallback?.invoke(Result(tokenList))
+        }
+
+        fun getAccountTokensFailure(error: String) {
+            network.getAccountTokensCallback?.invoke(Result(null, error))
+        }
+
+        fun getAccountBalanceResult(balance: String) {
+            val value = BigInteger(balance)
+            network.getAccountBalanceCallback?.invoke(Result(value))
+        }
+
+        fun getAccountBalanceFailure(error: String) {
+            network.getAccountBalanceCallback?.invoke(Result(null, error))
+        }
+
+        fun estimateTokenTransferResult(costs: String) {
+            network.estimateTokenTransferCallback?.invoke(Result(BigInteger(costs)))
+        }
+
+        fun estimateTokenTransferFailure(error: String) {
+            network.estimateTokenTransferCallback?.invoke(Result(null, error))
         }
     }
 
