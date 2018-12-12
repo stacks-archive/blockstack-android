@@ -2,6 +2,7 @@ package org.blockstack.android.sdk
 
 import android.content.SharedPreferences
 import android.util.Log
+import org.blockstack.android.sdk.model.SessionData
 import org.json.JSONObject
 
 val BLOCKSTACK_SESSION = "blockstack_session"

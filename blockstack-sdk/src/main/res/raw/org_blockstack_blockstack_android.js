@@ -10,6 +10,7 @@ userSessionAndroid.handlePendingSignIn = function(authResponseToken) {
         var userDataString = JSON.stringify(userData)
         android.signInSuccess(userDataString)
     }, function(error) {
+        console.log("handlePendingSignIn "  + error.toString())
         android.signInFailure(error.toString())
     })
   } catch(error) {
@@ -39,6 +40,25 @@ blockstackAndroid.getUserAppFileUrl = function(path, username, appOrigin) {
     })
 }
 
+userSessionAndroid.continueListFiles = false
+
+userSessionAndroid.listFiles = function() {
+  var fileCount = userSession.listFiles(function(name) {
+     android.listFilesResult(name)
+     return userSessionAndroid.continueListFiles
+  }).then(function(fileCount) {
+    console.log("file count " + String(fileCount))
+    android.listFilesCountResult(fileCount)
+  }, function(error) {
+    android.listFilesCountFailure(error.toString())
+  })
+}
+
+
+userSessionAndroid.listFilesCallback = function(cont) {
+    userSessionAndroid.continueListFiles = cont === true
+}
+
 blockstackAndroid.getNameInfo = function(fullyQualifiedName) {
   blockstack.config.network.getNameInfo(fullyQualifiedName)
   .then(function(nameInfo) {
@@ -52,6 +72,7 @@ blockstackAndroid.getNameInfo = function(fullyQualifiedName) {
     android.getNameInfoFailure(error.toString())
   })
 }
+
 
 userSessionAndroid.loadUserData = function() {
   var userData = userSession.loadUserData()

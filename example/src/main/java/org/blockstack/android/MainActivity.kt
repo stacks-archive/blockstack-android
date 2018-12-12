@@ -16,6 +16,8 @@ import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import org.blockstack.android.sdk.*
+import org.blockstack.android.sdk.model.GetFileOptions
+import org.blockstack.android.sdk.model.PutFileOptions
 import org.jetbrains.anko.coroutines.experimental.bg
 import java.io.ByteArrayOutputStream
 import java.net.URL
@@ -51,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         putImageFileButton.isEnabled = false
         getStringFileFromUserButton.isEnabled = false
         getAppBucketUrlButton.isEnabled = false
+        listFilesButton.isEnabled = false
 
 
         signInButton.setOnClickListener { _: View ->
@@ -213,6 +216,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        listFilesButton.setOnClickListener {
+            listFilesText.text = "...."
+            blockstackSession().listFiles ({urlResult ->
+                if (urlResult.hasValue) {
+                    if (listFilesText.text === "....") {
+                        listFilesText.text = urlResult.value
+                    } else {
+                        listFilesText.text = listFilesText.text.toString() + "\n" + urlResult.value
+                    }
+                }
+                true
+            }, { countResult ->
+                Log.d(TAG, "files count " + if (countResult.hasValue) {countResult.value} else {countResult.error})
+            })
+        }
+
         getNameInfoButton.setOnClickListener { _ ->
             getNameInfoText.text = "Getting info ..."
             blockstackSession().network.getNameInfo(username) {
@@ -226,6 +245,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
         if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
         }
@@ -244,6 +264,7 @@ class MainActivity : AppCompatActivity() {
         getImageFileButton.isEnabled = true
         getStringFileFromUserButton.isEnabled = true
         getAppBucketUrlButton.isEnabled = true
+        listFilesButton.isEnabled = true
     }
 
     private fun showUserAvatar(avatarImage: String?) {

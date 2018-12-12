@@ -1,4 +1,4 @@
-package org.blockstack.android.sdk
+package org.blockstack.android.sdk.model.network
 
 import org.json.JSONObject
 
