@@ -65,8 +65,6 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         v8networkAndroid.registerJavaMethod(network, "getAccountBalanceResult", "getAccountBalanceResult", arrayOf<Class<*>>(String::class.java))
         v8networkAndroid.registerJavaMethod(network, "getAccountBalanceFailure", "getAccountBalanceFailure", arrayOf<Class<*>>(String::class.java))
 
-        v8networkAndroid.registerJavaMethod(network, "estimateTokenTransferResult", "estimateTokenTransferResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "estimateTokenTransferFailure", "estimateTokenTransferFailure", arrayOf<Class<*>>(String::class.java))
     }
 
     fun getNamePrice(fullyQualifiedName: String, callback: (Result<Denomination>) -> Unit) {
@@ -196,21 +194,6 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         v8Params.release()
     }
 
-    private var estimateTokenTransferCallback: ((Result<BigInteger>) -> Unit)? = null
-
-    fun estimateTokenTransfer(recipientAddress: String, tokenType: String, tokenAmount: BigInteger, scratchArea: String, senderUtxos: Int = 1, additionalOutputs: Int = 1, callback: (Result<BigInteger>) -> Unit) {
-        estimateTokenTransferCallback = callback
-        val v8Params = V8Array(v8)
-                .push(recipientAddress)
-                .push(tokenType)
-                .push(tokenAmount.toString())
-                .push(scratchArea)
-                .push(senderUtxos)
-                .push(additionalOutputs)
-        v8networkAndroid.executeVoidFunction("estimateTokenTransfer", v8Params)
-        v8Params.release()
-    }
-
     private class JSNetworkBridge(private val network: Network) {
         fun getNamePriceResult(denomination: String) {
             network.getNamePriceCallback?.invoke(Result(Denomination(JSONObject(denomination))))
@@ -336,14 +319,6 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
         fun getAccountBalanceFailure(error: String) {
             network.getAccountBalanceCallback?.invoke(Result(null, error))
-        }
-
-        fun estimateTokenTransferResult(costs: String) {
-            network.estimateTokenTransferCallback?.invoke(Result(BigInteger(costs)))
-        }
-
-        fun estimateTokenTransferFailure(error: String) {
-            network.estimateTokenTransferCallback?.invoke(Result(null, error))
         }
     }
 

@@ -1,7 +1,7 @@
 package org.blockstack.android.sdk
 
 import android.support.test.rule.ActivityTestRule
-import android.support.test.runner.AndroidJUnit4;
+import android.support.test.runner.AndroidJUnit4
 import android.util.Log
 import org.blockstack.android.sdk.model.network.AccountStatus
 import org.blockstack.android.sdk.model.network.Denomination
@@ -10,13 +10,11 @@ import org.blockstack.android.sdk.model.network.NamespaceInfo
 import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers
 import org.hamcrest.Matchers.`is`
 import org.junit.Before
 import org.junit.Rule
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.Test
+import org.junit.runner.RunWith
 import java.math.BigInteger
 import java.util.concurrent.CountDownLatch
 
@@ -442,34 +440,4 @@ class NetworkTest {
         assertThat(result?.hasValue, `is`(false))
         assertThat(result?.error, `is`("Error: Bad response status: 400"))
     }
-
-    @Test
-    fun estimateTokenTransferReturnsCorrectCosts() {
-        val latch = CountDownLatch(1)
-        var result: Result<BigInteger>? = null
-        session.network.estimateTokenTransfer(userAddress, STACKS_TYPE, BigInteger.ONE, "scratch") {
-            result = it
-            latch.countDown()
-        }
-
-        latch.await()
-        assertThat(result?.hasValue, `is`(true))
-        assertThat(result?.value, Matchers.greaterThan(BigInteger.valueOf(100)))
-    }
-
-    @Test
-    fun estimateTokenTransferReturnsErrorForInvalidTransfer() {
-        val latch = CountDownLatch(1)
-        var result: Result<BigInteger>? = null
-        session.network.estimateTokenTransfer(invalidAddress, STACKS_TYPE, BigInteger.ONE, "scratch") {
-            result = it
-            latch.countDown()
-        }
-
-        latch.await()
-        assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: 1234567890 has no matching Script"))
-    }
-
-
 }
