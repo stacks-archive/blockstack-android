@@ -17,9 +17,6 @@ import java.math.BigInteger
  */
 class Network internal constructor(private val v8networkAndroid: V8Object, val v8: V8) {
 
-    private var getNameInfoCallback: ((Result<NameInfo>) -> Unit)? = null
-    private var getNamePriceCallback: ((Result<Denomination>) -> Unit)? = null
-
     init {
         registerJSNetworkBridgeMethods()
     }
@@ -67,6 +64,14 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     }
 
+    private var getNamePriceCallback: ((Result<Denomination>) -> Unit)? = null
+
+    /**
+     * Get the price to pay for registering a name.
+     * @param fullyQualifiedName can be a name or subdomain name.
+     * @param callback  called with a result object that contains the denomination (units, amount) of the requested price
+     * or error if the request failed.
+     */
     fun getNamePrice(fullyQualifiedName: String, callback: (Result<Denomination>) -> Unit) {
         getNamePriceCallback = callback
         val v8Params = V8Array(v8)
@@ -77,6 +82,12 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private var getNamespacePriceCallback: ((Result<Denomination>) -> Unit)? = null
 
+    /**
+     * Get the price to pay for registering a namesapce.
+     * @param fullyQualifiedName can be a name or subdomain name.
+     * @param callback  called with a result object that contains the denomination (units, amount) of the requested price
+     * or error if the request failed.
+     */
     fun getNamespacePrice(namespaceID: String, callback: (Result<Denomination>) -> Unit) {
         getNamespacePriceCallback = callback
         val v8Params = V8Array(v8)
@@ -87,6 +98,10 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private var getGracePeriodCallback: ((Result<Int>) -> Unit)? = null
 
+    /**
+     * Get the number of blocks that can pass between a name expiring and the name being able to be re-registered by a different owner.
+     * @param callback called with a result object that contains the number of blocks or error if the request failed.
+     */
     fun getGracePeriod(callback: (Result<Int>) -> Unit) {
         getGracePeriodCallback = callback
         v8networkAndroid.executeVoidFunction("getGracePeriod", null)
@@ -94,6 +109,11 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private var getNamesOwnedCallback: ((Result<List<String>>) -> Unit)? = null
 
+    /**
+     * Get the names -- both on-chain and off-chain -- owned by an address.
+     * @param address the blockchain address (the hash of the owner public key)
+     * @param callback called with a result object that contains the list of names or error if the request failed.
+     */
     fun getNamesOwned(address: String, callback: (Result<List<String>>) -> Unit) {
         getNamesOwnedCallback = callback
         val v8Params = V8Array(v8)
@@ -104,6 +124,11 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private var getNamespaceBurnAddressCallback: ((Result<String>) -> Unit)? = null
 
+    /**
+     * Get the blockchain address to which a name's registration fee must be sent (the address will depend on the namespace in which it is registered.).
+     * @param namespaceId the namespace ID
+     * @param callback called with a result object that contains the address as string or error if the request failed.
+     */
     fun getNamespaceBurnAddress(namespaceId: String, callback: (Result<String>) -> Unit) {
         getNamespaceBurnAddressCallback = callback
         val v8Params = V8Array(v8)
@@ -112,6 +137,13 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         v8Params.release()
     }
 
+    private var getNameInfoCallback: ((Result<NameInfo>) -> Unit)? = null
+
+    /**
+     * Get WHOIS-like information for a name, including the address that owns it, the block at which it expires, and the zone file anchored to it (if available).
+     * @param fullyQualifiedName the name to query. Can be on-chain of off-chain.
+     * @param callback called with a result object that contains the WHOIS-like name information or error if the request failed.
+     */
     fun getNameInfo(fullyQualifiedName: String, callback: (Result<NameInfo>) -> Unit) {
         getNameInfoCallback = callback
         val v8params = V8Array(v8)
@@ -122,6 +154,11 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private var getNamespaceInfoCallback: ((Result<NamespaceInfo>) -> Unit)? = null
 
+    /**
+     *Get the pricing parameters and creation history of a namespace.
+     * @param namespaceId the namespace to query
+     * @param callback called with a result object that contains the namespace information or error if the request failed.
+     */
     fun getNamespaceInfo(namespaceId: String, callback: (Result<NamespaceInfo>) -> Unit) {
         getNamespaceInfoCallback = callback
         val v8Params = V8Array(v8)
@@ -132,6 +169,12 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private var getZonefileCallback: ((Result<String>) -> Unit)? = null
 
+    /**
+     * Get a zone file, given its hash.
+     * @param zonefileHash the ripemd160(sha256) hash of the zone file.
+     * @param callback called with a result object that contains the zone file's text
+     * or error if the request failed or the zone file obtained does not match the hash.
+     */
     fun getZonefile(zonefileHash: String, callback: (Result<String>) -> Unit) {
         getZonefileCallback = callback
         val v8Params = V8Array(v8)
@@ -142,6 +185,13 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private var getAccountStatusCallback: ((Result<AccountStatus>) -> Unit)? = null
 
+    /**
+     * Get the status of an account for a particular token holding. This includes its total number of expenditures and credits, lockup times, last txid, and so on.
+     * @param address  the account's address
+     * @param tokenType the token type to query
+     * @param callback called with a result object that contains the state of the account for this token
+     * or error if the request failed
+     */
     fun getAccountStatus(address: String, tokenType: String, callback: (Result<AccountStatus>) -> Unit) {
         getAccountStatusCallback = callback
         val v8Params = V8Array(v8)
@@ -153,6 +203,12 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private var getAccountHistoryPageCallback: ((Result<List<AccountStatus>>) -> Unit)? = null
 
+    /**
+     * Get a page of an account's transaction history.
+     * @param address the account's address
+     * @param page the page number. Page 0 contains the most recent transactions
+     * @param callback called with a result object that contains a list of account statuses at various block heights (e.g. prior balances, txids, etc)
+     */
     fun getAccountHistoryPage(address: String, page: Int, callback: (Result<List<AccountStatus>>) -> Unit) {
         getAccountHistoryPageCallback = callback
         val v8Params = V8Array(v8)
@@ -164,6 +220,15 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private var getAccountAtCallback: ((Result<List<AccountStatus>>) -> Unit)? = null
 
+    /**
+     * Get the state(s) of an account at a particular block height. This includes the state of the account
+     * beginning with this block's transactions,
+     * as well as all of the states the account passed through when this block was processed (if any).
+     * @param address the accounts's address.
+     * @param blockHeight the block to query.
+     * @param callback called with result object that contains the account states of the account at this block
+     * or error if the request failed
+     */
     fun getAccountAt(address: String, blockHeight: Int, callback: (Result<List<AccountStatus>>) -> Unit) {
         getAccountAtCallback = callback
         val v8Params = V8Array(v8)
@@ -175,6 +240,12 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private var getAccountTokensCallback: ((Result<List<String>>) -> Unit)? = null
 
+    /**
+     * Get the set of token types that this account owns
+     * @param address the accounts's address
+     * @param callback called with a result object that contains the list of types of token this account holds (excluding the underlying blockchain's tokens)
+     * or error if the request failed
+     */
     fun getAccountTokens(address: String, callback: (Result<List<String>>) -> Unit) {
         getAccountTokensCallback = callback
         val v8Params = V8Array(v8)
@@ -185,6 +256,13 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
 
     private var getAccountBalanceCallback: ((Result<BigInteger>) -> Unit)? = null
 
+    /**
+     * Get the number of tokens owned by an account. If the account does not exist or has no tokens of this type, then 0 will be returned.
+     * @param address the account's address.
+     * @param tokenType the type of token to query.
+     * @param callback called with a result object that contains the number of tokens held by this account in
+     * the smallest denomination.
+     */
     fun getAccountBalance(address: String, tokenType: String, callback: (Result<BigInteger>) -> Unit) {
         getAccountBalanceCallback = callback
         val v8Params = V8Array(v8)
@@ -272,8 +350,8 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
             network.getAccountStatusCallback?.invoke(Result(null, error))
         }
 
-        fun getAccountHistoryPageResult(accountStati: String) {
-            val list = JSONArray(accountStati)
+        fun getAccountHistoryPageResult(accountStatuses: String) {
+            val list = JSONArray(accountStatuses)
             val accountHistoryPage = ArrayList<AccountStatus>(list.length())
             for (index in 0..list.length() - 1) {
                 accountHistoryPage.add(AccountStatus(list.getJSONObject(index)))
@@ -285,8 +363,8 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
             network.getAccountHistoryPageCallback?.invoke(Result(null, error))
         }
 
-        fun getAccountAtResult(accountStati: String) {
-            val list = JSONArray(accountStati)
+        fun getAccountAtResult(accountStatuses: String) {
+            val list = JSONArray(accountStatuses)
             val account = ArrayList<AccountStatus>(list.length())
             for (index in 0..list.length() - 1) {
                 account.add(AccountStatus(list.getJSONObject(index)))
