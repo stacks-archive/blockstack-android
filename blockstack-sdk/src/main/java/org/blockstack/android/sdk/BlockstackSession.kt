@@ -20,6 +20,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
 import org.blockstack.android.sdk.j2v8.LogConsole
+import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
@@ -29,14 +30,17 @@ import java.util.*
 
 
 /**
- * Main object to interact with blockstack in an activity
+ * Main object to interact with blockstack in an activity or service
  *
- * The current implementation is a wrapper for blockstack.js using a WebView.
- * This means that methods must be called on the UI thread e.g. using
- * `runOnUIThread`
+ * The current implementation is a wrapper for blockstack.js using a j2v8 javascript engine.
  *
+ * @param context the context used to define shared preferences for storing session data, to locate resources for this SDK.
+ * Can be null if SessionStore, executor and scriptRepo is defined.
  * @param config the configuration for blockstack
- * @param onLoadedCallback the callback for when this object is ready to use
+ * @param sessionStore the location where session data should be stored. Defaults to the default shared preferences of the app using the SDK
+ * @param executor defines where functions of this SDK should be executed. Defaults to @see AndroidExecutor with given context
+ * @param scriptRepo required to locate this SDK's resources. Defaults to AndroidScriptRepo with given context.
+ * Can be AndroidScriptRepo with application context as well.
  */
 class BlockstackSession(context: Context? = null, private val config: BlockstackConfig,
                         /**
@@ -68,10 +72,18 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     private var listFilesCallback: ((Result<String>) -> Boolean)? = null
     private var listFilesCountCallback: ((Result<Int>) -> Unit)? = null
 
-
-    private val v8blockstackAndroid: V8Object
+    internal val v8blockstackAndroid: V8Object
     private val v8userSessionAndroid: V8Object
+    private val v8networkAndroid: V8Object
     private val v8userSession: V8Object
+
+    /**
+     * Object that is used in this blockstack user session.
+     * It can be used already before the user is logged in.
+     */
+    val network: Network
+
+
     private val v8 = V8.createV8Runtime()
 
     init {
@@ -84,6 +96,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         v8blockstackAndroid = v8.getObject("blockstackAndroid")
         v8userSessionAndroid = v8.getObject("userSessionAndroid")
+        v8networkAndroid = v8.getObject("networkAndroid")
 
         registerCryptoMethods()
         registerJSAndroidBridgeMethods(v8blockstackAndroid, v8userSessionAndroid)
@@ -91,6 +104,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         val scopesString = Scope.scopesArrayToJSONString(config.scopes)
         v8.executeVoidScript("var appConfig = new blockstack.AppConfig(${scopesString}, '${config.appDomain}', '${config.redirectPath}','${config.manifestPath}');var userSession = new blockstack.UserSession({appConfig:appConfig, sessionStore:androidSessionStore});")
         v8userSession = v8.getObject("userSession")
+
+        network = Network(v8networkAndroid, v8)
 
         loaded = true
     }
@@ -167,6 +182,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      */
     fun release() {
         v8userSession.release()
+        v8networkAndroid.release()
         v8userSessionAndroid.release()
         v8blockstackAndroid.release()
         v8.release()
@@ -622,7 +638,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             return blockstackSession.sessionStore.deleteSessionData()
         }
 
-        fun fetchAndroid(url: String, optionsString: String, keyForFetchUrl:String) {
+        fun fetchAndroid(url: String, optionsString: String, keyForFetchUrl: String) {
             val options = JSONObject(optionsString)
 
             val builder = Request.Builder()
@@ -681,12 +697,21 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     }
 }
 
+/**
+ * Executor defines where functions are executed. Three different cases are distinguished:
+ * 1. main thread: to start an intent launching the login process. This has to be the UI thread.
+ * 1. network thread: to make network calls. This must not be the UI thread, it is usually a thread from CommonPool.
+ * 1. v8 thread: to continue after network calls. This must be on the thread that is currently used by the j2v8 engine.
+ */
 interface Executor {
     fun onMainThread(function: (Context) -> Unit)
-    fun onV8Thread(function: () -> Unit)
     fun onNetworkThread(function: suspend () -> Unit)
+    fun onV8Thread(function: () -> Unit)
 }
 
+/**
+ * Standard executor for using Blockstack session in an activity.
+ */
 class AndroidExecutor(private val ctx: Context) : Executor {
     private val TAG = AndroidExecutor::class.simpleName
     override fun onMainThread(function: (ctx: Context) -> Unit) {
@@ -714,6 +739,10 @@ class AndroidExecutor(private val ctx: Context) : Executor {
 
 }
 
+/**
+ * Repository to access script files used for this SDK
+ * Application developers should use {@Link AndroidScriptRepo}
+ */
 interface ScriptRepo {
     fun globals(): String
     fun blockstack(): String
@@ -722,11 +751,16 @@ interface ScriptRepo {
 
 }
 
+/**
+ * Repository that provides script files for this SDK from the resources
+ *
+ * @param context can also be the application context
+ */
 class AndroidScriptRepo(private val context: Context) : ScriptRepo {
-    override fun globals() = context.resources.openRawResource(R.raw.globals).bufferedReader().use { it.readText() }
-    override fun blockstack() = context.resources.openRawResource(R.raw.blockstack).bufferedReader().use { it.readText() }
-    override fun base64() = context.resources.openRawResource(R.raw.base64).bufferedReader().use { it.readText() }
-    override fun blockstackAndroid() = context.resources.openRawResource(R.raw.blockstack_android).bufferedReader().use { it.readText() }
+    override fun globals() = context.resources.openRawResource(R.raw.org_blockstack_globals).bufferedReader().use { it.readText() }
+    override fun blockstack() = context.resources.openRawResource(R.raw.org_blockstack_blockstack).bufferedReader().use { it.readText() }
+    override fun base64() = context.resources.openRawResource(R.raw.org_blockstack_base64).bufferedReader().use { it.readText() }
+    override fun blockstackAndroid() = context.resources.openRawResource(R.raw.org_blockstack_blockstack_android).bufferedReader().use { it.readText() }
 }
 
 private fun Response.toJSONString(): String {

@@ -1,16 +1,21 @@
 blockstack = module.exports
 var blockstackAndroid = {}
 var userSessionAndroid = {}
+var networkAndroid = {}
 
 userSessionAndroid.handlePendingSignIn = function(authResponseToken) {
-  userSession.handlePendingSignIn(authResponseToken)
-  .then(function(userData) {
-    var userDataString = JSON.stringify(userData)
-    android.signInSuccess(userDataString)
-  }, function(error) {
-    console.log("handlePendingSignIn "  + error.toString())
+  try {
+    userSession.handlePendingSignIn(authResponseToken)
+    .then(function(userData) {
+        var userDataString = JSON.stringify(userData)
+        android.signInSuccess(userDataString)
+    }, function(error) {
+        console.log("handlePendingSignIn "  + error.toString())
+        android.signInFailure(error.toString())
+    })
+  } catch(error) {
     android.signInFailure(error.toString())
-  })
+  }
 }
 
 blockstackAndroid.getAppBucketUrl = function(gaiaHubUrl, appPrivateKey) {
@@ -33,6 +38,25 @@ blockstackAndroid.getUserAppFileUrl = function(path, username, appOrigin) {
     }, function(error) {
       android.getUserAppFileUrlFailure(error.toString())
     })
+}
+
+userSessionAndroid.continueListFiles = false
+
+userSessionAndroid.listFiles = function() {
+  var fileCount = userSession.listFiles(function(name) {
+     android.listFilesResult(name)
+     return userSessionAndroid.continueListFiles
+  }).then(function(fileCount) {
+    console.log("file count " + String(fileCount))
+    android.listFilesCountResult(fileCount)
+  }, function(error) {
+    android.listFilesCountFailure(error.toString())
+  })
+}
+
+
+userSessionAndroid.listFilesCallback = function(cont) {
+    userSessionAndroid.continueListFiles = cont === true
 }
 
 userSessionAndroid.loadUserData = function() {
@@ -102,6 +126,149 @@ userSessionAndroid.encryptContent = function(contentString, options) {
 
 userSessionAndroid.decryptContent = function(cipherTextString, options, binary) {
     return userSession.decryptContent(cipherTextString, JSON.parse(options))
+}
+
+/** network methods **/
+networkAndroid.getNamePrice = function(fullyQualifiedName) {
+  blockstack.config.network.getNamePrice(fullyQualifiedName).then(function(denomination){
+    networkAndroid.getNamePriceResult(JSON.stringify(denomination))
+  }, function(error) {
+    networkAndroid.getNamePriceFailure(error.toString())
+  })
+}
+
+networkAndroid.getNamespacePrice = function(namespaceId) {
+  blockstack.config.network.getNamespacePrice(namespaceId).then(function(denomination){
+    networkAndroid.getNamespacePriceResult(JSON.stringify(denomination))
+  }, function(error) {
+    networkAndroid.getNamespacePriceFailure(error.toString())
+  })
+}
+
+networkAndroid.getGracePeriod = function() {
+  blockstack.config.network.getGracePeriod().then(function(gracePeriod){
+    networkAndroid.getGracePeriodResult(gracePeriod)
+  }, function(error) {
+    networkAndroid.getGracePeriodFailure(error.toString())
+  })
+}
+
+networkAndroid.getNamesOwned = function(address) {
+  try {
+      blockstack.config.network.getNamesOwned(address).then(function(names){
+          networkAndroid.getNamesOwnedResult(names)
+      }, function(error) {
+        networkAndroid.getNamesOwnedFailure(error.toString())
+      })
+  } catch (e) {
+      networkAndroid.getNamesOwnedFailure(e.toString())
+  }
+}
+
+networkAndroid.getNamespaceBurnAddress = function(namespaceId) {
+  blockstack.config.network.getNamespaceBurnAddress(namespaceId).then(function(address){
+    networkAndroid.getNamespaceBurnAddressResult(JSON.stringify(address))
+  }, function(error) {
+    networkAndroid.getNamespaceBurnAddressFailure(error.toString())
+  })
+}
+
+
+networkAndroid.getNameInfo = function(fullyQualifiedName) {
+    blockstack.config.network.getNameInfo(fullyQualifiedName).then(function(nameInfo) {
+        try {
+            networkAndroid.getNameInfoResult(JSON.stringify(nameInfo))
+        } catch (e) {
+            networkAndroid.getNameInfoFailure(e.toString())
+        }
+    }, function(error) {
+        networkAndroid.getNameInfoFailure(error.toString())
+    })
+}
+
+networkAndroid.getNamespaceInfo = function(namespaceId) {
+  blockstack.config.network.getNamespaceInfo(namespaceId).then(function(info){
+    networkAndroid.getNamespaceInfoResult(JSON.stringify(info))
+  }, function(error) {
+    networkAndroid.getNamespaceInfoFailure(error.toString())
+  })
+}
+
+networkAndroid.getZonefile = function(zonefileHash) {
+  blockstack.config.network.getZonefile(zonefileHash).then(function(content){
+    networkAndroid.getZonefileResult(content)
+  }, function(error) {
+    networkAndroid.getZonefileFailure(error.toString())
+  })
+}
+
+networkAndroid.getAccountStatus = function(address, tokenType) {
+  blockstack.config.network.getAccountStatus(address, tokenType).then(function(stati){
+    networkAndroid.getAccountStatusResult(JSON.stringify(stati))
+  }, function(error) {
+    networkAndroid.getAccountStatusFailure(error.toString())
+  })
+}
+networkAndroid.getAccountHistoryPage = function(address, page) {
+  blockstack.config.network.getAccountHistoryPage(address, page).then(function(stati){
+    networkAndroid.getAccountHistoryPageResult(JSON.stringify(stati))
+  }, function(error) {
+    networkAndroid.getAccountHistoryPageFailure(error.toString())
+  })
+}
+
+networkAndroid.getAccountAt = function(address, blockHeight) {
+  blockstack.config.network.getAccountAt(address, blockHeight).then(function(stati){
+    networkAndroid.getAccountAtResult(JSON.stringify(stati))
+  }, function(error) {
+    networkAndroid.getAccountAtFailure(error.toString())
+  })
+}
+
+networkAndroid.getAccountTokens = function(address) {
+   try {
+      blockstack.config.network.getAccountTokens(address).then(function(tokens) {
+        networkAndroid.getAccountTokensResult(tokens["tokens"])
+      }, function(error) {
+        networkAndroid.getAccountTokensFailure(error.toString())
+      })
+    } catch(e) {
+        networkAndroid.getAccountTokensFailure(e)
+    }
+}
+
+networkAndroid.getAccountBalance = function(address, tokenType) {
+try {
+  blockstack.config.network.getAccountBalance(address, tokenType).then(function(balance){
+    networkAndroid.getAccountBalanceResult(balance.toString())
+  }, function(error) {
+    networkAndroid.getAccountBalanceFailure(error.toString())
+  })
+  } catch(e) {
+    networkAndroid.getAccountBalanceFailure(error.toString())
+  }
+}
+
+var Bigi = function(value) {
+    var num = parseInt(value);
+    var hexString = num.toString(16)
+    return {
+        toHex: () => {
+            return hexString
+        }
+    }
+}
+
+networkAndroid.estimateTokenTransfer = function(recipientAddress, tokenType, tokenAmount, scratchArea, senderUtxos, additionalOutputs) {
+  try {
+    blockstack.transactions.estimateTokenTransfer(recipientAddress, tokenType, Bigi(tokenAmount), scratchArea, senderUtxos, additionalOutputs).then(function(costs){
+        networkAndroid.estimateTokenTransferResult(costs.toString())
+    }, function(error) {
+        networkAndroid.estimateTokenTransferFailure(error.toString())
+    })
+  } catch (e) {
+    networkAndroid.estimateTokenTransferFailure(e.toString())
+  }
 }
 
 /**

@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Added
+- `Network` added, providing API methods for the blockstack network
+- `BlockstackSession.network` added, giving access to the blockstack network used in this session
 - `BlockstackSession.listFiles` iterates through the user's app files   
 - `Scope.fromJSName` creates `Scope` from its javascript name as used in blockstack.js
 
