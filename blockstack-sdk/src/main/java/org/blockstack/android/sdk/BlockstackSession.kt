@@ -110,8 +110,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         loaded = true
     }
 
-    private fun registerJSAndroidBridgeMethods(v8blockstack: V8Object, v8userSessionAndroid: V8Object) {
-        val android = JSAndroidBridge(this, v8, v8blockstack, v8userSessionAndroid)
+    private fun registerJSAndroidBridgeMethods(v8blockstackAndroid: V8Object, v8userSessionAndroid: V8Object) {
+        val android = JSAndroidBridge(this, v8, v8blockstackAndroid, v8userSessionAndroid)
         val v8android = V8Object(v8)
         v8.add("android", v8android)
 
@@ -329,6 +329,20 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         params.release()
     }
 
+    fun verifyProfileToken(token: String, publicKeyOrAddress: String): ProfileToken {
+        val params = V8Array(v8)
+                .push(token)
+                .push(publicKeyOrAddress)
+        try {
+            val decodedToken = v8blockstackAndroid.executeStringFunction("verifyProfileToken", params)
+            return ProfileToken(JSONObject(decodedToken))
+        } catch (e: Exception) {
+            Log.d(TAG, e.toString(), e)
+            throw e
+        } finally {
+            params.release()
+        }
+    }
     /* Public storage methods */
 
     /**

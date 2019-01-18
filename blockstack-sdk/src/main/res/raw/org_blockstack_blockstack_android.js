@@ -86,6 +86,10 @@ blockstackAndroid.validateProofs = function(profile, ownerAddress, name) {
   })
 }
 
+blockstackAndroid.verifyProfileToken = function(token, publicKeyOrAddress) {
+  return JSON.stringify(blockstack.verifyProfileToken(token, publicKeyOrAddress))
+}
+
 userSessionAndroid.getFile = function(path, options, uniqueIdentifier) {
     const opts = JSON.parse(options)
     userSession.getFile(path, opts)
