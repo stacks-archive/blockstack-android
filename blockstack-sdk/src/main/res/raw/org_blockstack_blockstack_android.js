@@ -86,8 +86,20 @@ blockstackAndroid.validateProofs = function(profile, ownerAddress, name) {
   })
 }
 
+blockstackAndroid.extractProfile = function(token, publicKeyOrAddress) {
+  return JSON.stringify(blockstack.extractProfile(token, publicKeyOrAddress))
+}
+
 blockstackAndroid.verifyProfileToken = function(token, publicKeyOrAddress) {
   return JSON.stringify(blockstack.verifyProfileToken(token, publicKeyOrAddress))
+}
+
+blockstackAndroid.signProfileToken = function(profile, privateKey, subject, issuer, signingAlgorithm, issuedAt, expiresAt)
+  return JSON.stringify(blockstack.signProfileToken(JSON.parse(profile), privateKey, JSON.parse(subject), JSON.parse(issuer), signingAlgorithm, new Date(issuedAt), new Date(expiresAt)))
+}
+
+blockstackAndroid.wrapProfile = function(token) {
+  return JSON.stringify(blockstack.wrapProfile(token))
 }
 
 userSessionAndroid.getFile = function(path, options, uniqueIdentifier) {
