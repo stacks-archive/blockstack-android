@@ -1,6 +1,7 @@
 package org.blockstack.android.sdk
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.preference.PreferenceManager
 import android.support.customtabs.CustomTabsIntent
@@ -253,7 +254,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             v8userSession.executeVoidFunction("redirectToSignIn", v8params)
             v8params.release()
         } catch (e: Exception) {
-            errorCallback(Result(null, e.toString()))
+            errorCallback(Result(null, ResultError(ErrorCode.RedirectFailed, e.toString())))
         }
     }
 
@@ -466,7 +467,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                 return Result(Base64.decode(plainContent, Base64.DEFAULT))
             }
         } else {
-            return Result(null, ResultError(ErrorCode.UnknownError,"failed to decrypt")))
+            return Result(null, ResultError(ErrorCode.FailedDecryptionError,"failed to decrypt"))
         }
     }
 
@@ -594,7 +595,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun getAppBucketUrlFailure(error: String) {
-            blockstackSession.getAppBucketUrlCallback?.invoke(Result(null, error))
+            blockstackSession.getAppBucketUrlCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getUserAppFileUrlResult(url: String) {
@@ -602,7 +603,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun getUserAppFileUrlFailure(error: String) {
-            blockstackSession.getAppBucketUrlCallback?.invoke(Result(null, error))
+            blockstackSession.getAppBucketUrlCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun listFilesResult(url:String) {
@@ -614,7 +615,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun listFilesFailure(error:String) {
-            blockstackSession.listFilesCallback?.invoke(Result(null, error))
+            blockstackSession.listFilesCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun listFilesCountResult(count:Int) {
@@ -622,7 +623,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun listFilesCountFailure(error:String) {
-            blockstackSession.listFilesCountCallback?.invoke(Result(null, error))
+            blockstackSession.listFilesCountCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getSessionData(): String {

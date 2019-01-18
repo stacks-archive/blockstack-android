@@ -260,7 +260,7 @@ class BlockstackSessionStorageTest {
             latch.countDown()
         })
         latch.await(1, TimeUnit.MINUTES)
-        assertThat(countResult?.error, `is`("I want to make the API crash!"))
+        assertThat(countResult?.error?.message, `is`("I want to make the API crash!"))
     }
 
     private fun getImageBytes(): ByteArray {

@@ -69,7 +69,7 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Failed to query name price for dev_android_sdk.id.blockstack"))
+        assertThat(result?.error?.message, `is`("Error: Failed to query name price for dev_android_sdk.id.blockstack"))
     }
 
     @Test
@@ -97,7 +97,7 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Failed to query name price for dev_android_sdk.id.blockstack"))
+        assertThat(result?.error?.message, `is`("Error: Failed to query name price for dev_android_sdk.id.blockstack"))
     }
 
     @Test
@@ -139,7 +139,7 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Non-base58 character"))
+        assertThat(result?.error?.message, `is`("Error: Non-base58 character"))
     }
 
     @Test
@@ -169,7 +169,7 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: No such namespace 'a_name_that_is_not_valid_and_does_not_exist.id.blockstack'"))
+        assertThat(result?.error?.message, `is`("Error: No such namespace 'a_name_that_is_not_valid_and_does_not_exist.id.blockstack'"))
     }
 
     @Test
@@ -197,7 +197,7 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Name not found"))
+        assertThat(result?.error?.message, `is`("Error: Name not found"))
     }
 
     @Test
@@ -228,7 +228,7 @@ class NetworkTest {
         latch.await()
         Log.d("networtest", "info " + result?.error)
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Bad response status: 400"))
+        assertThat(result?.error?.message, `is`("Error: Bad response status: 400"))
     }
 
     @Test
@@ -242,7 +242,7 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Namespace not found"))
+        assertThat(result?.error?.message, `is`("Error: Namespace not found"))
     }
 
     /* enable test as soon as core.blockstack.org exposes zonefiles.
@@ -279,7 +279,7 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Zone file contents hash to 7825a1f3f844c2936d0e23ef21f17b52ce7565c0, not 3bd68d67eea0a621bf2b789d1ac97271afdfb8e1"))
+        assertThat(result?.error?.message, `is`("Error: Zone file contents hash to 7825a1f3f844c2936d0e23ef21f17b52ce7565c0, not 3bd68d67eea0a621bf2b789d1ac97271afdfb8e1"))
     }
 
     @Test
@@ -293,7 +293,7 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Bad response status: 404"))
+        assertThat(result?.error?.message, `is`("Error: Bad response status: 404"))
     }
 
     @Test
@@ -322,7 +322,7 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Account not found"))
+        assertThat(result?.error?.message, `is`("Error: Account not found"))
     }
 
 
@@ -366,7 +366,7 @@ class NetworkTest {
         latch.await()
         Log.d("networktest", " " + result?.error)
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Bad response status: 400"))
+        assertThat(result?.error?.message, `is`("Error: Bad response status: 400"))
     }
 
     @Test
@@ -394,7 +394,7 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Bad response status: 400"))
+        assertThat(result?.error?.message, `is`("Error: Bad response status: 400"))
     }
 
     @Test
@@ -424,7 +424,7 @@ class NetworkTest {
         latch.await()
         Log.d("networktest", " " + result?.error)
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Bad response status: 400"))
+        assertThat(result?.error?.message, `is`("Error: Bad response status: 400"))
     }
 
     @Test
@@ -438,6 +438,6 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error, `is`("Error: Bad response status: 400"))
+        assertThat(result?.error?.message, `is`("Error: Bad response status: 400"))
     }
 }

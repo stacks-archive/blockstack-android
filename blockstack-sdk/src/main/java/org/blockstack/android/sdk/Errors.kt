@@ -90,11 +90,15 @@ enum class ErrorCode(val code: String) {
     /**
      * User could not be signed-in
      */
-    LoginFailedError("login_failed"),
+    LoginFailedError("login_failed_error"),
     /**
      * Signature could not be verified
      */
     SignatureVerificationError("signature_verification_error"),
+    /**
+     * User could not be redirected to sign in
+     */
+    RedirectFailed("redirect_failed_error"),
     /**
      * Other error than the one above
      */

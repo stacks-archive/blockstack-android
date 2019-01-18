@@ -5,6 +5,7 @@ import android.preference.PreferenceManager
 import android.support.test.rule.ActivityTestRule
 import android.support.test.runner.AndroidJUnit4
 import kotlinx.coroutines.experimental.runBlocking
+import org.blockstack.android.sdk.model.BlockstackConfig
 import org.blockstack.android.sdk.model.Profile
 import org.blockstack.android.sdk.model.Proof
 import org.blockstack.android.sdk.model.toBlockstackConfig
@@ -68,7 +69,7 @@ class BlockstackSessionAuthProfileTest {
         var error: String? = null
         session.handlePendingSignIn("authResponse") {
             latch.countDown()
-            error = it.error
+            error = it.error?.message
         }
         latch.await()
         Assert.assertThat(error, Matchers.`is`("SyntaxError: Unexpected token j in JSON at position 0"))

@@ -278,7 +278,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getNamePriceFailure(error: String) {
-            network.getNamePriceCallback?.invoke(Result(null, error))
+            network.getNamePriceCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getNamespacePriceResult(namespacePrice: String) {
@@ -286,7 +286,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getNamespacePriceFailure(error: String) {
-            network.getNamespacePriceCallback?.invoke(Result(null, error))
+            network.getNamespacePriceCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getGracePeriodResult(gracePeriod: Int) {
@@ -294,7 +294,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getGracePeriodFailure(error: String) {
-            network.getGracePeriodCallback?.invoke(Result(null, error))
+            network.getGracePeriodCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getNamesOwnedResult(names: V8Array) {
@@ -307,7 +307,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getNamesOwnedFailure(error: String) {
-            network.getNamesOwnedCallback?.invoke(Result(null, error))
+            network.getNamesOwnedCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getNamespaceBurnAddressResult(burnAddress: String) {
@@ -315,7 +315,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getNamespaceBurnAddressFailure(error: String) {
-            network.getNamespaceBurnAddressCallback?.invoke(Result(null, error))
+            network.getNamespaceBurnAddressCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getNameInfoResult(nameInfo: String) {
@@ -323,7 +323,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getNameInfoFailure(error: String) {
-            network.getNameInfoCallback?.invoke(Result(null, error))
+            network.getNameInfoCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getNamespaceInfoResult(namespaceInfo: String) {
@@ -331,7 +331,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getNamespaceInfoFailure(error: String) {
-            network.getNamespaceInfoCallback?.invoke(Result(null, error))
+            network.getNamespaceInfoCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getZonefileResult(zoneFileContent: String) {
@@ -339,7 +339,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getZonefileFailure(error: String) {
-            network.getZonefileCallback?.invoke(Result(null, error))
+            network.getZonefileCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getAccountStatusResult(accountStatus: String) {
@@ -347,7 +347,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getAccountStatusFailure(error: String) {
-            network.getAccountStatusCallback?.invoke(Result(null, error))
+            network.getAccountStatusCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getAccountHistoryPageResult(accountStatuses: String) {
@@ -360,7 +360,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getAccountHistoryPageFailure(error: String) {
-            network.getAccountHistoryPageCallback?.invoke(Result(null, error))
+            network.getAccountHistoryPageCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getAccountAtResult(accountStatuses: String) {
@@ -373,7 +373,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getAccountAtFailure(error: String) {
-            network.getAccountAtCallback?.invoke(Result(null, error))
+            network.getAccountAtCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getAccountTokensResult(tokens: V8Array) {
@@ -387,7 +387,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getAccountTokensFailure(error: String) {
-            network.getAccountTokensCallback?.invoke(Result(null, error))
+            network.getAccountTokensCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getAccountBalanceResult(balance: String) {
@@ -396,7 +396,7 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
         }
 
         fun getAccountBalanceFailure(error: String) {
-            network.getAccountBalanceCallback?.invoke(Result(null, error))
+            network.getAccountBalanceCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
     }
 
