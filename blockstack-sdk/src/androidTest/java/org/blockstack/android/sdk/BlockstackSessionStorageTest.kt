@@ -2,8 +2,10 @@ package org.blockstack.android.sdk;
 
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
+import android.preference.PreferenceManager
 import android.support.test.rule.ActivityTestRule
 import android.support.test.runner.AndroidJUnit4
+import android.util.Log
 import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
@@ -11,6 +13,7 @@ import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -70,6 +73,30 @@ class BlockstackSessionStorageTest {
         latch.await()
         assertThat(result1, `is`(notNullValue()))
         assertThat(result2, `is`(notNullValue()))
+    }
+
+    @Test
+    fun testPutFileWithInvalidToken() {
+        var result: String? = null
+        val latch = CountDownLatch(1)
+
+        val prefs = PreferenceManager.getDefaultSharedPreferences(rule.activity)
+        val sessionObject = JSONObject(A_VALID_BLOCKSTACK_SESSION_JSON)
+        val userData = sessionObject.getJSONObject("userData")
+        userData.put("gaiaHubConfig", JSONObject("{\"url_prefix\":\"https://gaia.blockstack.org/hub/\",\"address\":\"19Usb4TCn8mWhjvLxmC2eEiXC9xJfwRkAy\",\"token\":\"v1:invalidtoken\",\"server\":\"https://hub.blockstack.org\"}"))
+        prefs.edit().putString("blockstack_session", sessionObject.toString())
+                .apply()
+        session.putFile("try.txt", "Hello Test Invalid Token", PutFileOptions(false)) {
+            result = it.value as String
+            Log.d("test", prefs.getString("blockstack_session", "").toString())
+            session.getFile("try.txt", GetFileOptions(false)) {
+                result = it.value as String
+                latch.countDown()
+            }
+        }
+
+        latch.await()
+        assertThat(result, `is`("Hello Test Invalid Token"))
     }
 
     @Test
