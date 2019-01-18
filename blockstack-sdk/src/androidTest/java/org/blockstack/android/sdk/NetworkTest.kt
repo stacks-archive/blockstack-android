@@ -11,6 +11,7 @@ import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.startsWith
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -307,7 +308,7 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(true))
-        assertThat(result?.value?.json.toString(), `is`("{\"address\":\"3NmD8RN7N5ryJumThxa5pq3UUy1LUEfmir\",\"block_id\":552241,\"credit_value\":{\"0\":55039930,\"1\":265,\"t\":2,\"s\":0},\"debit_value\":{\"0\":60476904,\"1\":14,\"t\":2,\"s\":0},\"lock_transfer_block_id\":543805,\"txid\":\"33e7c9ee6f6200c5b0493a012c2a26f631ba3ae3d132db902d4c1064cd34b32e\",\"type\":\"STACKS\",\"vtxindex\":0}"))
+        assertThat(result?.value?.json.toString(), startsWith("{\"address\":\"3NmD8RN7N5ryJumThxa5pq3UUy1LUEfmir\",\"block_id\":"))
     }
 
 
