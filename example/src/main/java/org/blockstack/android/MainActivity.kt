@@ -1,6 +1,7 @@
 package org.blockstack.android
 
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -15,11 +16,17 @@ import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import org.blockstack.android.sdk.*
+import org.blockstack.android.sdk.model.GetFileOptions
+import org.blockstack.android.sdk.model.PutFileOptions
+import org.blockstack.android.sdk.model.UserData
+import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.jetbrains.anko.coroutines.experimental.bg
 import java.io.ByteArrayOutputStream
 import java.net.URL
 
+private const val username = "dev_android_sdk.id.blockstack";
 
+@SuppressLint("SetTextI18n")
 class MainActivity : AppCompatActivity() {
     private val TAG = MainActivity::class.java.simpleName
 
@@ -33,41 +40,41 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        signInButton.isEnabled = false
-        getStringFileButton.isEnabled = false
-        putStringFileButton.isEnabled = false
+        val config = "https://flamboyant-darwin-d11c17.netlify.com"
+                .toBlockstackConfig(kotlin.arrayOf(org.blockstack.android.sdk.Scope.StoreWrite))
 
-        val config = java.net.URI("https://flamboyant-darwin-d11c17.netlify.com").run {
-            org.blockstack.android.sdk.BlockstackConfig(
-                    this,
-                    java.net.URI("${this}/redirect"),
-                    java.net.URI("${this}/manifest.json"),
-                    kotlin.arrayOf(org.blockstack.android.sdk.Scope.StoreWrite))
-        }
 
-        _blockstackSession = BlockstackSession(this, config,
-                onLoadedCallback = {
-                    // Wait until this callback fires before using any of the
-                    // BlockstackSession API methods
+        _blockstackSession = BlockstackSession(this@MainActivity, config)
+        signInButton.isEnabled = true
+        getUserAppFileUrlButton.isEnabled = true
 
-                    signInButton.isEnabled = true
-                })
-
+        validateProofsButton.isEnabled = false
         getStringFileButton.isEnabled = false
         putStringFileButton.isEnabled = false
         getImageFileButton.isEnabled = false
         putImageFileButton.isEnabled = false
         getStringFileFromUserButton.isEnabled = false
+        getAppBucketUrlButton.isEnabled = false
+        listFilesButton.isEnabled = false
+
 
         signInButton.setOnClickListener { _: View ->
-            blockstackSession().redirectUserToSignIn { userDataResult ->
-                if (userDataResult.hasValue) {
-                    Log.d(TAG, "signed in!")
+            blockstackSession().redirectUserToSignIn { errorResult ->
+                if (errorResult.hasErrors) {
+                    Toast.makeText(this, "error: " + errorResult.error, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        validateProofsButton.setOnClickListener { _ ->
+            validateProofsText.text = "Validating..."
+            val it = blockstackSession().loadUserData()
+            it?.let {
+                val ownerAddress = it.decentralizedID.split(":")[2]
+                blockstackSession().validateProofs(it.profile!!, ownerAddress, it.json.optString("username")) { result ->
                     runOnUiThread {
-                        onSignIn(userDataResult.value!!)
+                        validateProofsText.text = "${result.value?.size} proofs found."
                     }
-                } else {
-                    Toast.makeText(this, "error: ${userDataResult.error}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -148,7 +155,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         getStringFileFromUserButton.setOnClickListener { _ ->
-            val username = "dev_android_sdk.id.blockstack";
+
             val zoneFileLookupUrl = URL("https://core.blockstack.org/v1/names")
             fileFromUserContentsTextView.text = "Downloading file from other user..."
             blockstackSession().lookupProfile(username, zoneFileLookupURL = zoneFileLookupUrl) { profileResult ->
@@ -180,9 +187,71 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        getAppBucketUrlButton.setOnClickListener { _ ->
+            getAppBucketUrlText.text = "Getting url ..."
+            val it = blockstackSession().loadUserData()
+            it?.let {
+                blockstackSession().getAppBucketUrl(it.hubUrl, it.appPrivateKey) { result ->
+                    runOnUiThread {
+                        getAppBucketUrlText.text =
+                                if (result.hasValue) {
+                                    result.value
+                                } else {
+                                    result.error?.message
+                                }
+                    }
+                }
+            }
+        }
+
+        getUserAppFileUrlButton.setOnClickListener { _ ->
+            getUserAppFileUrlText.text = "Getting url ..."
+            val zoneFileLookupUrl = "https://core.blockstack.org/v1/names"
+            blockstackSession().getUserAppFileUrl(textFileName, username, "https://flamboyant-darwin-d11c17.netlify.com", zoneFileLookupUrl) {
+                runOnUiThread {
+                    getUserAppFileUrlText.text = if (it.hasValue) {
+                        it.value
+                    } else {
+                        it.error?.message
+                    }
+                }
+            }
+        }
+
+        listFilesButton.setOnClickListener {
+            listFilesText.text = "...."
+            blockstackSession().listFiles ({urlResult ->
+                if (urlResult.hasValue) {
+                    if (listFilesText.text === "....") {
+                        listFilesText.text = urlResult.value
+                    } else {
+                        listFilesText.text = listFilesText.text.toString() + "\n" + urlResult.value
+                    }
+                }
+                true
+            }, { countResult ->
+                Log.d(TAG, "files count " + if (countResult.hasValue) {countResult.value} else {countResult.error})
+            })
+        }
+
+        getNameInfoButton.setOnClickListener { _ ->
+            getNameInfoText.text = "Getting info ..."
+            blockstackSession().network.getNameInfo(username) {
+                runOnUiThread {
+                    Log.d(TAG, it.value?.json.toString())
+                    getNameInfoText.text = if (it.hasValue) {
+                        it.value?.json.toString()
+                    } else {
+                        it.error?.message
+                    }
+                }
+            }
+        }
+
         if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
         }
+
     }
 
     private fun onSignIn(userData: UserData) {
@@ -190,11 +259,14 @@ class MainActivity : AppCompatActivity() {
         showUserAvatar(userData.profile?.avatarImage)
         signInButton.isEnabled = false
 
+        validateProofsButton.isEnabled = true
         getStringFileButton.isEnabled = true
         putStringFileButton.isEnabled = true
         putImageFileButton.isEnabled = true
         getImageFileButton.isEnabled = true
         getStringFileFromUserButton.isEnabled = true
+        getAppBucketUrlButton.isEnabled = true
+        listFilesButton.isEnabled = true
     }
 
     private fun showUserAvatar(avatarImage: String?) {
@@ -222,14 +294,13 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onNewIntent")
 
         if (intent?.action == Intent.ACTION_MAIN) {
-            blockstackSession().loadUserData { userData ->
-                if (userData != null) {
-                    runOnUiThread {
-                        onSignIn(userData)
-                    }
-                } else {
-                    Toast.makeText(this, "no user data", Toast.LENGTH_SHORT).show()
+            val userData = blockstackSession().loadUserData()
+            if (userData != null) {
+                runOnUiThread {
+                    onSignIn(userData)
                 }
+            } else {
+                Toast.makeText(this, "no user data", Toast.LENGTH_SHORT).show()
             }
         } else if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
@@ -245,7 +316,8 @@ class MainActivity : AppCompatActivity() {
             if (authResponseTokens.size > 1) {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: ${authResponse}")
-                blockstackSession().handlePendingSignIn(authResponse, { userDataResult ->
+                blockstackSession().handlePendingSignIn(authResponse) { userDataResult: Result<UserData> ->
+
                     if (userDataResult.hasValue) {
                         val userData = userDataResult.value!!
                         Log.d(TAG, "signed in!")
@@ -255,7 +327,7 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         Toast.makeText(this, "error: ${userDataResult.error}", Toast.LENGTH_SHORT).show()
                     }
-                })
+                }
             }
         }
     }

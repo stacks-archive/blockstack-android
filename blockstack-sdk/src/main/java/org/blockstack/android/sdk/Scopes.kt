@@ -36,7 +36,24 @@ enum class Scope(val scope: String) {
          */
         @JvmStatic
         fun scopesArrayToJSONString(scopes: Array<Scope>): String {
-            return scopes.joinToString(prefix = "[", transform = {"\"${it.scope}\""}, postfix = "]")
+            return scopes.joinToString(prefix = "[", transform = { "\"${it.scope}\"" }, postfix = "]")
+        }
+
+        /**
+         * Creates `Scope` from its @property scope, i.e. the javascript name.
+         * Throws IllegalArgumentException if scope name is not defined.
+         *
+         * @param scopeJSName name of scope as defined in blockstack.js
+         *
+         */
+        @JvmStatic
+        fun fromJSName(scopeJSName: String): Scope {
+            for (scope in Scope.values()) {
+                if (scopeJSName === scope.scope) {
+                    return scope
+                }
+            }
+            throw IllegalArgumentException("scope '$scopeJSName' not defined, available scopes: ${Scope.values().joinToString()}")
         }
     }
 }

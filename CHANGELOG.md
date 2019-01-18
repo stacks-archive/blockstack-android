@@ -10,14 +10,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## Unrelease
+## Unreleased
 
 ### Added
 - A `ResultError` type and enum `ErrorCode` to better represent errors from Blockstack
+- `Network` added, providing API methods for the blockstack network
+- `BlockstackSession.network` added, giving access to the blockstack network used in this session
+- `BlockstackSession.listFiles` iterates through the user's app files
+- `Scope.fromJSName` creates `Scope` from its javascript name as used in blockstack.js
 
 ### Changed
-- Replaced `Result.error` type String with type `ResultError` 
-- Updated `blockstack.js` to v18.0.3 on feature branch `feature/error_messages`
+- Replaced `Result.error` type String with type `ResultError`
+
+## [0.4.2] - 2018-12-08
+
+### Changed
+- fixed issues #117 and #118 for putFile and getFile
+- Uses custom tabs instead of normal browser view for auth
+
+## [0.4.1] - 2018-11-05
+
+### Changed
+- `Executor` API: `.onWorkerThread` renamed to `.onNetworkThread`, added: `.onV8Thread`
+- removed the requirement for `singleTask` launch mode on sign in
+
+
+## [0.4.0] - 2018-10-29
+
+### Added
+- `BlockstackSession.validateProofs` method and `Proof` object to verify social acounts.
+- `BlockstackSession.getAppBucketUrl` method to retrieve the user's bucket url of the app.
+- `BlockstackSession.getUserAppFileUrl` method to retrieve a user's file of an app with a given path.
+- `UserData.hubUrl` property for use with `getUserAppFileUrl`
+- Parameter `sessionStore`, `executor` and `scriptRepo` to `BlockstackSession` constructor
+- New example for using `Blockstack` in a background service
+
+
+### Changed
+- Improved integration tests
+- Updated `blockstack.js` to branch `storage-strategies`
+- `BlockstackConfig.redirectUrl` and `.manifestUrl` take a relative path
+  instead of fully-qualified URL
+- Switched javascript engine from `WebView` to `j2v8` which enables
+  usage of SDK as a background service and improved execution speed
+
+### Removed
+- `Blockstack.makeAuthRequest`
+- callback parameter from `BlockstackSession.isUserSignedIn`, `.loadUserData`, `encryptContent`, `decryptContent` and `.signUserOut`
 
 ## [0.3.0] - 2018-07-27
 

@@ -1,6 +1,7 @@
 package org.blockstack.android
 
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
@@ -14,40 +15,39 @@ import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.UserData
+import org.blockstack.android.sdk.model.UserData
 import org.jetbrains.anko.coroutines.experimental.bg
 import java.net.URL
 
-
+@SuppressLint("SetTextI18n")
 class MainActivity : AppCompatActivity() {
     private val TAG = MainActivity::class.java.simpleName
 
     private var _blockstackSession: BlockstackSession? = null
+    private var userData: UserData? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        _blockstackSession = BlockstackSession(this, defaultConfig,
-                onLoadedCallback = { checkLogin() })
+        _blockstackSession = BlockstackSession(this, defaultConfig)
+        checkLogin()
     }
 
     private fun checkLogin() {
-        blockstackSession().isUserSignedIn({ signedIn ->
-            if (signedIn) {
-                blockstackSession().loadUserData({ userData ->
-                    progressBar.visibility = GONE
-                    if (userData != null) {
-                        runOnUiThread {
-                            onSignIn(userData)
-                        }
-                    }
-                })
-            } else {
-                navigateToAccount()
+        val signedIn = blockstackSession().isUserSignedIn()
+        if (signedIn) {
+            userData = blockstackSession().loadUserData()
+            progressBar.visibility = GONE
+            if (userData != null) {
+                runOnUiThread {
+                    onSignIn(userData!!)
+                }
             }
-        })
+        } else {
+            navigateToAccount()
+        }
     }
 
     override fun onResume() {
@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
     private fun onSignIn(userData: UserData) {
         userDataTextView.text = "Signed in as ${userData.profile?.name} (${userData.decentralizedID}) with ${userData.profile?.email}"
         showUserAvatar(userData.profile?.avatarImage)
+        this.userData = userData
     }
 
     private fun showUserAvatar(avatarImage: String?) {
@@ -87,11 +88,10 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onNewIntent")
 
         if (intent?.action == Intent.ACTION_MAIN) {
-            blockstackSession().loadUserData { userData ->
-                runOnUiThread {
-                    if (userData != null) {
-                        onSignIn(userData)
-                    }
+            val userData = blockstackSession().loadUserData()
+            runOnUiThread {
+                if (userData != null) {
+                    onSignIn(userData!!)
                 }
             }
         }
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun navigateToCipher() {
-        startActivity(Intent(this, CipherActivity::class.java))
+        startActivity(Intent(this, CipherActivity::class.java).putExtra("json", this.userData?.json.toString()))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
