@@ -11,8 +11,7 @@ import org.blockstack.android.sdk.model.Profile
 import org.blockstack.android.sdk.model.Proof
 import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.CoreMatchers.nullValue
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.Matchers.notNullValue
@@ -70,7 +69,7 @@ class BlockstackSessionTokenTest {
             session.extractProfile(TOKEN, TOKEN_PUBLIC_KEY_2)
             throw AssertionError("should throw an error")
         } catch (e: V8ScriptExecutionException) {
-            assertThat(e.message, `is`("undefined:7917: Error: Token issuer public key does not match the verifying value"))
+            assertThat(e.message, endsWith("Error: Token issuer public key does not match the verifying value"))
         }
     }
 
@@ -93,7 +92,7 @@ class BlockstackSessionTokenTest {
             session.verifyProfileToken(TOKEN, TOKEN_PUBLIC_KEY_2)
             throw AssertionError("should throw an error")
         } catch (e: V8ScriptExecutionException) {
-            assertThat(e.message, `is`("undefined:7917: Error: Token issuer public key does not match the verifying value"))
+            assertThat(e.message, endsWith("Error: Token issuer public key does not match the verifying value"))
         }
     }
 
