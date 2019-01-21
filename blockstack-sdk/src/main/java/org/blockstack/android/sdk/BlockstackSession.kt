@@ -392,19 +392,19 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      * @param expiresAt the time of expiration of the token, defaults to next year
      * @return the signed profile token
      */
-    fun signProfileToken(profile: Profile, privateKey: String, subject: Entity, issuer: Entity, signingAlgorithm: SigningAlgorithm = SigningAlgorithm.ESK256, issuedAt: Date = Date(), expiresAt: Date = nextYear()): ProfileToken {
+    fun signProfileToken(profile: Profile, privateKey: String, subject: Entity, issuer: Entity, signingAlgorithm: SigningAlgorithm = SigningAlgorithm.ES256K, issuedAt: Date = Date(), expiresAt: Date = nextYear()): ProfileTokenPair {
         val params = V8Array(v8)
                 .push(profile.json.toString())
                 .push(privateKey)
                 .push(subject.json.toString())
                 .push(issuer.json.toString())
-                .push(signingAlgorithm.name)
+                .push(signingAlgorithm.algorithmName)
                 .push(issuedAt.toZuluTime())
                 .push(expiresAt.toZuluTime())
 
         try {
             val signedToken = v8blockstackAndroid.executeStringFunction("signProfileToken", params)
-            return ProfileToken(JSONObject(signedToken))
+            return wrapProfileToken(signedToken)
         } catch (e: Exception) {
             Log.d(TAG, e.toString(), e)
             throw e

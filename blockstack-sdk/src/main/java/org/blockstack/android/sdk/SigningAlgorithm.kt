@@ -5,9 +5,9 @@ package org.blockstack.android.sdk
  *
  * @property name identifies the algorithm
  */
-enum class SigningAlgorithm(name: String) {
+enum class SigningAlgorithm(val algorithmName: String) {
     /**
      * Represents ECDSA with a P-256K curve.
      */
-    ESK256 ("ES256K")
+    ES256K ("ES256K")
 }

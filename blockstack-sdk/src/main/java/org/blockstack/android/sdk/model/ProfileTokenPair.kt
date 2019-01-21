@@ -8,6 +8,20 @@ import org.json.JSONObject
 class ProfileTokenPair(private val jsonObject: JSONObject) {
 
     /**
+     * The encoded token.
+     */
+    val token: String? = jsonObject.optString("token")
+
+    /**
+     * The decoded token.
+     */
+    val decodedToken: ProfileToken? = if (jsonObject.has("decodedToken")) {
+        ProfileToken(jsonObject.getJSONObject("decodedToken"))
+    } else {
+        null
+    }
+
+    /**
      * The `JSONObject` that backs this object. You use this object to
      * access properties that are not yet exposed by this class.
      */
