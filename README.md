@@ -66,15 +66,55 @@ By default, network threads are done in the background, calls to the Blockstack 
 on the main thread.
 
 If the Blockstack session is not created on the main thread then a custom implementation of `Excecutor`
-needs to be provided in the constructor of the Blockstack session. See the service example for some code.   
+needs to be provided in the constructor of the Blockstack session. See the [service example](/example-service) for some code.   
 
 It is also possible to manually switch threads buy using `.releaseThreadLock` and `.aquireThreadLock`.
 These methods allow to make calls to the Blockstack session on a different thread. The thread lock
-needs to be released on the current thread of the session. Then the new thread can aquire the thread lock.
+needs to be released on the current thread of the session. Then the new thread can acquire the thread lock.
+
+### Sign-In Flow
+The most basic way to sign-in a user with Blockstack is to use `redirectUserToSignIn`, 
+`handlePendingAuthResponse` and all subsequent method calls in the same activity. This is shown in the 
+[simple example](/example). However, applications usually have a separate screen to handle user sessions. 
+
+In the [multi activity example](/example-multi-activities) a sign-in flow with two separate activities
+is implemented, one for the main activity and one for the account handling.
+The account handling activity updates the session data and the main activity
+uses the same session store to retrieve the session data. The default
+session store is using the default `SharedPreferences`, therefore, the 
+session data is shared between all activities of the same app.
+
+
+### Document Provider
+Files stored on a gaia hub can be included in the user's device using
+Android [Storage Access Framework (SAF)](https://developer.android.com/guide/topics/providers/document-provider). 
+You should consider providing a document provider that allows the user
+to access the files in the context of other apps as well.
+
+The Android documentation provides a details guide how to build a 
+ document provider. There exist open source examples provided by 
+ the community, e.g. [OI ConvertCSV](https://github.com/openintents/convertcsv).
+
+
 
 ## API Reference Documentation
 Please see [generated documenatation](https://124-124568327-gh.circle-artifacts.com/0/javadoc/blockstack-sdk/index.html)
 on the project's circle CI.
+
+## Regulatory Notes
+
+### Export Compliance
+The Blockstack Android SDK includes methods to encrypt data. 
+Please consider whether you have to be compliant with US export law 
+when you distribute your app via Google Play. See for example [Export Compliance](https://support.google.com/googleplay/android-developer/answer/113770?hl=en)
+
+### Privacy and Data Protection
+Blockstack helps you to create privacy-by-design apps as for example 
+required by GDPR. 
+
+In the context of GDPR, you should consider features 
+to export and delete gaia files.
+
 
 ## Contributing
 Please see the [contribution guidelines](CONTRIBUTING.md).
