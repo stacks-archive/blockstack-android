@@ -86,6 +86,38 @@ blockstackAndroid.validateProofs = function(profile, ownerAddress, name) {
   })
 }
 
+blockstackAndroid.extractProfile = function(token, publicKeyOrAddress) {
+  return JSON.stringify(blockstack.extractProfile(token, publicKeyOrAddress))
+}
+
+blockstackAndroid.verifyProfileToken = function(token, publicKeyOrAddress) {
+  return JSON.stringify(blockstack.verifyProfileToken(token, publicKeyOrAddress))
+}
+
+blockstackAndroid.signProfileToken = function(profile, privateKey, subject, issuer, signingAlgorithm, issuedAt, expiresAt) {
+  return JSON.stringify(blockstack.signProfileToken(JSON.parse(profile), privateKey, JSON.parse(subject), JSON.parse(issuer), signingAlgorithm, new Date(issuedAt), new Date(expiresAt)))
+}
+
+blockstackAndroid.wrapProfileToken = function(token) {
+  return JSON.stringify(blockstack.wrapProfileToken(token))
+}
+
+blockstackAndroid.parseZoneFile = function(zoneFileContent) {
+  return JSON.stringify(parseZoneFile(zoneFileContent))
+}
+
+
+blockstackAndroid.resolveZoneFileToProfile = function(zoneFileContent, publicKeyOrAddress) {
+  blockstack.resolveZoneFileToProfile(zoneFileContent, publicKeyOrAddress)
+  .then(function(result) {
+    console.log("profile " + JSON.stringify(result))
+    android.resolveZoneFileToProfileResult(JSON.stringify(result))
+  }, function(error) {
+    console.log("profile error " + error)
+    android.resolveZoneFileToProfileFailure(error)
+  })
+}
+
 userSessionAndroid.getFile = function(path, options, uniqueIdentifier) {
     const opts = JSON.parse(options)
     userSession.getFile(path, opts)

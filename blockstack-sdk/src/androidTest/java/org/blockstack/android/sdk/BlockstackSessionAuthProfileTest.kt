@@ -26,7 +26,6 @@ private val PUBLIC_KEY = "027d28f9951ce46538951e3697c62588a87f1f1f295de4a14fdd4c
 private val DECENTRALIZED_ID = "did:btc-addr:1NZNxhoxobqwsNvTb16pdeiqvFvce3Yg8U"
 private val BITCOIN_ADDRESS = "1NZNxhoxobqwsNvTb16pdeiqvFvce3Yg8U"
 
-
 @RunWith(AndroidJUnit4::class)
 class BlockstackSessionAuthProfileTest {
     @get:Rule
