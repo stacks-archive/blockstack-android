@@ -143,6 +143,7 @@ class BlockstackSessionStorageTest {
                 val u = URL(it.value).openConnection()
                 u.connect()
                 result = u.contentType
+                latch.countDown()
             }
         } else {
             latch.countDown()
