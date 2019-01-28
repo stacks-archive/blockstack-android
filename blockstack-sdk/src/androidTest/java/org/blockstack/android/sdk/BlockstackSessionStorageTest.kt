@@ -18,6 +18,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.ByteArrayOutputStream
+import java.net.URL
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -130,6 +131,24 @@ class BlockstackSessionStorageTest {
         }
         latch.await()
         assertThat(result, `is`("Hello Test"))
+    }
+
+    @Test
+    fun testPutGetStringFileWithContentType() {
+        var result: Any? = null
+        val latch = CountDownLatch(1)
+
+        if (session.isUserSignedIn()) {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(false, "application/x.foo")) {
+                val u = URL(it.value).openConnection()
+                u.connect()
+                result = u.contentType
+            }
+        } else {
+            latch.countDown()
+        }
+        latch.await()
+        assertThat(result as String, `is`("application/x.foo"))
     }
 
     @Test
