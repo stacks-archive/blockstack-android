@@ -650,7 +650,7 @@ interface Executor {
 class AndroidExecutor(private val ctx: Context) : Executor {
     private val TAG = AndroidExecutor::class.simpleName
     override fun onMainThread(function: (ctx: Context) -> Unit) {
-        GlobalScope.launch(Dispatcher.Main) {
+        GlobalScope.launch(Dispatchers.Main) {
             function(ctx)
         }
     }
