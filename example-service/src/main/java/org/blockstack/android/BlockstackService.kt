@@ -12,10 +12,10 @@ import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
 import org.blockstack.android.sdk.AndroidExecutor
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.Executor
@@ -42,7 +42,7 @@ class BlockstackService : IntentService("BlockstackExample") {
         runOnV8Thread {
             _blockstackSession = BlockstackSession(this, defaultConfig, executor = object: Executor {
                 override fun onMainThread(function: (Context) -> Unit) {
-                    launch(UI) {
+                    GlobalScope.launch(Dispatcher.Main) {
                         function.invoke(applicationContext)
                     }
                 }
@@ -54,7 +54,7 @@ class BlockstackService : IntentService("BlockstackExample") {
                 }
 
                 override fun onNetworkThread(function: suspend () -> Unit) {
-                    async(CommonPool) {
+                    GlobalScope.async(Dispatcher.IO) {
                         function.invoke()
                     }
                 }
