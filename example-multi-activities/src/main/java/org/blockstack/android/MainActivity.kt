@@ -12,8 +12,9 @@ import android.view.MenuItem
 import android.view.View.GONE
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.UserData
 import org.jetbrains.anko.coroutines.experimental.bg
@@ -67,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         if (avatarImage != null) {
             // use whatever suits your app architecture best to asynchronously load the avatar
             // better use a image loading library than the code below
-            async(UI) {
+            GlobalScope.async(Dispatcher.Main) {
                 val avatar = bg {
                     try {
                         BitmapDrawable.createFromStream(URL(avatarImage).openStream(), "src")
