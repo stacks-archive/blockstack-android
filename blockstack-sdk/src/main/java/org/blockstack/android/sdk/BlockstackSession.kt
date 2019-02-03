@@ -656,13 +656,13 @@ class AndroidExecutor(private val ctx: Context) : Executor {
     }
 
     override fun onV8Thread(function: () -> Unit) {
-        GlobalScope.launch(Dispatcher.Main) {
+        GlobalScope.launch(Dispatchers.Main) {
             function()
         }
     }
 
     override fun onNetworkThread(function: suspend () -> Unit) {
-        GlobalScope.async(Dispatcher.IO) {
+        GlobalScope.async(Dispatchers.IO) {
             try {
                 function()
             } catch (e: Exception) {
