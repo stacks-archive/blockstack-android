@@ -17,7 +17,7 @@ interface ISessionStore {
 }
 
 class SessionStore(private val prefs: SharedPreferences) : ISessionStore {
-    var sessionDataObject = SessionData(JSONObject(prefs.getString(BLOCKSTACK_SESSION, EMPTY_DATA)))
+    private var sessionDataObject = SessionData(JSONObject(prefs.getString(BLOCKSTACK_SESSION, EMPTY_DATA)))
     override var sessionData: SessionData
         get() = sessionDataObject
         set(value) {

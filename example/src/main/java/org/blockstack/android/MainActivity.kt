@@ -23,6 +23,7 @@ import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.jetbrains.anko.coroutines.experimental.bg
 import java.io.ByteArrayOutputStream
 import java.net.URL
+import java.util.*
 
 private const val username = "dev_android_sdk.id.blockstack";
 
@@ -60,6 +61,16 @@ class MainActivity : AppCompatActivity() {
 
         signInButton.setOnClickListener { _: View ->
             blockstackSession().redirectUserToSignIn { errorResult ->
+                if (errorResult.hasErrors) {
+                    Toast.makeText(this, "error: " + errorResult.error, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        signInButtonWithGaia.setOnClickListener { _: View ->
+            val key = blockstackSession().generateAndStoreTransitKey()
+            val authRequest = blockstackSession().makeAuthRequest(key, Date(System.currentTimeMillis() + 3600000).time, mapOf(Pair("solicitGaiaHubUrl", true)))
+            blockstackSession().redirectToSignInWithAuthRequest(authRequest) { errorResult ->
                 if (errorResult.hasErrors) {
                     Toast.makeText(this, "error: " + errorResult.error, Toast.LENGTH_SHORT).show()
                 }
@@ -220,7 +231,7 @@ class MainActivity : AppCompatActivity() {
 
         listFilesButton.setOnClickListener {
             listFilesText.text = "...."
-            blockstackSession().listFiles ({urlResult ->
+            blockstackSession().listFiles({ urlResult ->
                 if (urlResult.hasValue) {
                     if (listFilesText.text === "....") {
                         listFilesText.text = urlResult.value
@@ -230,7 +241,11 @@ class MainActivity : AppCompatActivity() {
                 }
                 true
             }, { countResult ->
-                Log.d(TAG, "files count " + if (countResult.hasValue) {countResult.value} else {countResult.error})
+                Log.d(TAG, "files count " + if (countResult.hasValue) {
+                    countResult.value
+                } else {
+                    countResult.error
+                })
             })
         }
 
