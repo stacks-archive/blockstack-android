@@ -237,7 +237,7 @@ class MainActivity : AppCompatActivity() {
         if (avatarImage != null) {
             // use whatever suits your app architecture best to asynchronously load the avatar
             // better use a image loading library than the code below
-            GlobalScope.async(Dispatcher.Main) {
+            GlobalScope.async(Dispatchers.Main) {
                 val avatar = bg {
                     try {
                         BitmapDrawable.createFromStream(URL(avatarImage).openStream(), "src")
