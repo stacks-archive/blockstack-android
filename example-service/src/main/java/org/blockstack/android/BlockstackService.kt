@@ -42,7 +42,7 @@ class BlockstackService : IntentService("BlockstackExample") {
         runOnV8Thread {
             _blockstackSession = BlockstackSession(this, defaultConfig, executor = object: Executor {
                 override fun onMainThread(function: (Context) -> Unit) {
-                    GlobalScope.launch(Dispatcher.Main) {
+                    GlobalScope.launch(Dispatchers.Main) {
                         function.invoke(applicationContext)
                     }
                 }
@@ -54,7 +54,7 @@ class BlockstackService : IntentService("BlockstackExample") {
                 }
 
                 override fun onNetworkThread(function: suspend () -> Unit) {
-                    GlobalScope.async(Dispatcher.IO) {
+                    GlobalScope.async(Dispatchers.IO) {
                         function.invoke()
                     }
                 }
