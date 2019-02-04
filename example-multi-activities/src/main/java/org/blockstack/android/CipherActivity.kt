@@ -11,6 +11,10 @@ import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_cipher.*
 import org.blockstack.android.sdk.*
+import org.blockstack.android.sdk.model.CryptoOptions
+import org.blockstack.android.sdk.model.GetFileOptions
+import org.blockstack.android.sdk.model.PutFileOptions
+import org.blockstack.android.sdk.model.UserData
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 

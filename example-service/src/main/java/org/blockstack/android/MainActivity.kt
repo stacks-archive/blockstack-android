@@ -12,7 +12,7 @@ import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.UserData
+import org.blockstack.android.sdk.model.UserData
 
 
 class MainActivity : AppCompatActivity() {

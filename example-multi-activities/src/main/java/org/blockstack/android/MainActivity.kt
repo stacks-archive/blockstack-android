@@ -15,7 +15,7 @@ import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.UserData
+import org.blockstack.android.sdk.model.UserData
 import org.jetbrains.anko.coroutines.experimental.bg
 import java.net.URL
 

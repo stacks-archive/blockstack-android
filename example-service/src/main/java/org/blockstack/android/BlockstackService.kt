@@ -16,10 +16,9 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
-import org.blockstack.android.sdk.AndroidExecutor
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.Executor
-import org.blockstack.android.sdk.PutFileOptions
+import org.blockstack.android.sdk.model.PutFileOptions
 
 
 class BlockstackService : IntentService("BlockstackExample") {

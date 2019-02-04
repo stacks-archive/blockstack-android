@@ -20,23 +20,30 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
 import org.blockstack.android.sdk.j2v8.LogConsole
+import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
 import java.security.InvalidParameterException
 import java.security.SecureRandom
+import java.text.SimpleDateFormat
 import java.util.*
+import java.util.Calendar.YEAR
 
+private val DEFAULT_BLOCKSTACK_HOST: String = "https://blockstack.org/auth"
 
 /**
- * Main object to interact with blockstack in an activity
+ * Main object to interact with blockstack in an activity or service
  *
- * The current implementation is a wrapper for blockstack.js using a WebView.
- * This means that methods must be called on the UI thread e.g. using
- * `runOnUIThread`
+ * The current implementation is a wrapper for blockstack.js using a j2v8 javascript engine.
  *
+ * @param context the context used to define shared preferences for storing session data, to locate resources for this SDK.
+ * Can be null if SessionStore, executor and scriptRepo is defined.
  * @param config the configuration for blockstack
- * @param onLoadedCallback the callback for when this object is ready to use
+ * @param sessionStore the location where session data should be stored. Defaults to the default shared preferences of the app using the SDK
+ * @param executor defines where functions of this SDK should be executed. Defaults to @see AndroidExecutor with given context
+ * @param scriptRepo required to locate this SDK's resources. Defaults to AndroidScriptRepo with given context.
+ * Can be AndroidScriptRepo with application context as well.
  */
 class BlockstackSession(context: Context? = null, private val config: BlockstackConfig,
                         /**
@@ -61,40 +68,56 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     private var signInCallback: ((Result<UserData>) -> Unit)? = null
     private val lookupProfileCallbacks = HashMap<String, ((Result<Profile>) -> Unit)>()
     private var validateProofsCallback: ((Result<ArrayList<Proof>>) -> Unit)? = null
+    private var resolveZoneFileToProfileCallback: ((Result<Profile>) -> Unit)? = null
     private val getFileCallbacks = HashMap<String, ((Result<Any>) -> Unit)>()
     private val putFileCallbacks = HashMap<String, ((Result<String>) -> Unit)>()
     private var getAppBucketUrlCallback: ((Result<String>) -> Unit)? = null
     private var getUserAppFileUrlCallback: ((Result<String>) -> Unit)? = null
+    private var listFilesCallback: ((Result<String>) -> Boolean)? = null
+    private var listFilesCountCallback: ((Result<Int>) -> Unit)? = null
 
-
-    private val v8blockstackAndroid: V8Object
+    internal val v8blockstackAndroid: V8Object
     private val v8userSessionAndroid: V8Object
+    private val v8networkAndroid: V8Object
     private val v8userSession: V8Object
+
+    /**
+     * Object that is used in this blockstack user session.
+     * It can be used already before the user is logged in.
+     */
+    val network: Network
+
+
     private val v8 = V8.createV8Runtime()
 
     init {
         registerConsoleMethods()
 
         v8.executeVoidScript(scriptRepo.globals())
-        v8.executeVoidScript(scriptRepo.blockstack());
-        v8.executeVoidScript(scriptRepo.base64());
-        v8.executeVoidScript(scriptRepo.blockstackAndroid());
+        v8.executeVoidScript(scriptRepo.blockstack())
+        v8.executeVoidScript(scriptRepo.base64())
+        v8.executeVoidScript(scriptRepo.zoneFile())
+        v8.executeVoidScript(scriptRepo.blockstackAndroid())
+
 
         v8blockstackAndroid = v8.getObject("blockstackAndroid")
         v8userSessionAndroid = v8.getObject("userSessionAndroid")
+        v8networkAndroid = v8.getObject("networkAndroid")
 
         registerCryptoMethods()
-        registerJSAndroidBridgeMethods(v8blockstackAndroid)
+        registerJSAndroidBridgeMethods(v8blockstackAndroid, v8userSessionAndroid)
 
         val scopesString = Scope.scopesArrayToJSONString(config.scopes)
         v8.executeVoidScript("var appConfig = new blockstack.AppConfig(${scopesString}, '${config.appDomain}', '${config.redirectPath}','${config.manifestPath}');var userSession = new blockstack.UserSession({appConfig:appConfig, sessionStore:androidSessionStore});")
         v8userSession = v8.getObject("userSession")
 
+        network = Network(v8networkAndroid, v8)
+
         loaded = true
     }
 
-    private fun registerJSAndroidBridgeMethods(v8blockstack: V8Object) {
-        val android = JSAndroidBridge(this, v8, v8blockstack)
+    private fun registerJSAndroidBridgeMethods(v8blockstackAndroid: V8Object, v8userSessionAndroid: V8Object) {
+        val android = JSAndroidBridge(this, v8, v8blockstackAndroid, v8userSessionAndroid)
         val v8android = V8Object(v8)
         v8.add("android", v8android)
 
@@ -102,6 +125,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8android.registerJavaMethod(android, "lookupProfileFailure", "lookupProfileFailure", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "validateProofsResult", "validateProofsResult", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "validateProofsFailure", "validateProofsFailure", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "resolveZoneFileToProfileResult", "resolveZoneFileToProfileResult", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "resolveZoneFileToProfileFailure", "resolveZoneFileToProfileFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "signInSuccess", "signInSuccess", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "signInFailure", "signInFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getSessionData", "getSessionData", arrayOf<Class<*>>())
@@ -114,7 +139,11 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8android.registerJavaMethod(android, "getAppBucketUrlResult", "getAppBucketUrlResult", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getAppBucketUrlFailure", "getAppBucketUrlFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
-        v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "getUserAppFileUrlFailure", "getUserAppFileUrlFailure", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "listFilesResult", "listFilesResult", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "listFilesFailure", "listFilesFailure", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "listFilesCountResult", "listFilesCountResult", arrayOf<Class<*>>(Int::class.java))
+        v8android.registerJavaMethod(android, "listFilesCountFailure", "listFilesCountFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "fetchAndroid", "fetchAndroid", arrayOf<Class<*>>(String::class.java, String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "setLocation", "setLocation", arrayOf<Class<*>>(String::class.java))
         v8android.release()
@@ -161,6 +190,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      */
     fun release() {
         v8userSession.release()
+        v8networkAndroid.release()
         v8userSessionAndroid.release()
         v8blockstackAndroid.release()
         v8.release()
@@ -183,23 +213,42 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      * Typically you'd use redirectToSignIn which takes care of this under the hood.
      *
      * @param transitPrivateKey hex encoded transit private key
-     * @param redirectPath location to redirect user to after sign in approval
-     * @param manifestPath location of this app's manifest file
-     * @param scopes the permissions this app is requesting
-     * @param appDomain the origin of this app
      * @param expiresAt the time at which this request is no longer valid
+     * @param extraParams key, value pairs that are transferred with the auth request,
+     * only Boolean and String values are supported
      */
-    fun makeAuthRequest(transitPrivateKey: String, redirectURI: String, manifestURI: String, scopes: Array<String>, appDomain: String, expiresAt: Number): String {
+    fun makeAuthRequest(transitPrivateKey: String, expiresAt: Number, extraParams: Map<String, Any>): String {
+        val v8ExtraParams = V8Object(v8)
+        for (extraParam in extraParams) {
+            if (extraParam.value is Boolean) {
+                v8ExtraParams.add(extraParam.key, extraParam.value as Boolean)
+            } else if (extraParam.value is String) {
+                v8ExtraParams.add(extraParam.key, extraParam.value as String)
+            } else {
+                throw InvalidParameterException("only Boolean and String values allowed")
+            }
+        }
         val v8params = V8Array(v8)
                 .push(transitPrivateKey)
-                .push(redirectURI)
-                .push(manifestURI)
-                .push(scopes)
-                .push(appDomain)
                 .push(expiresAt)
-        val result = v8blockstackAndroid.executeStringFunction("makeAuthRequest", v8params)
+                .push(v8ExtraParams)
+        val result = v8userSession.executeStringFunction("makeAuthRequest", v8params)
         v8params.release()
+        v8ExtraParams.release()
         return result
+    }
+
+    /**
+     * Generates a ECDSA keypair to use as the ephemeral app transit private key
+     * and stores the hex value of the private key in the session storage.
+     *
+     * @return the hex encoded private key
+     */
+    fun generateAndStoreTransitKey(): String {
+        val v8params = V8Array(v8)
+        val key = v8userSession.executeStringFunction("generateAndStoreTransitKey", v8params)
+        v8params.release()
+        return key
     }
 
     /**
@@ -230,6 +279,28 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             val v8params = V8Array(v8)
                     .push(nameLookupUrl)
             v8userSession.executeVoidFunction("redirectToSignIn", v8params)
+            v8params.release()
+        } catch (e: Exception) {
+            errorCallback(Result(null, e.toString()))
+        }
+    }
+
+    /**
+     * Redirects the user to the Blockstack browser to approve the sign in request given.
+     *
+     * The user is redirected to the blockstackIDHost if the blockstack: protocol handler is not detected.
+     * Please note that the protocol handler detection does not work on all browsers.
+     *
+     * @param authRequest the authentication request generated by makeAuthRequest
+     * @param blockstackIDHost    the URL to redirect the user to if the blockstack protocol handler is not detected
+     */
+    fun redirectToSignInWithAuthRequest(authRequest: String, blockstackIDHost: String = DEFAULT_BLOCKSTACK_HOST,
+                                        errorCallback: (Result<Unit>) -> Unit) {
+        try {
+            val v8params = V8Array(v8)
+                    .push(authRequest)
+                    .push(blockstackIDHost)
+            v8userSession.executeVoidFunction("redirectToSignInWithAuthRequest", v8params)
             v8params.release()
         } catch (e: Exception) {
             errorCallback(Result(null, e.toString()))
@@ -307,7 +378,168 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         params.release()
     }
 
+
+    /**
+     * Extracts a profile from an encoded token and optionally verifies it,
+     * if publicKeyOrAddress is provided.
+     * @param token the token to be decoded
+     * @param publicKeyOrAddress the public key or address of the keypair that is thought to have signed the token
+     * @return the profile extracted from the encoded token
+     * @throws Exception if token verification fails
+     */
+    fun extractProfile(token: String, publicKeyOrAddress: String? = null): ProfileToken {
+        val params = V8Array(v8)
+                .push(token)
+        if (publicKeyOrAddress != null) {
+            params.push(publicKeyOrAddress)
+        }
+        try {
+            val decodedToken = v8blockstackAndroid.executeStringFunction("extractProfile", params)
+            return ProfileToken(JSONObject(decodedToken))
+        } catch (e: Exception) {
+            Log.d(TAG, e.toString(), e)
+            throw e
+        } finally {
+            params.release()
+        }
+    }
+
+    /**
+     * Wraps a token for a profile token file
+     * @param token the token to be decoded and wrapped
+     * @return pair of encoded and decoded Token
+     */
+    fun wrapProfileToken(token: String): ProfileTokenPair {
+        val params = V8Array(v8)
+                .push(token)
+        try {
+            val decodedToken = v8blockstackAndroid.executeStringFunction("wrapProfileToken", params)
+            return ProfileTokenPair(JSONObject(decodedToken))
+        } catch (e: Exception) {
+            Log.d(TAG, e.toString(), e)
+            throw e
+        } finally {
+            params.release()
+        }
+    }
+
+    /**
+     * Signs a profile token
+     * @param profile the profile to be signed
+     * @param privateKey the signing private key
+     * @param subject the entity that the information is about
+     * @param issuer the entity that is issuing the token
+     * @param signingAlgorithm the signing algorithm to use, defaults to 'ES256K'
+     * @param issuedAt the time of issuance of the token, defaults to now
+     * @param expiresAt the time of expiration of the token, defaults to next year
+     * @return the signed profile token
+     */
+    fun signProfileToken(profile: Profile, privateKey: String, subject: Entity, issuer: Entity, signingAlgorithm: SigningAlgorithm = SigningAlgorithm.ES256K, issuedAt: Date = Date(), expiresAt: Date = nextYear()): ProfileTokenPair {
+        val params = V8Array(v8)
+                .push(profile.json.toString())
+                .push(privateKey)
+                .push(subject.json.toString())
+                .push(issuer.json.toString())
+                .push(signingAlgorithm.algorithmName)
+                .push(issuedAt.toZuluTime())
+                .push(expiresAt.toZuluTime())
+
+        try {
+            val signedToken = v8blockstackAndroid.executeStringFunction("signProfileToken", params)
+            return wrapProfileToken(signedToken)
+        } catch (e: Exception) {
+            Log.d(TAG, e.toString(), e)
+            throw e
+        } finally {
+            params.release()
+        }
+    }
+
+    private fun nextYear(): Date {
+        val calendar = java.util.GregorianCalendar.getInstance()
+        calendar.set(YEAR, calendar.get(YEAR) + 1)
+        return calendar.time
+    }
+
+    /**
+     * Verifies a profile token.
+     * @param token the token to be verified
+     * @param publicKeyOrAddress the public key or address of the keypair that is thought to have signed the token
+     * @return the verified, decoded profile token
+     * @throws Exception if token verification fails
+     */
+    fun verifyProfileToken(token: String, publicKeyOrAddress: String): ProfileToken {
+        val params = V8Array(v8)
+                .push(token)
+                .push(publicKeyOrAddress)
+        try {
+            val decodedToken = v8blockstackAndroid.executeStringFunction("verifyProfileToken", params)
+            return ProfileToken(JSONObject(decodedToken))
+        } catch (e: Exception) {
+            Log.d(TAG, e.toString(), e)
+            throw e
+        } finally {
+            params.release()
+        }
+    }
+
+    /**
+     * Parses zone file content.
+     * @param zoneFileContent content of the zone file
+     * @return the zone file object
+     */
+    fun parseZoneFile(zoneFileContent: String): ZoneFile {
+        val params = V8Array(v8)
+                .push(zoneFileContent)
+        try {
+            val zoneFile = v8blockstackAndroid.executeStringFunction("parseZoneFile", params)
+            return ZoneFile(JSONObject(zoneFile))
+        } catch (e: Exception) {
+            Log.d(TAG, e.toString(), e)
+            throw e
+        } finally {
+            params.release()
+        }
+    }
+
+    /**
+     * Parses zone file content and converts to profile
+     * @param zoneFileContent content of the zone file
+     * @return the zone file object
+     */
+    fun resolveZoneFileToProfile(zoneFileContent: String, publicKeyOrAddress: String? = null, callback: (Result<Profile>) -> Unit) {
+        resolveZoneFileToProfileCallback = callback
+        val params = V8Array(v8)
+                .push(zoneFileContent)
+        if (publicKeyOrAddress != null) {
+            params.push(publicKeyOrAddress)
+        }
+        try {
+            v8blockstackAndroid.executeVoidFunction("resolveZoneFileToProfile", params)
+        } catch (e: Exception) {
+            Log.d(TAG, e.toString(), e)
+            throw e
+        } finally {
+            params.release()
+        }
+    }
+
     /* Public storage methods */
+
+    /**
+     * List the set of files in this application's Gaia storage bucket.
+     *
+     * @property callback invoked on each named file, should return true to continue the listing
+     * operation or false to end it
+     * @property countCallback called after the list operation with the number of files that
+     * were listed (not necessarily the total number of files, e.g. if aborted early)
+     */
+    fun listFiles(callback: (Result<String>) -> Boolean, countCallback: (Result<Int>) -> Unit) {
+        Log.d(TAG, "listFiles")
+        listFilesCallback = callback
+        listFilesCountCallback = countCallback
+        v8userSessionAndroid.executeVoidFunction("listFiles", null)
+    }
 
     /**
      * Retrieves the specified file from the app's data store.
@@ -488,7 +720,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
 
     @Suppress("unused")
-    private class JSAndroidBridge(private val blockstackSession: BlockstackSession, private val v8: V8, private val v8blockstackAndroid: V8Object) {
+    private class JSAndroidBridge(private val blockstackSession: BlockstackSession, private val v8: V8, private val v8blockstackAndroid: V8Object, private val v8userSessionAndroid: V8Object) {
 
         private val httpClient = OkHttpClient()
 
@@ -518,6 +750,15 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         fun validateProofsFailure(error: String) {
             blockstackSession.validateProofsCallback?.invoke(Result(null, error))
+        }
+
+        fun resolveZoneFileToProfileResult(profileString: String) {
+            val profile = Profile(JSONObject(profileString))
+            blockstackSession.resolveZoneFileToProfileCallback?.invoke(Result(profile))
+        }
+
+        fun resolveZoneFileToProfileFailure(error: String) {
+            blockstackSession.resolveZoneFileToProfileCallback?.invoke(Result(null, error))
         }
 
         fun lookupProfileResult(username: String, userDataString: String) {
@@ -566,8 +807,28 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             blockstackSession.getUserAppFileUrlCallback?.invoke(Result(url))
         }
 
-        fun getUserAppFileUrlFailre(error: String) {
+        fun getUserAppFileUrlFailure(error: String) {
             blockstackSession.getAppBucketUrlCallback?.invoke(Result(null, error))
+        }
+
+        fun listFilesResult(url: String) {
+            val cont = blockstackSession.listFilesCallback?.invoke(Result(url))
+            val params = V8Array(v8)
+            params.push(cont)
+            v8userSessionAndroid.executeVoidFunction("listFilesCallback", params)
+            params.release()
+        }
+
+        fun listFilesFailure(error: String) {
+            blockstackSession.listFilesCallback?.invoke(Result(null, error))
+        }
+
+        fun listFilesCountResult(count: Int) {
+            blockstackSession.listFilesCountCallback?.invoke(Result(count))
+        }
+
+        fun listFilesCountFailure(error: String) {
+            blockstackSession.listFilesCountCallback?.invoke(Result(null, error))
         }
 
         fun getSessionData(): String {
@@ -582,7 +843,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             return blockstackSession.sessionStore.deleteSessionData()
         }
 
-        fun fetchAndroid(url: String, optionsString: String, keyForFetchUrl:String) {
+        fun fetchAndroid(url: String, optionsString: String, keyForFetchUrl: String) {
             val options = JSONObject(optionsString)
 
             val builder = Request.Builder()
@@ -641,12 +902,26 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     }
 }
 
-interface Executor {
-    fun onMainThread(function: (Context) -> Unit)
-    fun onV8Thread(function: () -> Unit)
-    fun onNetworkThread(function: suspend () -> Unit)
+private val zuluFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZ", Locale.US)
+private fun Date.toZuluTime(): String {
+    return zuluFormatter.format(this)
 }
 
+/**
+ * Executor defines where functions are executed. Three different cases are distinguished:
+ * 1. main thread: to start an intent launching the login process. This has to be the UI thread.
+ * 1. network thread: to make network calls. This must not be the UI thread, it is usually a thread from CommonPool.
+ * 1. v8 thread: to continue after network calls. This must be on the thread that is currently used by the j2v8 engine.
+ */
+interface Executor {
+    fun onMainThread(function: (Context) -> Unit)
+    fun onNetworkThread(function: suspend () -> Unit)
+    fun onV8Thread(function: () -> Unit)
+}
+
+/**
+ * Standard executor for using Blockstack session in an activity.
+ */
 class AndroidExecutor(private val ctx: Context) : Executor {
     private val TAG = AndroidExecutor::class.simpleName
     override fun onMainThread(function: (ctx: Context) -> Unit) {
@@ -674,19 +949,30 @@ class AndroidExecutor(private val ctx: Context) : Executor {
 
 }
 
+/**
+ * Repository to access script files used for this SDK
+ * Application developers should use {@Link AndroidScriptRepo}
+ */
 interface ScriptRepo {
     fun globals(): String
     fun blockstack(): String
     fun base64(): String
+    fun zoneFile(): String
     fun blockstackAndroid(): String
 
 }
 
+/**
+ * Repository that provides script files for this SDK from the resources
+ *
+ * @param context can also be the application context
+ */
 class AndroidScriptRepo(private val context: Context) : ScriptRepo {
-    override fun globals() = context.resources.openRawResource(R.raw.globals).bufferedReader().use { it.readText() }
-    override fun blockstack() = context.resources.openRawResource(R.raw.blockstack).bufferedReader().use { it.readText() }
-    override fun base64() = context.resources.openRawResource(R.raw.base64).bufferedReader().use { it.readText() }
-    override fun blockstackAndroid() = context.resources.openRawResource(R.raw.blockstack_android).bufferedReader().use { it.readText() }
+    override fun globals() = context.resources.openRawResource(R.raw.org_blockstack_globals).bufferedReader().use { it.readText() }
+    override fun blockstack() = context.resources.openRawResource(R.raw.org_blockstack_blockstack).bufferedReader().use { it.readText() }
+    override fun base64() = context.resources.openRawResource(R.raw.org_blockstack_base64).bufferedReader().use { it.readText() }
+    override fun zoneFile() = context.resources.openRawResource(R.raw.org_blockstack_zone_file).bufferedReader().use { it.readText() }
+    override fun blockstackAndroid() = context.resources.openRawResource(R.raw.org_blockstack_blockstack_android).bufferedReader().use { it.readText() }
 }
 
 private fun Response.toJSONString(): String {
