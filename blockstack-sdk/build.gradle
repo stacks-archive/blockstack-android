@@ -5,11 +5,11 @@ apply plugin: 'org.jetbrains.dokka-android'
 group = 'com.github.blockstack'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 2
         versionName "0.2.0"
 
@@ -38,7 +38,6 @@ dokka {
 
 dependencies {
     implementation 'com.eclipsesource.j2v8:j2v8:4.8.2@aar'
-    implementation "org.jetbrains.anko:anko-coroutines:$anko_version"
     implementation 'com.android.support:customtabs:27.1.1'
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.squareup.okhttp3:okhttp:3.11.0'

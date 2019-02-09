@@ -15,13 +15,13 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
 import org.blockstack.android.sdk.model.UserData
 import org.blockstack.android.sdk.model.toBlockstackConfig
-import org.jetbrains.anko.coroutines.experimental.bg
 import java.io.ByteArrayOutputStream
 import java.net.URL
 import java.util.*
@@ -289,15 +289,15 @@ class MainActivity : AppCompatActivity() {
         if (avatarImage != null) {
             // use whatever suits your app architecture best to asynchronously load the avatar
             // better use a image loading library than the code below
-            GlobalScope.async(Dispatchers.Main) {
-                val avatar = bg {
+            GlobalScope.launch(Dispatchers.Main) {
+                val avatar = withContext(Dispatchers.IO) {
                     try {
                         BitmapDrawable.createFromStream(URL(avatarImage).openStream(), "src")
                     } catch (e: Exception) {
                         Log.d(TAG, e.toString())
                         null
                     }
-                }.await()
+                }
                 avatarView.setImageDrawable(avatar)
             }
         } else {

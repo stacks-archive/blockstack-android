@@ -273,7 +273,7 @@ class BlockstackSessionStorageTest {
     fun listFilesCanHandleErrorInCallback() {
         val latch = CountDownLatch(1)
         var countResult: Result<Int>? = null
-        session.listFiles({ fileResult ->
+        session.listFiles({ _ ->
             throw RuntimeException("I want to make the API crash!")
         }, {
             countResult = it

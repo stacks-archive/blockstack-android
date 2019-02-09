@@ -5,7 +5,7 @@ import android.preference.PreferenceManager
 import android.support.test.rule.ActivityTestRule
 import android.support.test.runner.AndroidJUnit4
 import android.util.Log
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.blockstack.android.sdk.model.BlockstackConfig
 import org.blockstack.android.sdk.model.Profile
 import org.blockstack.android.sdk.model.Proof

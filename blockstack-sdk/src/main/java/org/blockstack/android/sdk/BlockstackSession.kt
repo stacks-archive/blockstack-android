@@ -14,7 +14,6 @@ import com.eclipsesource.v8.V8TypedArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.async
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -937,7 +936,7 @@ class AndroidExecutor(private val ctx: Context) : Executor {
     }
 
     override fun onNetworkThread(function: suspend () -> Unit) {
-        GlobalScope.async(Dispatchers.IO) {
+        GlobalScope.launch(Dispatchers.IO) {
             try {
                 function()
             } catch (e: Exception) {
