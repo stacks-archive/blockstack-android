@@ -17,9 +17,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import org.blockstack.android.sdk.*
+import org.blockstack.android.sdk.model.GetFileOptions
+import org.blockstack.android.sdk.model.PutFileOptions
+import org.blockstack.android.sdk.model.UserData
+import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.jetbrains.anko.coroutines.experimental.bg
 import java.io.ByteArrayOutputStream
 import java.net.URL
+import java.util.*
+
+private const val username = "dev_android_sdk.id.blockstack";
 
 @SuppressLint("SetTextI18n")
 class MainActivity : AppCompatActivity() {
@@ -50,10 +57,21 @@ class MainActivity : AppCompatActivity() {
         putImageFileButton.isEnabled = false
         getStringFileFromUserButton.isEnabled = false
         getAppBucketUrlButton.isEnabled = false
+        listFilesButton.isEnabled = false
 
 
         signInButton.setOnClickListener { _: View ->
             blockstackSession().redirectUserToSignIn { errorResult ->
+                if (errorResult.hasErrors) {
+                    Toast.makeText(this, "error: " + errorResult.error, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        signInButtonWithGaia.setOnClickListener { _: View ->
+            val key = blockstackSession().generateAndStoreTransitKey()
+            val authRequest = blockstackSession().makeAuthRequest(key, Date(System.currentTimeMillis() + 3600000).time, mapOf(Pair("solicitGaiaHubUrl", true)))
+            blockstackSession().redirectToSignInWithAuthRequest(authRequest) { errorResult ->
                 if (errorResult.hasErrors) {
                     Toast.makeText(this, "error: " + errorResult.error, Toast.LENGTH_SHORT).show()
                 }
@@ -149,7 +167,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         getStringFileFromUserButton.setOnClickListener { _ ->
-            val username = "dev_android_sdk.id.blockstack";
+
             val zoneFileLookupUrl = URL("https://core.blockstack.org/v1/names")
             fileFromUserContentsTextView.text = "Downloading file from other user..."
             blockstackSession().lookupProfile(username, zoneFileLookupURL = zoneFileLookupUrl) { profileResult ->
@@ -200,12 +218,45 @@ class MainActivity : AppCompatActivity() {
 
         getUserAppFileUrlButton.setOnClickListener { _ ->
             getUserAppFileUrlText.text = "Getting url ..."
-            val username = "dev_android_sdk.id.blockstack";
             val zoneFileLookupUrl = "https://core.blockstack.org/v1/names"
             blockstackSession().getUserAppFileUrl(textFileName, username, "https://flamboyant-darwin-d11c17.netlify.com", zoneFileLookupUrl) {
                 runOnUiThread {
                     getUserAppFileUrlText.text = if (it.hasValue) {
                         it.value
+                    } else {
+                        it.error
+                    }
+                }
+            }
+        }
+
+        listFilesButton.setOnClickListener {
+            listFilesText.text = "...."
+            blockstackSession().listFiles({ urlResult ->
+                if (urlResult.hasValue) {
+                    if (listFilesText.text === "....") {
+                        listFilesText.text = urlResult.value
+                    } else {
+                        listFilesText.text = listFilesText.text.toString() + "\n" + urlResult.value
+                    }
+                }
+                true
+            }, { countResult ->
+                Log.d(TAG, "files count " + if (countResult.hasValue) {
+                    countResult.value
+                } else {
+                    countResult.error
+                })
+            })
+        }
+
+        getNameInfoButton.setOnClickListener { _ ->
+            getNameInfoText.text = "Getting info ..."
+            blockstackSession().network.getNameInfo(username) {
+                runOnUiThread {
+                    Log.d(TAG, it.value?.json.toString())
+                    getNameInfoText.text = if (it.hasValue) {
+                        it.value?.json.toString()
                     } else {
                         it.error
                     }
@@ -231,6 +282,7 @@ class MainActivity : AppCompatActivity() {
         getImageFileButton.isEnabled = true
         getStringFileFromUserButton.isEnabled = true
         getAppBucketUrlButton.isEnabled = true
+        listFilesButton.isEnabled = true
     }
 
     private fun showUserAvatar(avatarImage: String?) {

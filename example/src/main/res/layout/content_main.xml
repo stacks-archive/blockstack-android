@@ -12,12 +12,22 @@
         android:id="@+id/signInButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/userDataTextView"
+        app:layout_constraintBottom_toTopOf="@+id/signInButtonWithGaia"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         />
 
+    <org.blockstack.android.sdk.ui.BlockstackSignInButton
+        android:id="@+id/signInButtonWithGaia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sign in With Solicit Gaia"
+        app:layout_constraintBottom_toTopOf="@+id/userDataTextView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/userDataTextView"
+        />
     <ImageView
         android:id="@+id/avatarView"
         android:layout_width="24dp"
@@ -175,5 +185,39 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/getUserAppFileUrlButton"/>
+
+    <Button
+        android:id="@+id/listFilesButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="List files"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/getUserAppFileUrlText"/>
+
+    <TextView
+        android:id="@+id/listFilesText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/listFilesButton"/>
+
+    <Button
+        android:id="@+id/getNameInfoButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get name info of android_sdk_dev"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/listFilesText"/>
+
+    <TextView
+        android:id="@+id/getNameInfoText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/getNameInfoButton"/>
 
 </android.support.constraint.ConstraintLayout>

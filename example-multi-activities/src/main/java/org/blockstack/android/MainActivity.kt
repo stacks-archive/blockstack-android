@@ -16,7 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.UserData
+import org.blockstack.android.sdk.model.UserData
 import org.jetbrains.anko.coroutines.experimental.bg
 import java.net.URL
 
