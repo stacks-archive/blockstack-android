@@ -1,7 +1,6 @@
 package org.blockstack.android.sdk.model
 
 import org.json.JSONObject
-import java.net.URL
 
 /**
  * An object to configure options for `putFile` operations.

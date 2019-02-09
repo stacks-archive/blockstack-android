@@ -2,9 +2,9 @@ package org.blockstack.android.sdk;
 
 import android.content.Context
 import android.preference.PreferenceManager
-import android.support.test.rule.ActivityTestRule
-import android.support.test.runner.AndroidJUnit4
 import android.util.Log
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.ActivityTestRule
 import kotlinx.coroutines.runBlocking
 import org.blockstack.android.sdk.model.BlockstackConfig
 import org.blockstack.android.sdk.model.Profile

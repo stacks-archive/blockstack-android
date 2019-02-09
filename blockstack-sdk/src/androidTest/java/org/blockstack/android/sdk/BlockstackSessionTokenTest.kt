@@ -1,7 +1,7 @@
 package org.blockstack.android.sdk;
 
-import android.support.test.rule.ActivityTestRule
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.ActivityTestRule
 import com.eclipsesource.v8.V8ScriptExecutionException
 import org.blockstack.android.sdk.model.Entity
 import org.blockstack.android.sdk.model.Profile
@@ -115,7 +115,7 @@ class BlockstackSessionTokenTest {
 
     @Test
     fun signProfileTokenReturnsSignedToken() {
-        val tokenPair  = session.signProfileToken(Profile(JSONObject(TOKEN_PROFILE_CONTENT)), PRIVATE_KEY, Entity.withKey(TOKEN_PUBLIC_KEY), Entity.withKey(TOKEN_PUBLIC_KEY_2), SigningAlgorithm.ES256K)
+        val tokenPair = session.signProfileToken(Profile(JSONObject(TOKEN_PROFILE_CONTENT)), PRIVATE_KEY, Entity.withKey(TOKEN_PUBLIC_KEY), Entity.withKey(TOKEN_PUBLIC_KEY_2), SigningAlgorithm.ES256K)
         assertThat(tokenPair.decodedToken?.signature, notNullValue())
     }
 }

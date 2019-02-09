@@ -8,15 +8,13 @@ import android.content.Intent
 import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
-import android.support.v4.app.NotificationCompat
-import android.support.v4.app.NotificationManagerCompat
-import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
-import org.blockstack.android.sdk.AndroidExecutor
+import kotlinx.coroutines.launch
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.Executor
 import org.blockstack.android.sdk.model.PutFileOptions
@@ -27,7 +25,7 @@ class BlockstackService : IntentService("BlockstackExample") {
     private val TAG: String = "BlockstackService"
     private val CHANNEL_ID = "progress"
     private lateinit var _blockstackSession: BlockstackSession
-    private lateinit var handlerThread:HandlerThread
+    private lateinit var handlerThread: HandlerThread
     private lateinit var handler: Handler
 
     override fun onCreate() {
@@ -40,7 +38,7 @@ class BlockstackService : IntentService("BlockstackExample") {
 
     override fun onHandleIntent(intent: Intent?) {
         runOnV8Thread {
-            _blockstackSession = BlockstackSession(this, defaultConfig, executor = object: Executor {
+            _blockstackSession = BlockstackSession(this, defaultConfig, executor = object : Executor {
                 override fun onMainThread(function: (Context) -> Unit) {
                     GlobalScope.launch(Dispatchers.Main) {
                         function.invoke(applicationContext)
@@ -101,7 +99,7 @@ class BlockstackService : IntentService("BlockstackExample") {
                         .build()
 
                 NotificationManagerCompat.from(this).notify(0, notif2)
-                LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(ACTION_DONE))
+                androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(ACTION_DONE))
             }
         } else {
             val notif = NotificationCompat.Builder(this, CHANNEL_ID)

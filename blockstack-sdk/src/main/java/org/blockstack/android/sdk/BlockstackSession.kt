@@ -4,9 +4,10 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.preference.PreferenceManager
-import android.support.customtabs.CustomTabsIntent
 import android.util.Base64
 import android.util.Log
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.content.ContextCompat
 import com.eclipsesource.v8.V8
 import com.eclipsesource.v8.V8Array
 import com.eclipsesource.v8.V8Object
@@ -891,8 +892,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                 options.inScaled = true
                 val backButton = BitmapFactory.decodeResource(it.resources, R.drawable.ic_arrow_back, options);
                 builder.setCloseButtonIcon(backButton)
-                builder.setToolbarColor(it.resources.getColor(R.color.org_blockstack_purple_50_logos_types))
-                builder.setToolbarColor(it.resources.getColor(R.color.org_blockstack_purple_85_lines))
+                builder.setToolbarColor(ContextCompat.getColor(it, R.color.org_blockstack_purple_50_logos_types))
+                builder.setToolbarColor(ContextCompat.getColor(it, R.color.org_blockstack_purple_85_lines))
                 builder.setShowTitle(true)
                 val customTabsIntent = builder.build()
                 customTabsIntent.launchUrl(it, Uri.parse(location))

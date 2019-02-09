@@ -5,11 +5,11 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View.GONE
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.Dispatchers
@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
             val userData = blockstackSession().loadUserData()
             runOnUiThread {
                 if (userData != null) {
-                    onSignIn(userData!!)
+                    onSignIn(userData)
                 }
             }
         }
@@ -129,7 +129,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun blockstackSession(): BlockstackSession {
+    private fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
         if (session != null) {
             return session

@@ -5,17 +5,16 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_cipher.*
-import org.blockstack.android.sdk.*
+import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
-import org.blockstack.android.sdk.model.UserData
-import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 
 val TAG = CipherActivity::class.java.simpleName
@@ -31,8 +30,6 @@ class CipherActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        Log.d(TAG, "json " + intent.getStringExtra("json"))
-        val userData = UserData(JSONObject(intent.getStringExtra("json")))
         _blockstackSession = BlockstackSession(this, defaultConfig)
     }
 
@@ -66,7 +63,7 @@ class CipherActivity : AppCompatActivity() {
     }
 
     private fun putFileGetFileImage() {
-        val drawable: BitmapDrawable = resources.getDrawable(R.drawable.default_avatar) as BitmapDrawable
+        val drawable: BitmapDrawable = ContextCompat.getDrawable(this, R.drawable.default_avatar) as BitmapDrawable
 
         val bitmap = drawable.getBitmap()
         val stream = ByteArrayOutputStream()
@@ -81,9 +78,9 @@ class CipherActivity : AppCompatActivity() {
             blockstackSession().getFile("try.txt", GetFileOptions(true)) {
                 val plainContent: ByteArray = it.value as ByteArray
                 val imageByteArray = plainContent
-                val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+                val receivedBitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
                 runOnUiThread {
-                    imageView.setImageBitmap(bitmap)
+                    imageView.setImageBitmap(receivedBitmap)
                 }
             }
         }
@@ -115,7 +112,7 @@ class CipherActivity : AppCompatActivity() {
 
     fun encryptDecryptImage() {
 
-        val drawable: BitmapDrawable = resources.getDrawable(R.drawable.default_avatar) as BitmapDrawable
+        val drawable: BitmapDrawable = ContextCompat.getDrawable(this, R.drawable.default_avatar) as BitmapDrawable
 
         val bitmap = drawable.getBitmap()
         val stream = ByteArrayOutputStream()
@@ -134,9 +131,9 @@ class CipherActivity : AppCompatActivity() {
                 Log.d(TAG, "decrypted " + plainContentResult.toString())
                 val plainContent: ByteArray = plainContentResult.value as ByteArray
                 val imageByteArray = plainContent
-                val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+                val receivedBitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
                 runOnUiThread {
-                    imageView.setImageBitmap(bitmap)
+                    imageView.setImageBitmap(receivedBitmap)
                 }
             } else {
                 Toast.makeText(this, "error: " + plainContentResult.error, Toast.LENGTH_SHORT).show()
