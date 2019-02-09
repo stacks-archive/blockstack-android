@@ -11,10 +11,10 @@ import com.eclipsesource.v8.V8
 import com.eclipsesource.v8.V8Array
 import com.eclipsesource.v8.V8Object
 import com.eclipsesource.v8.V8TypedArray
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -925,19 +925,19 @@ interface Executor {
 class AndroidExecutor(private val ctx: Context) : Executor {
     private val TAG = AndroidExecutor::class.simpleName
     override fun onMainThread(function: (ctx: Context) -> Unit) {
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Main) {
             function(ctx)
         }
     }
 
     override fun onV8Thread(function: () -> Unit) {
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Main) {
             function()
         }
     }
 
     override fun onNetworkThread(function: suspend () -> Unit) {
-        async(CommonPool) {
+        GlobalScope.async(Dispatchers.IO) {
             try {
                 function()
             } catch (e: Exception) {
