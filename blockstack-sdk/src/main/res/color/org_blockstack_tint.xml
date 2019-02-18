@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_pressed="true"
-          android:color="@color/org_blockstack_purple_85_lines"/>
-    <item android:state_selected="true"
-          android:color="@color/org_blockstack_purple_85_lines"/>
-    <item android:state_focused="true"
-          android:color="@color/org_blockstack_purple_80"/>
-    <item android:state_enabled="false"
-          android:color="@color/org_blockstack_purple_50_logos_types"/>
-    <item android:color="@color/org_blockstack_purple_110_bg"/>
+    <item android:color="@color/org_blockstack_purple_85_lines" android:state_pressed="true" />
+    <item android:color="@color/org_blockstack_purple_85_lines" android:state_selected="true" />
+    <item android:color="@color/org_blockstack_purple_80" android:state_focused="true" />
+    <item android:color="@color/org_blockstack_purple_50_logos_types" android:state_enabled="false" />
+    <item android:color="@color/org_blockstack_purple_110_bg" />
 </selector>

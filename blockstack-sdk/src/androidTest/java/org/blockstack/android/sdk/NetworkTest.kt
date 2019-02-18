@@ -1,8 +1,8 @@
 package org.blockstack.android.sdk
 
-import android.support.test.rule.ActivityTestRule
-import android.support.test.runner.AndroidJUnit4
 import android.util.Log
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.ActivityTestRule
 import org.blockstack.android.sdk.model.network.AccountStatus
 import org.blockstack.android.sdk.model.network.Denomination
 import org.blockstack.android.sdk.model.network.NameInfo

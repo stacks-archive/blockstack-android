@@ -6,13 +6,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.support.v4.content.LocalBroadcastManager
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.model.UserData
 
 
 class MainActivity : AppCompatActivity() {
@@ -36,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         val signedIn = _blockstackSession?.isUserSignedIn()
         if (signedIn!!) {
             val userData = _blockstackSession?.loadUserData()
-            userData?.let { onSignIn(it) }
+            userData?.let { onSignIn() }
         } else {
             signInButton.isEnabled = true
             startServiceButton.isEnabled = false
@@ -73,14 +71,14 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
-        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, IntentFilter(BlockstackService.ACTION_DONE))
+        androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, IntentFilter(BlockstackService.ACTION_DONE))
     }
 
     private fun onUploadDone() {
         startServiceButton.isEnabled = true
     }
 
-    private fun onSignIn(userData: UserData) {
+    private fun onSignIn() {
         signInButton.isEnabled = false
         startServiceButton.isEnabled = true
         signOutButton.isEnabled = true
@@ -94,7 +92,7 @@ class MainActivity : AppCompatActivity() {
             val userData = blockstackSession().loadUserData()
             runOnUiThread {
                 if (userData != null) {
-                    onSignIn(userData)
+                    onSignIn()
                 }
             }
         } else if (intent?.action == Intent.ACTION_VIEW) {
@@ -104,18 +102,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleAuthResponse(intent: Intent) {
         val response = intent.dataString
-        Log.d(TAG, "response ${response}")
+        Log.d(TAG, "response $response")
         if (response != null) {
             val authResponseTokens = response.split(':')
 
             if (authResponseTokens.size > 1) {
                 val authResponse = authResponseTokens[1]
-                Log.d(TAG, "authResponse: ${authResponse}")
+                Log.d(TAG, "authResponse: $authResponse")
                 blockstackSession().handlePendingSignIn(authResponse) { result ->
                     Log.d(TAG, "signed in?" + result.hasValue)
                     if (result.hasValue) {
                         runOnUiThread {
-                            onSignIn(result.value!!)
+                            onSignIn()
                         }
                     }
                 }
@@ -123,7 +121,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun blockstackSession(): BlockstackSession {
+    private fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
         if (session != null) {
             return session
