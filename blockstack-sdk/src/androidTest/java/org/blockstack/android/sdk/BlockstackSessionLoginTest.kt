@@ -49,6 +49,15 @@ class BlockstackSessionLoginTest() {
 
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         betaSession.redirectUserToSignIn {}
+
+        val tandcButton = device.findObject(UiSelector().text("ACCEPT & CONTINUE"))
+        if (tandcButton.exists()) {
+            tandcButton.click()
+        }
+        val accountButton = device.findObject(UiSelector().text("NO THANKS"))
+        if (accountButton.exists()) {
+            accountButton.click()
+        }
         val betaBrowserLabel = device.findObject(UiSelector().text("https://beta-browser.blockstack.org"))
         assertThat(betaBrowserLabel.exists(), `is`(true))
         device.pressBack()
