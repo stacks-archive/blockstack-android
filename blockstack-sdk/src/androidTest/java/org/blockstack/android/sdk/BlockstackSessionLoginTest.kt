@@ -58,7 +58,7 @@ class BlockstackSessionLoginTest() {
         if (accountButton.exists()) {
             accountButton.click()
         }
-        val betaBrowserLabel = device.findObject(UiSelector().text("https://beta-browser.blockstack.org"))
+        val betaBrowserLabel = device.findObject(UiSelector().text("https://beta.browser.blockstack.org"))
         assertThat(betaBrowserLabel.exists(), `is`(true))
         device.pressBack()
     }
