@@ -31,7 +31,7 @@ import java.util.*
 import java.util.Calendar.YEAR
 
 private val DEFAULT_BLOCKSTACK_HOST: String = "https://browser.blockstack.org/auth"
-private val DEFAULT_BETA_BLOCKSTACK_HOST: String = "https://beta-browser.blockstack.org/auth"
+private val DEFAULT_BETA_BLOCKSTACK_HOST: String = "https://beta.browser.blockstack.org/auth"
 
 /**
  * Main object to interact with blockstack in an activity or service
