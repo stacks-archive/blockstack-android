@@ -11,10 +11,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [0.4.4] - unpublished
+## [0.4.4] - 2019-03-08
 
 ### Added
-- `betaMode` flag in constructor of `BlockstackSession`
+- `betaMode` flag in constructor of `BlockstackSession` to enable auth with beta.browser.blockstack.org
 
 ## [0.4.3] - 2019-02-01
 
