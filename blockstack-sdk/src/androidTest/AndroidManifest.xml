@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="org.blockstack.android.sdk.test">
-    <uses-permission android:name="android.permission.INTERNET"/>
+    package="org.blockstack.android.sdk.test">
+
+    <uses-permission android:name="android.permission.INTERNET" />
     <application>
         <activity
             android:name=".TestActivity"
-            android:theme="@style/Theme.AppCompat"/>
+            android:theme="@style/Theme.AppCompat" />
     </application>
 
 </manifest>

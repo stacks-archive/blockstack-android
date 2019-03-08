@@ -5,18 +5,19 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View.GONE
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.model.UserData
-import org.jetbrains.anko.coroutines.experimental.bg
 import java.net.URL
 
 @SuppressLint("SetTextI18n")
@@ -67,15 +68,15 @@ class MainActivity : AppCompatActivity() {
         if (avatarImage != null) {
             // use whatever suits your app architecture best to asynchronously load the avatar
             // better use a image loading library than the code below
-            async(UI) {
-                val avatar = bg {
+            GlobalScope.launch(Dispatchers.Main) {
+                val avatar = withContext(Dispatchers.IO) {
                     try {
                         BitmapDrawable.createFromStream(URL(avatarImage).openStream(), "src")
                     } catch (e: Exception) {
                         Log.d(TAG, e.toString())
                         null
                     }
-                }.await()
+                }
                 avatarView.setImageDrawable(avatar)
             }
         } else {
@@ -91,7 +92,7 @@ class MainActivity : AppCompatActivity() {
             val userData = blockstackSession().loadUserData()
             runOnUiThread {
                 if (userData != null) {
-                    onSignIn(userData!!)
+                    onSignIn(userData)
                 }
             }
         }
@@ -128,7 +129,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun blockstackSession(): BlockstackSession {
+    private fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
         if (session != null) {
             return session

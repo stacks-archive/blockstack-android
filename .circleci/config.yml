@@ -3,50 +3,50 @@ jobs:
   build:
     working_directory: ~/code
     docker:
-      - image: circleci/android:api-27-alpha
+    - image: circleci/android:api-28
     environment:
       JVM_OPTS: -Xmx3200m
     steps:
-      - checkout
-      - restore_cache:
-          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "blockstack-sdk/build.gradle" }}-{{ checksum "example/build.gradle" }}-{{ checksum "example-multi-activities/build.gradle" }}
-#      - run:
-#         name: Chmod permissions #if permission for Gradlew Dependencies fail, use this.
-#         command: sudo chmod +x ./gradlew
-      - run:
-          name: Download Dependencies
-          command: ./gradlew androidDependencies
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "blockstack-sdk/build.gradle" }}-{{ checksum "example/build.gradle" }}-{{ checksum "example-multi-activities/build.gradle" }}
-      - run:
-          name: Run Tests
-          command: ./gradlew lint test assDebug assAndroidTest
-      - run:
-          name: Export google services key
-          command: echo 'export $GCLOUD_SERVICE_KEY="$GCLOUD_SERVICE_KEY"' >> $BASH_ENV
-      - run:
-          name: Decode google services key
-          command: echo $GCLOUD_SERVICE_KEY | base64 -di > ${HOME}/client-secret.json
-      - run:
-          name: Set Google Cloud target project
-          command: gcloud config set project blockstack-android
-      - run:
-          name: Authenticate with Google Cloud
-          command: gcloud auth activate-service-account --key-file ${HOME}/client-secret.json
-      - run:
-          name: Run instrumented test on Firebase Test Lab
-          command: gcloud firebase test android run --type instrumentation --app example/build/outputs/apk/debug/example-debug.apk --test blockstack-sdk/build/outputs/apk/androidTest/debug/blockstack-sdk-debug-androidTest.apk  --timeout 5m
-      - store_artifacts:
-          path: blockstack-sdk/build/reports
-          destination: reports
-      - store_test_results:
-          path: blockstack-sdk/build/test-results
-      - run:
-          name: Generate Documentation
-          command: ./gradlew dokka
-      - store_artifacts:
-          path: blockstack-sdk/build/javadoc
-          destination: javadoc
-      # See https://circleci.com/docs/2.0/deployment-integrations/ for deploy examples
+    - checkout
+    - restore_cache:
+        key: jars-{{ checksum "build.gradle" }}-{{ checksum  "blockstack-sdk/build.gradle" }}-{{ checksum "example/build.gradle" }}-{{ checksum "example-multi-activities/build.gradle" }}
+    #      - run:
+    #         name: Chmod permissions #if permission for Gradlew Dependencies fail, use this.
+    #         command: sudo chmod +x ./gradlew
+    - run:
+        name: Download Dependencies
+        command: ./gradlew androidDependencies
+    - save_cache:
+        paths:
+        - ~/.gradle
+        key: jars-{{ checksum "build.gradle" }}-{{ checksum  "blockstack-sdk/build.gradle" }}-{{ checksum "example/build.gradle" }}-{{ checksum "example-multi-activities/build.gradle" }}
+    - run:
+        name: Run Tests
+        command: ./gradlew lint test assDebug assAndroidTest
+    - run:
+        name: Export google services key
+        command: echo 'export $GCLOUD_SERVICE_KEY="$GCLOUD_SERVICE_KEY"' >> $BASH_ENV
+    - run:
+        name: Decode google services key
+        command: echo $GCLOUD_SERVICE_KEY | base64 -di > ${HOME}/client-secret.json
+    - run:
+        name: Set Google Cloud target project
+        command: gcloud config set project blockstack-android
+    - run:
+        name: Authenticate with Google Cloud
+        command: gcloud auth activate-service-account --key-file ${HOME}/client-secret.json
+    - run:
+        name: Run instrumented test on Firebase Test Lab
+        command: gcloud firebase test android run --type instrumentation --app example/build/outputs/apk/debug/example-debug.apk --test blockstack-sdk/build/outputs/apk/androidTest/debug/blockstack-sdk-debug-androidTest.apk  --timeout 5m
+    - store_artifacts:
+        path: blockstack-sdk/build/reports
+        destination: reports
+    - store_test_results:
+        path: blockstack-sdk/build/test-results
+    - run:
+        name: Generate Documentation
+        command: ./gradlew dokka
+    - store_artifacts:
+        path: blockstack-sdk/build/javadoc
+        destination: javadoc
+    # See https://circleci.com/docs/2.0/deployment-integrations/ for deploy examples

@@ -2,8 +2,8 @@ package org.blockstack.android.sdk;
 
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
-import android.support.test.rule.ActivityTestRule
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.ActivityTestRule
 import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
@@ -273,7 +273,7 @@ class BlockstackSessionStorageTest {
     fun listFilesCanHandleErrorInCallback() {
         val latch = CountDownLatch(1)
         var countResult: Result<Int>? = null
-        session.listFiles({ fileResult ->
+        session.listFiles({ _ ->
             throw RuntimeException("I want to make the API crash!")
         }, {
             countResult = it

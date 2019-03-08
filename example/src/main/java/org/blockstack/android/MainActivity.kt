@@ -7,20 +7,22 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
 import org.blockstack.android.sdk.model.UserData
 import org.blockstack.android.sdk.model.toBlockstackConfig
-import org.jetbrains.anko.coroutines.experimental.bg
 import java.io.ByteArrayOutputStream
 import java.net.URL
 import java.util.*
@@ -126,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         putImageFileButton.setOnClickListener { _ ->
             imageFileTextView.text = "Uploading..."
 
-            val drawable: BitmapDrawable = resources.getDrawable(R.drawable.blockstackteam) as BitmapDrawable
+            val drawable: BitmapDrawable = ContextCompat.getDrawable(this, R.drawable.blockstackteam) as BitmapDrawable
 
             val bitmap = drawable.getBitmap()
             val stream = ByteArrayOutputStream()
@@ -288,15 +290,15 @@ class MainActivity : AppCompatActivity() {
         if (avatarImage != null) {
             // use whatever suits your app architecture best to asynchronously load the avatar
             // better use a image loading library than the code below
-            async(UI) {
-                val avatar = bg {
+            GlobalScope.launch(Dispatchers.Main) {
+                val avatar = withContext(Dispatchers.IO) {
                     try {
                         BitmapDrawable.createFromStream(URL(avatarImage).openStream(), "src")
                     } catch (e: Exception) {
                         Log.d(TAG, e.toString())
                         null
                     }
-                }.await()
+                }
                 avatarView.setImageDrawable(avatar)
             }
         } else {

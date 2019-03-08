@@ -1,22 +1,21 @@
 package org.blockstack.android.sdk;
 
-import android.content.Context
-import android.preference.PreferenceManager
-import android.support.test.rule.ActivityTestRule
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.ActivityTestRule
 import com.eclipsesource.v8.V8ScriptExecutionException
-import kotlinx.coroutines.experimental.runBlocking
 import org.blockstack.android.sdk.model.Entity
 import org.blockstack.android.sdk.model.Profile
-import org.blockstack.android.sdk.model.Proof
 import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.endsWith
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers
 import org.hamcrest.Matchers.notNullValue
 import org.json.JSONObject
-import org.junit.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.CountDownLatch
 
@@ -116,7 +115,7 @@ class BlockstackSessionTokenTest {
 
     @Test
     fun signProfileTokenReturnsSignedToken() {
-        val tokenPair  = session.signProfileToken(Profile(JSONObject(TOKEN_PROFILE_CONTENT)), PRIVATE_KEY, Entity.withKey(TOKEN_PUBLIC_KEY), Entity.withKey(TOKEN_PUBLIC_KEY_2), SigningAlgorithm.ES256K)
+        val tokenPair = session.signProfileToken(Profile(JSONObject(TOKEN_PROFILE_CONTENT)), PRIVATE_KEY, Entity.withKey(TOKEN_PUBLIC_KEY), Entity.withKey(TOKEN_PUBLIC_KEY_2), SigningAlgorithm.ES256K)
         assertThat(tokenPair.decodedToken?.signature, notNullValue())
     }
 }
