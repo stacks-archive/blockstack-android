@@ -5,12 +5,10 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.text.TextUtils
 import android.util.Log
-import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
 import org.blockstack.android.sdk.model.BlockstackConfig
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
-import java.lang.Exception
 import java.net.URL
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -20,15 +18,11 @@ import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 
 /**
- * Object that verifies the certificate SHA fingerprint of the application and the associated app domain
- */
-private val TAG = AppLinkVerifier::class.java.simpleName
-
-/**
  * Object to check Verified App links (@see https://developer.android.com/training/app-links/verify-site-associations).
  * Verified App Links is the recommended way for Android Blockstack apps to handle the redirect after login.
  *
- * @param context a context
+ * @param context an activity or the application context
+ * @param config the blockstack configuration used for this app
  */
 class AppLinkVerifier(private val context: Context, private val config: BlockstackConfig) {
 
@@ -43,7 +37,7 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
         try {
             val fingerprintFromDALFile = getFingerprintFromDigitalAssetLinksFile()
             val fingerprintFromPackage = getFingerprintFromPackage()
-            var msg:String? = null
+            var msg: String? = null
             if (TextUtils.isEmpty(fingerprintFromDALFile)) {
                 msg = "Digital Asset File for ${config.appDomain} does not contain a fingerprint for this app ${context.packageName}.\nPlease verify https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=${config.appDomain}&relation=delegate_permission/common.handle_all_urls"
             }
@@ -58,7 +52,7 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
                 Log.w(TAG, "Blockstack apps should use Verified App Links. Read more at  https://developer.android.com/training/app-links/verify-site-associations\n$msg")
             }
             return msg
-        } catch (e:Exception) {
+        } catch (e: Exception) {
             val msg = "Failed to check verified app links. ${e.message}"
             Log.w(TAG, msg, e)
             return msg
@@ -136,5 +130,9 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
             if (i < arr.size - 1) str.append(':')
         }
         return str.toString()
+    }
+
+    companion object {
+        private val TAG = AppLinkVerifier::class.java.simpleName
     }
 }
