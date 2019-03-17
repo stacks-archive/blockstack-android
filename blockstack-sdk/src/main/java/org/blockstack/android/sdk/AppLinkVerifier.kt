@@ -39,7 +39,7 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
             val fingerprintFromPackage = getFingerprintFromPackage()
             var msg: String? = null
             if (TextUtils.isEmpty(fingerprintFromDALFile)) {
-                msg = "Digital Asset File for ${config.appDomain} does not contain a fingerprint for this app ${context.packageName}.\nPlease verify https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=${config.appDomain}&relation=delegate_permission/common.handle_all_urls"
+                msg = "Digital Asset Links file for ${config.appDomain} does not contain a fingerprint for this app ${context.packageName}.\nPlease verify https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=${config.appDomain}&relation=delegate_permission/common.handle_all_urls"
             }
             if (TextUtils.isEmpty(fingerprintFromPackage)) {
                 msg = "This app ${context.packageName} does not contain a signature."
@@ -53,7 +53,7 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
             }
             return msg
         } catch (e: Exception) {
-            val msg = "Failed to check verified app links. ${e.message}"
+            val msg = "Failed to check verified app links. ${e}"
             Log.w(TAG, msg, e)
             return msg
         }
@@ -64,14 +64,16 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
         val responseString = URL("https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=${config.appDomain}&relation=delegate_permission/common.handle_all_urls").readText()
         val normalizedAppDomain = "${config.appDomain}."
         val response = JSONObject(responseString)
-        val statements = response.getJSONArray("statements")
-        var statement: JSONObject
-        for (i in 0..statements.length() - 1) {
-            statement = statements.getJSONObject(i)
-            val site = statement.optJSONObject("source")?.optJSONObject("web")?.optString("site")
-            val androidApp = statement.optJSONObject("target")?.optJSONObject("androidApp")
-            if (normalizedAppDomain.equals(site) && context.packageName.equals(androidApp?.optString("packageName"))) {
-                return androidApp?.optJSONObject("certificate")?.optString("sha256Fingerprint")
+        val statements = response.optJSONArray("statements")
+        if (statements != null) {
+            var statement: JSONObject
+            for (i in 0..statements.length() - 1) {
+                statement = statements.getJSONObject(i)
+                val site = statement.optJSONObject("source")?.optJSONObject("web")?.optString("site")
+                val androidApp = statement.optJSONObject("target")?.optJSONObject("androidApp")
+                if (normalizedAppDomain.equals(site) && context.packageName.equals(androidApp?.optString("packageName"))) {
+                    return androidApp?.optJSONObject("certificate")?.optString("sha256Fingerprint")
+                }
             }
         }
         return null
