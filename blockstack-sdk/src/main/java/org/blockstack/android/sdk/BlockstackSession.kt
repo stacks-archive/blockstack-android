@@ -121,6 +121,12 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         network = Network(v8networkAndroid, v8)
 
+        if (context != null) {
+            executor.onNetworkThread {
+                AppLinkVerifier(context, config).verify()
+            }
+        }
+
         loaded = true
     }
 
