@@ -1,6 +1,7 @@
 package org.blockstack.android.sdk
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.preference.PreferenceManager
@@ -893,20 +894,35 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         fun setLocation(location: String) {
             blockstackSession.executor.onMainThread {
-                val builder = CustomTabsIntent.Builder()
-                val options = BitmapFactory.Options()
-                options.outWidth = 24
-                options.outHeight = 24
-                options.inScaled = true
-                val backButton = BitmapFactory.decodeResource(it.resources, R.drawable.ic_arrow_back, options);
-                builder.setCloseButtonIcon(backButton)
-                builder.setToolbarColor(ContextCompat.getColor(it, R.color.org_blockstack_purple_50_logos_types))
-                builder.setToolbarColor(ContextCompat.getColor(it, R.color.org_blockstack_purple_85_lines))
-                builder.setShowTitle(true)
-                val customTabsIntent = builder.build()
-                customTabsIntent.launchUrl(it, Uri.parse(location))
+                val locationUri = Uri.parse(location)
+                if (shouldLaunchInCustomTabs) {
+                    val builder = CustomTabsIntent.Builder()
+                    val options = BitmapFactory.Options()
+                    options.outWidth = 24
+                    options.outHeight = 24
+                    options.inScaled = true
+                    val backButton = BitmapFactory.decodeResource(it.resources, R.drawable.ic_arrow_back, options);
+                    builder.setCloseButtonIcon(backButton)
+                    builder.setToolbarColor(ContextCompat.getColor(it, R.color.org_blockstack_purple_50_logos_types))
+                    builder.setToolbarColor(ContextCompat.getColor(it, R.color.org_blockstack_purple_85_lines))
+                    builder.setShowTitle(true)
+                    val customTabsIntent = builder.build()
+                    customTabsIntent.launchUrl(it, locationUri)
+                } else {
+                    it.startActivity(Intent(Intent.ACTION_VIEW, locationUri).addCategory(Intent.CATEGORY_BROWSABLE))
+                }
             }
         }
+    }
+
+    companion object {
+        /**
+         * Flag indicating whether the authentication flow should be started in custom tabs.
+         * Defaults to true.
+         *
+         * Set this to false only if you can't use Verified App Links.
+         */
+        var shouldLaunchInCustomTabs = true
     }
 }
 
