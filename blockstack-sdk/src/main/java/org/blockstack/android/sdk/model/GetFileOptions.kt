@@ -1,4 +1,4 @@
-package org.blockstack.android.sdk
+package org.blockstack.android.sdk.model
 
 import org.json.JSONObject
 import java.net.URL
@@ -20,12 +20,12 @@ public class GetFileOptions(val decrypt: Boolean = true,
     /**
      * json representation of these options as used by blockstack.js
      */
-    fun toJSON() : JSONObject {
+    fun toJSON(): JSONObject {
         val optionsObject = JSONObject()
         optionsObject.put("decrypt", decrypt)
-        optionsObject.put("username", if(username.isNullOrBlank()) JSONObject.NULL else username)
-        optionsObject.put("app", if(app.isNullOrBlank()) JSONObject.NULL else app)
-        optionsObject.put("zoneFileLookupURL", if(zoneFileLookupURL == null) JSONObject.NULL else zoneFileLookupURL)
+        optionsObject.put("username", if (username.isNullOrBlank()) JSONObject.NULL else username)
+        optionsObject.put("app", if (app.isNullOrBlank()) JSONObject.NULL else app)
+        optionsObject.put("zoneFileLookupURL", if (zoneFileLookupURL == null) JSONObject.NULL else zoneFileLookupURL)
         return optionsObject
     }
 

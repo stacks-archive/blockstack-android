@@ -1,5 +1,6 @@
-package org.blockstack.android.sdk
+package org.blockstack.android.sdk.model
 
+import org.blockstack.android.sdk.Scope
 import java.net.URI
 
 /**
@@ -28,7 +29,7 @@ data class BlockstackConfig(
  * @param manifestPath the path of the manifest url that is appended to the app domain, needs leading slash, defaults to `/manifest.json'
  */
 fun String.toBlockstackConfig(scopes: Array<Scope>, redirectPath: String = "/redirect", manifestPath: String = "/manifest.json"): BlockstackConfig =
-        org.blockstack.android.sdk.BlockstackConfig(
+        BlockstackConfig(
                 URI(this),
                 redirectPath,
                 manifestPath,

@@ -7,18 +7,27 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
-import org.jetbrains.anko.coroutines.experimental.bg
+import org.blockstack.android.sdk.model.GetFileOptions
+import org.blockstack.android.sdk.model.PutFileOptions
+import org.blockstack.android.sdk.model.UserData
+import org.blockstack.android.sdk.model.toBlockstackConfig
 import java.io.ByteArrayOutputStream
 import java.net.URL
+import java.util.*
+
+private const val username = "dev_android_sdk.id.blockstack";
 
 @SuppressLint("SetTextI18n")
 class MainActivity : AppCompatActivity() {
@@ -49,10 +58,21 @@ class MainActivity : AppCompatActivity() {
         putImageFileButton.isEnabled = false
         getStringFileFromUserButton.isEnabled = false
         getAppBucketUrlButton.isEnabled = false
+        listFilesButton.isEnabled = false
 
 
         signInButton.setOnClickListener { _: View ->
             blockstackSession().redirectUserToSignIn { errorResult ->
+                if (errorResult.hasErrors) {
+                    Toast.makeText(this, "error: " + errorResult.error, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        signInButtonWithGaia.setOnClickListener { _: View ->
+            val key = blockstackSession().generateAndStoreTransitKey()
+            val authRequest = blockstackSession().makeAuthRequest(key, Date(System.currentTimeMillis() + 3600000).time, mapOf(Pair("solicitGaiaHubUrl", true)))
+            blockstackSession().redirectToSignInWithAuthRequest(authRequest) { errorResult ->
                 if (errorResult.hasErrors) {
                     Toast.makeText(this, "error: " + errorResult.error, Toast.LENGTH_SHORT).show()
                 }
@@ -108,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         putImageFileButton.setOnClickListener { _ ->
             imageFileTextView.text = "Uploading..."
 
-            val drawable: BitmapDrawable = resources.getDrawable(R.drawable.blockstackteam) as BitmapDrawable
+            val drawable: BitmapDrawable = ContextCompat.getDrawable(this, R.drawable.blockstackteam) as BitmapDrawable
 
             val bitmap = drawable.getBitmap()
             val stream = ByteArrayOutputStream()
@@ -148,7 +168,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         getStringFileFromUserButton.setOnClickListener { _ ->
-            val username = "dev_android_sdk.id.blockstack";
+
             val zoneFileLookupUrl = URL("https://core.blockstack.org/v1/names")
             fileFromUserContentsTextView.text = "Downloading file from other user..."
             blockstackSession().lookupProfile(username, zoneFileLookupURL = zoneFileLookupUrl) { profileResult ->
@@ -199,12 +219,45 @@ class MainActivity : AppCompatActivity() {
 
         getUserAppFileUrlButton.setOnClickListener { _ ->
             getUserAppFileUrlText.text = "Getting url ..."
-            val username = "dev_android_sdk.id.blockstack";
             val zoneFileLookupUrl = "https://core.blockstack.org/v1/names"
             blockstackSession().getUserAppFileUrl(textFileName, username, "https://flamboyant-darwin-d11c17.netlify.com", zoneFileLookupUrl) {
                 runOnUiThread {
                     getUserAppFileUrlText.text = if (it.hasValue) {
                         it.value
+                    } else {
+                        it.error
+                    }
+                }
+            }
+        }
+
+        listFilesButton.setOnClickListener {
+            listFilesText.text = "...."
+            blockstackSession().listFiles({ urlResult ->
+                if (urlResult.hasValue) {
+                    if (listFilesText.text === "....") {
+                        listFilesText.text = urlResult.value
+                    } else {
+                        listFilesText.text = listFilesText.text.toString() + "\n" + urlResult.value
+                    }
+                }
+                true
+            }, { countResult ->
+                Log.d(TAG, "files count " + if (countResult.hasValue) {
+                    countResult.value
+                } else {
+                    countResult.error
+                })
+            })
+        }
+
+        getNameInfoButton.setOnClickListener { _ ->
+            getNameInfoText.text = "Getting info ..."
+            blockstackSession().network.getNameInfo(username) {
+                runOnUiThread {
+                    Log.d(TAG, it.value?.json.toString())
+                    getNameInfoText.text = if (it.hasValue) {
+                        it.value?.json.toString()
                     } else {
                         it.error
                     }
@@ -230,21 +283,22 @@ class MainActivity : AppCompatActivity() {
         getImageFileButton.isEnabled = true
         getStringFileFromUserButton.isEnabled = true
         getAppBucketUrlButton.isEnabled = true
+        listFilesButton.isEnabled = true
     }
 
     private fun showUserAvatar(avatarImage: String?) {
         if (avatarImage != null) {
             // use whatever suits your app architecture best to asynchronously load the avatar
             // better use a image loading library than the code below
-            async(UI) {
-                val avatar = bg {
+            GlobalScope.launch(Dispatchers.Main) {
+                val avatar = withContext(Dispatchers.IO) {
                     try {
                         BitmapDrawable.createFromStream(URL(avatarImage).openStream(), "src")
                     } catch (e: Exception) {
                         Log.d(TAG, e.toString())
                         null
                     }
-                }.await()
+                }
                 avatarView.setImageDrawable(avatar)
             }
         } else {

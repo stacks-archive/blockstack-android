@@ -1,6 +1,5 @@
-package org.blockstack.android.sdk
+package org.blockstack.android.sdk.model
 
-import org.json.JSONException
 import org.json.JSONObject
 
 /**
