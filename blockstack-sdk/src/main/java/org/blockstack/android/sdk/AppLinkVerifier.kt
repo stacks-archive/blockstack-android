@@ -42,14 +42,19 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
                 msg = "Digital Asset Links file for ${config.appDomain} does not contain a fingerprint for this app ${context.packageName}.\nPlease verify https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=${config.appDomain}&relation=delegate_permission/common.handle_all_urls"
             }
             if (TextUtils.isEmpty(fingerprintFromPackage)) {
-                msg = "This app ${context.packageName} does not contain a signature."
+                val msgFromPackage = "This app ${context.packageName} does not contain a signature."
+                if (msg != null) {
+                    msg = msg + "\n" + msgFromPackage
+                } else {
+                    msg = msgFromPackage
+                }
             }
             if (!TextUtils.isEmpty(fingerprintFromDALFile) && !TextUtils.isEmpty(fingerprintFromPackage) &&
                     !fingerprintFromDALFile.equals(fingerprintFromPackage)) {
-                msg = "Fingerprints do not match.\nFingerprint from Digital Asset Links file: $fingerprintFromDALFile\nFingerprint from application signature   : $fingerprintFromPackage\nPlease verify https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=${config.appDomain}&relation=delegate_permission/common.handle_all_urls"
+                msg = "Fingerprints for ${context.packageName} at ${config.appDomain} do not match.\nFingerprint from Digital Asset Links file: $fingerprintFromDALFile\nFingerprint from application signature   : $fingerprintFromPackage\nPlease verify https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=${config.appDomain}&relation=delegate_permission/common.handle_all_urls"
             }
             if (msg != null) {
-                Log.w(TAG, "Blockstack apps should use Verified App Links. Read more at  https://developer.android.com/training/app-links/verify-site-associations\n$msg")
+                Log.w(TAG, "Blockstack apps should use Verified App Links. Read more at  https://developer.android.com/training/app-links/verify-site-associations\nThis warning can be suppressed by setting BlockstackSession.doNotVerifyAppLinkConfiguration = true.\n$msg")
             }
             return msg
         } catch (e: Exception) {
