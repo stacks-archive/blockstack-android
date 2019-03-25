@@ -17,10 +17,16 @@ android {
 
     }
 
-    buildTypes {
+    signingConfigs {
         debug {
-            signingConfig signingConfigs.debug
+            storeFile mySigningConfigs.debug.storeFile
+            storePassword  mySigningConfigs.debug.storePassword
+            keyAlias mySigningConfigs.debug.keyAlias
+            keyPassword mySigningConfigs.debug.keyPassword
         }
+    }
+
+    buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

@@ -29,9 +29,9 @@ allprojects {
 import com.android.build.gradle.internal.dsl.SigningConfig
 
 ext {
-    signingConfigs = [
+    mySigningConfigs = [
             debug : SigningConfig.newInstance([
-                    storeFile: file("/config/debug.keystore"),
+                    storeFile: file("config/debug.keystore"),
                     storePassword: "android",
                     keyAlias: "androiddebugkey",
                     keyPassword: "android"
