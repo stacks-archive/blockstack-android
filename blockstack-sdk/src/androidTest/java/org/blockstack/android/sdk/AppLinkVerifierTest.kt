@@ -35,8 +35,7 @@ class AppLinkVerifierTest {
 
     @Test
     fun testValidFingerprints() {
-        // as long as https://github.com/blockstack/blockstack-android/pull/137 is not merged use temporary hosted asset links
-        val betaAppLinkVerifier = AppLinkVerifier(rule.activity, "https://master--upbeat-wing-158214.netlify.com".toBlockstackConfig(arrayOf()))
+        val betaAppLinkVerifier = AppLinkVerifier(rule.activity, "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(arrayOf()))
         val warning = betaAppLinkVerifier.verify()
         assertThat(warning, isEmptyOrNullString())
     }
