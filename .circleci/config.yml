@@ -69,6 +69,11 @@ jobs:
     - run:
         name: Disable jekyll builds
         command: touch blockstack-sdk/build/javadoc/blockstack-sdk/.nojekyll
+    - run:
+        name: Configure git
+        command: |
+          git config user.email "ci-build@blockstack.org"
+          git config user.name "ci-build"
     - add_ssh_keys:
         fingerprints:
         - "c4:c7:e7:d1:0a:12:d9:66:ed:57:5b:40:14:db:e8:78"
