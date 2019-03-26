@@ -2,7 +2,6 @@ version: 2
 
 jobs:
   test:
-    working_directory: ~/code
     docker:
     - image: circleci/android:api-28
     environment:
@@ -48,8 +47,8 @@ jobs:
         name: Generate Documentation
         command: ./gradlew dokka
     - persist_to_workspace:
-        root: blockstack-sdk/build
-        path: javadoc
+        root: blockstack-sdk/build/javadoc
+        path: blockstack-sdk
     # See https://circleci.com/docs/2.0/deployment-integrations/ for deploy examples
   docs-deploy:
     docker:
@@ -57,10 +56,10 @@ jobs:
     steps:
     - checkout
     - attach_workspace:
-        at: blockstack-sdk/build
+        at: blockstack-sdk/build/javadoc
     - run:
       name: Disable jekyll builds
-      command: touch blockstack-sdk/build/javadoc/.nojekyll
+      command: touch blockstack-sdk/build/javadoc/blockstack-sdk/.nojekyll
     - run:
         name: Install and configure dependencies
         command: |
@@ -72,7 +71,7 @@ jobs:
           - "c4:c7:e7:d1:0a:12:d9:66:ed:57:5b:40:14:db:e8:78"
     - run:
         name: Deploy docs to gh-pages branch
-        command: gh-pages --message "[skip ci] Update docs"--dist blockstack-sdk/build/javadoc
+        command: gh-pages --message "[skip ci] Update docs" --dist blockstack-sdk/build/javadoc/blockstack-sdk
 
 workflows:
   version: 2
