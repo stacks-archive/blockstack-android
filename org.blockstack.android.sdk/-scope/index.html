@@ -1,0 +1,95 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>Scope - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="./index.html">Scope</a><br/>
+<br/>
+<h1>Scope</h1>
+<code><span class="keyword">enum</span> <span class="keyword">class </span><span class="identifier">Scope</span></code>
+<p>An enum of scopes supported in Blockstack Authentication.</p>
+<h3>Enum Values</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-store-write.html">StoreWrite</a></p>
+</td>
+<td>
+<p>Read and write data to the user's Gaia hub in an app-specific storage bucket.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="-publish-data.html">PublishData</a></p>
+</td>
+<td>
+<p>Publish data so that other users of the app can discover and interact with the user</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="-email.html">Email</a></p>
+</td>
+<td>
+<p>Requests the user's email if available</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="scope.html">scope</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">scope</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>identifies the permission, same as in blockstack.js</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="to-string.html">toString</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">toString</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>returns the scope as string</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Companion Object Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="from-j-s-name.html">fromJSName</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">fromJSName</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.Scope.Companion$fromJSName(kotlin.String)/scopeJSName">scopeJSName</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="./index.html"><span class="identifier">Scope</span></a></code>
+<p>Creates <code>Scope</code> from its @property scope, i.e. the javascript name.
+Throws IllegalArgumentException if scope name is not defined.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="scopes-array-to-j-s-o-n-string.html">scopesArrayToJSONString</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">scopesArrayToJSONString</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.Scope.Companion$scopesArrayToJSONString(kotlin.Array((org.blockstack.android.sdk.Scope)))/scopes">scopes</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html"><span class="identifier">Array</span></a><span class="symbol">&lt;</span><a href="./index.html"><span class="identifier">Scope</span></a><span class="symbol">&gt;</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>converts an array of scopes into a string usable by blockstack.js</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

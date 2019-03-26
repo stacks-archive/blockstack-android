@@ -1,0 +1,31 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>BlockstackSession.<init> - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="index.html">BlockstackSession</a>&nbsp;/&nbsp;<a href="./-init-.html">&lt;init&gt;</a><br/>
+<br/>
+<h1>&lt;init&gt;</h1>
+<a name="org.blockstack.android.sdk.BlockstackSession$&lt;init&gt;(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean)"></a>
+<code><span class="identifier">BlockstackSession</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean)/context">context</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/android/content/Context.html"><span class="identifier">Context</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean)/config">config</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-blockstack-config/index.html"><span class="identifier">BlockstackConfig</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean)/nameLookupUrl">nameLookupUrl</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a>&nbsp;<span class="symbol">=</span>&nbsp;"https://core.blockstack.org/v1/names/"<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean)/sessionStore">sessionStore</span><span class="symbol">:</span>&nbsp;<a href="../-i-session-store/index.html"><span class="identifier">ISessionStore</span></a>&nbsp;<span class="symbol">=</span>&nbsp;SessionStore(PreferenceManager.getDefaultSharedPreferences(context))<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean)/executor">executor</span><span class="symbol">:</span>&nbsp;<a href="../-executor/index.html"><span class="identifier">Executor</span></a>&nbsp;<span class="symbol">=</span>&nbsp;AndroidExecutor(context!!)<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean)/scriptRepo">scriptRepo</span><span class="symbol">:</span>&nbsp;<a href="../-script-repo/index.html"><span class="identifier">ScriptRepo</span></a>&nbsp;<span class="symbol">=</span>&nbsp;if (context != null) AndroidScriptRepo(context) else throw InvalidParameterException("context or scriptRepo required")<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean)/betaMode">betaMode</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;false<span class="symbol">)</span></code>
+<p>Main object to interact with blockstack in an activity or service</p>
+<p>The current implementation is a wrapper for blockstack.js using a j2v8 javascript engine.</p>
+<h3>Parameters</h3>
+<p><a name="context"></a>
+<code>context</code> - the context used to define shared preferences for storing session data, to locate resources for this SDK.
+Can be null if SessionStore, executor and scriptRepo is defined.</p>
+<p><a name="config"></a>
+<code>config</code> - the configuration for blockstack</p>
+<p><a name="sessionStore"></a>
+<code>sessionStore</code> - the location where session data should be stored. Defaults to the default shared preferences of the app using the SDK</p>
+<p><a name="executor"></a>
+<code>executor</code> - defines where functions of this SDK should be executed. Defaults to @see AndroidExecutor with given context</p>
+<p><a name="scriptRepo"></a>
+<code>scriptRepo</code> - required to locate this SDK's resources. Defaults to AndroidScriptRepo with given context.
+Can be AndroidScriptRepo with application context as well.</p>
+<p><a name="betaMode"></a>
+<code>betaMode</code> - flag indicating whether the beta version of the hosted blockstack browser should be used. Defaults to false.</p>
+</BODY>
+</HTML>

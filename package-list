@@ -1,0 +1,8 @@
+$dokka.format:html
+$dokka.linkExtension:html
+$dokka.location:org.blockstack.android.sdk.model$toBlockstackConfig(kotlin.String, kotlin.Array((org.blockstack.android.sdk.Scope)), kotlin.String, kotlin.String)org.blockstack.android.sdk.model/kotlin.-string/to-blockstack-config.html
+org.blockstack.android.sdk
+org.blockstack.android.sdk.j2v8
+org.blockstack.android.sdk.model
+org.blockstack.android.sdk.model.network
+org.blockstack.android.sdk.ui

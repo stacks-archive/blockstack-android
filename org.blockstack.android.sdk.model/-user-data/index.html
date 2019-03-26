@@ -1,0 +1,82 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>UserData - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk.model</a>&nbsp;/&nbsp;<a href="./index.html">UserData</a><br/>
+<br/>
+<h1>UserData</h1>
+<code><span class="keyword">class </span><span class="identifier">UserData</span></code>
+<p>Object containing user data. This object is backed by the original JSON representation.</p>
+<p>This currently provides very minimal functionality. To access the full array of values,
+you should parse the <code>json</code> property of this object or send a pull request to add additional
+functionality to this class.</p>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">UserData</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.UserData$<init>(org.json.JSONObject)/jsonObject">jsonObject</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a><span class="symbol">)</span></code>
+<p>Object containing user data. This object is backed by the original JSON representation.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="app-private-key.html">appPrivateKey</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">appPrivateKey</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>The user's private key for the currently logged in app</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="decentralized-i-d.html">decentralizedID</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">decentralizedID</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>The user's decentralized identifier - this is used to uniquely identify a user</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="hub-url.html">hubUrl</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">hubUrl</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>The user's gaia storage location</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="json.html">json</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">json</span><span class="symbol">: </span><a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a></code>
+<p>The <code>JSONObject</code> that backs this object. You use this object to
+access properties that are not yet exposed by this class.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="profile.html">profile</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">profile</span><span class="symbol">: </span><a href="../-profile/index.html"><span class="identifier">Profile</span></a><span class="symbol">?</span></code>
+<p>The profile of the user or null if not defined</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

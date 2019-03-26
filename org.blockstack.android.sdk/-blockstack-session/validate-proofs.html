@@ -1,0 +1,25 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>BlockstackSession.validateProofs - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="index.html">BlockstackSession</a>&nbsp;/&nbsp;<a href="./validate-proofs.html">validateProofs</a><br/>
+<br/>
+<h1>validateProofs</h1>
+<a name="org.blockstack.android.sdk.BlockstackSession$validateProofs(org.blockstack.android.sdk.model.Profile, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((java.util.ArrayList((org.blockstack.android.sdk.model.Proof)))), kotlin.Unit)))"></a>
+<code><span class="keyword">fun </span><span class="identifier">validateProofs</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$validateProofs(org.blockstack.android.sdk.model.Profile, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((java.util.ArrayList((org.blockstack.android.sdk.model.Proof)))), kotlin.Unit)))/profile">profile</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-profile/index.html"><span class="identifier">Profile</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$validateProofs(org.blockstack.android.sdk.model.Profile, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((java.util.ArrayList((org.blockstack.android.sdk.model.Proof)))), kotlin.Unit)))/ownerAdress">ownerAdress</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$validateProofs(org.blockstack.android.sdk.model.Profile, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((java.util.ArrayList((org.blockstack.android.sdk.model.Proof)))), kotlin.Unit)))/name">name</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$validateProofs(org.blockstack.android.sdk.model.Profile, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((java.util.ArrayList((org.blockstack.android.sdk.model.Proof)))), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://developer.android.com/reference/java/util/ArrayList.html"><span class="identifier">ArrayList</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model/-proof/index.html"><span class="identifier">Proof</span></a><span class="symbol">&gt;</span><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Validates the social proofs in a user's profile.
+Currently supports validation of Facebook, Twitter, GitHub, Instagram, LinkedIn and HackerNews accounts.</p>
+<h3>Parameters</h3>
+<p><a name="profile"></a>
+<code>profile</code> - The profile to be validated</p>
+<p><a name="ownerAddress"></a>
+<code>ownerAddress</code> - The owner bitcoin address to be validated</p>
+<p><a name="name"></a>
+<code>name</code> - (default = null) The Blockstack name to be validated</p>
+<p><a name="callback"></a>
+<code>callback</code> - called with a list of validated proof objects or an error</p>
+</BODY>
+</HTML>
