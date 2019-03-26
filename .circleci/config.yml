@@ -24,9 +24,9 @@ jobs:
         name: Generate Documentation
         command: ./gradlew dokka
     - persist_to_workspace:
-        root: .
-        path:
-          - .
+          root: .
+          path:
+            - ./*
   docs-deploy:
     docker:
     - image: node:8.10.0
