@@ -1,4 +1,5 @@
 version: 2
+
 jobs:
   test:
     working_directory: ~/code
@@ -77,10 +78,10 @@ workflows:
   version: 2
   build:
     jobs:
-    - test
-    - docs-deploy
-        requires:
-          - test
-        filters:
-          branches:
-            only: develop
+      - test
+      - docs-deploy
+          requires:
+            - test
+          filters:
+            branches:
+              only: develop
