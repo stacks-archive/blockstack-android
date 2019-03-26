@@ -58,7 +58,7 @@ jobs:
     - checkout
     - attach_workspace:
         at: blockstack-sdk/build
-  - run:
+    - run:
       name: Disable jekyll builds
       command: touch blockstack-sdk/build/javadoc/.nojekyll
     - run:
@@ -79,7 +79,7 @@ workflows:
   build:
     jobs:
       - test
-      - docs-deploy
+      - docs-deploy:
           requires:
             - test
           filters:
