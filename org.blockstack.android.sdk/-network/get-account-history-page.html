@@ -1,0 +1,22 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>Network.getAccountHistoryPage - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="index.html">Network</a>&nbsp;/&nbsp;<a href="./get-account-history-page.html">getAccountHistoryPage</a><br/>
+<br/>
+<h1>getAccountHistoryPage</h1>
+<a name="org.blockstack.android.sdk.Network$getAccountHistoryPage(kotlin.String, kotlin.Int, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.collections.List((org.blockstack.android.sdk.model.network.AccountStatus)))), kotlin.Unit)))"></a>
+<code><span class="keyword">fun </span><span class="identifier">getAccountHistoryPage</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.Network$getAccountHistoryPage(kotlin.String, kotlin.Int, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.collections.List((org.blockstack.android.sdk.model.network.AccountStatus)))), kotlin.Unit)))/address">address</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.Network$getAccountHistoryPage(kotlin.String, kotlin.Int, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.collections.List((org.blockstack.android.sdk.model.network.AccountStatus)))), kotlin.Unit)))/page">page</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html"><span class="identifier">Int</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.Network$getAccountHistoryPage(kotlin.String, kotlin.Int, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.collections.List((org.blockstack.android.sdk.model.network.AccountStatus)))), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html"><span class="identifier">List</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model.network/-account-status/index.html"><span class="identifier">AccountStatus</span></a><span class="symbol">&gt;</span><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Get a page of an account's transaction history.</p>
+<h3>Parameters</h3>
+<p><a name="address"></a>
+<code>address</code> - the account's address</p>
+<p><a name="page"></a>
+<code>page</code> - the page number. Page 0 contains the most recent transactions</p>
+<p><a name="callback"></a>
+<code>callback</code> - called with a result object that contains a list of account statuses at various block heights (e.g. prior balances, txids, etc)</p>
+</BODY>
+</HTML>

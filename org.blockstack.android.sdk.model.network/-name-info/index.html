@@ -1,0 +1,144 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>NameInfo - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk.model.network</a>&nbsp;/&nbsp;<a href="./index.html">NameInfo</a><br/>
+<br/>
+<h1>NameInfo</h1>
+<code><span class="keyword">class </span><span class="identifier">NameInfo</span></code>
+<p>Object containing information about a name including
+address that owns it, the block at which it expires, and the zone file anchored to it (if available).</p>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">NameInfo</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.network.NameInfo$<init>(org.json.JSONObject)/jsonObject">jsonObject</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a><span class="symbol">)</span></code>
+<p>Object containing information about a name including
+address that owns it, the block at which it expires, and the zone file anchored to it (if available).</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="address.html">address</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">address</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>The owning address.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="blockchain.html">blockchain</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">blockchain</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>The underlying blockchain.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="did.html">did</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">did</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>The default decentralized identifier.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="expire-block.html">expireBlock</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">expireBlock</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>When the name expires. Not available for subdomains.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="grace-period.html">gracePeriod</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">gracePeriod</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>Number of blocks before an expired name can be owned by somebody else. Not available for subdomains.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="json.html">json</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">json</span><span class="symbol">: </span><a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a></code>
+<p>The <code>JSONObject</code> that backs this object. You use this object to
+access properties that are not yet exposed by this class.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="last-txid.html">lastTxid</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">lastTxid</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>The id of the last transaction.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="renewal-deadline.html">renewalDeadline</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">renewalDeadline</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>When the name needs to be renewed. Not available for subdomains.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="resolver.html">resolver</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">resolver</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>How the resolve subdomains of this name. Not available for subdomains.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="status.html">status</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">status</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>The status of the name, one of <code>revoked</code>, <code>registered</code>, <code>registered_subdomain</code>, <code>available</code>.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="zonefile.html">zonefile</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">zonefile</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>The zone file's text content if available.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="zonefile-hash.html">zonefileHash</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">zonefileHash</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>The hash of the associated zone file.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

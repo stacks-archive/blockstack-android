@@ -1,0 +1,90 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>AccountStatus - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk.model.network</a>&nbsp;/&nbsp;<a href="./index.html">AccountStatus</a><br/>
+<br/>
+<h1>AccountStatus</h1>
+<code><span class="keyword">class </span><span class="identifier">AccountStatus</span></code>
+<p>Object containing information about an account for a particular token type.
+This includes its total number of expenditures and credits, lockup times, last txid, and so on.</p>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">AccountStatus</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.network.AccountStatus$<init>(org.json.JSONObject)/jsonObject">jsonObject</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a><span class="symbol">)</span></code>
+<p>Object containing information about an account for a particular token type.
+This includes its total number of expenditures and credits, lockup times, last txid, and so on.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="address.html">address</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">address</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>The account's address.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="block-id.html">blockId</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">blockId</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html"><span class="identifier">Int</span></a><span class="symbol">?</span></code>
+<p>The block this status belongs to.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="credit-value.html">creditValue</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">creditValue</span><span class="symbol">: </span><a href="https://developer.android.com/reference/java/math/BigInteger.html"><span class="identifier">BigInteger</span></a><span class="symbol">?</span></code>
+<p>The credit value for this account for the token.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="debit-value.html">debitValue</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">debitValue</span><span class="symbol">: </span><a href="https://developer.android.com/reference/java/math/BigInteger.html"><span class="identifier">BigInteger</span></a><span class="symbol">?</span></code>
+<p>The debit value for this account for the token.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="json.html">json</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">json</span><span class="symbol">: </span><a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a></code>
+<p>The <code>JSONObject</code> that backs this object. You use this object to
+access properties that are not yet exposed by this class.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="type.html">type</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">type</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>The unit of the token this status belongs to, e.g. BTC, STACKS.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

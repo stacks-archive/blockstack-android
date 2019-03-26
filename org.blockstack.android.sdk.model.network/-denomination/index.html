@@ -1,0 +1,62 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>Denomination - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk.model.network</a>&nbsp;/&nbsp;<a href="./index.html">Denomination</a><br/>
+<br/>
+<h1>Denomination</h1>
+<code><span class="keyword">class </span><span class="identifier">Denomination</span></code>
+<p>Object describing unit and amount of a price request.</p>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">Denomination</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.network.Denomination$<init>(org.json.JSONObject)/jsonObject">jsonObject</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a><span class="symbol">)</span></code>
+<p>Object describing unit and amount of a price request.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="amount.html">amount</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">amount</span><span class="symbol">: </span><a href="https://developer.android.com/reference/java/math/BigInteger.html"><span class="identifier">BigInteger</span></a><span class="symbol">?</span></code>
+<p>The amount of the price information in the smallest denomination
+e.g. if <code>units</code> is BTC, <code>amount</code> will be in satoshis; if <code>units</code> is STACKS, <code>amount</code> will be in microStacks.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="json.html">json</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">json</span><span class="symbol">: </span><a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a></code>
+<p>The <code>JSONObject</code> that backs this object. You use this object to
+access properties that are not yet exposed by this class.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="units.html">units</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">units</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>The unit of the cryptocurrency, e.g. BTC, STACKS.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

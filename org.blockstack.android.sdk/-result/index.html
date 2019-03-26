@@ -1,0 +1,69 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>Result - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="./index.html">Result</a><br/>
+<br/>
+<h1>Result</h1>
+<code><span class="keyword">class </span><span class="identifier">Result</span><span class="symbol">&lt;</span><span class="identifier">T</span><span class="symbol">&gt;</span></code>
+<p>Object representing the result of a blockstack method call</p>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">Result</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.Result$<init>(org.blockstack.android.sdk.Result.T, kotlin.String)/value">value</span><span class="symbol">:</span>&nbsp;<a href="index.html#T"><span class="identifier">T</span></a><span class="symbol">?</span><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.Result$<init>(org.blockstack.android.sdk.Result.T, kotlin.String)/error">error</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span></code>
+<p>Object representing the result of a blockstack method call</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="error.html">error</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">error</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>the error as string</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="has-errors.html">hasErrors</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">hasErrors</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
+<p>returns true if the method did not return a value, but an error</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="has-value.html">hasValue</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">hasValue</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
+<p>returns true if the method call returned a value successfully</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="value.html">value</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">value</span><span class="symbol">: </span><a href="index.html#T"><span class="identifier">T</span></a><span class="symbol">?</span></code>
+<p>the result of the method call</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

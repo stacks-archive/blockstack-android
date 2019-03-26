@@ -1,0 +1,93 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>GetFileOptions - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk.model</a>&nbsp;/&nbsp;<a href="./index.html">GetFileOptions</a><br/>
+<br/>
+<h1>GetFileOptions</h1>
+<code><span class="keyword">class </span><span class="identifier">GetFileOptions</span></code>
+<p>An object to configure options for <code>getFile</code> operations.</p>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">GetFileOptions</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/decrypt">decrypt</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;true<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/username">username</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/app">app</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/zoneFileLookupURL">zoneFileLookupURL</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/java/net/URL.html"><span class="identifier">URL</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span></code>
+<p>An object to configure options for <code>getFile</code> operations.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="app.html">app</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">app</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>the app from which to read the file</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="decrypt.html">decrypt</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">decrypt</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
+<p>attempt to decrypt the file</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="username.html">username</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">username</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>the username of the user from which you wish to read the file</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="zone-file-lookup-u-r-l.html">zoneFileLookupURL</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">zoneFileLookupURL</span><span class="symbol">: </span><a href="https://developer.android.com/reference/java/net/URL.html"><span class="identifier">URL</span></a><span class="symbol">?</span></code>
+<p>The URL to use for zonefile lookup.
+If <code>null</code>, this will use a default lookup URL.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="to-j-s-o-n.html">toJSON</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">toJSON</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a></code>
+<p>json representation of these options as used by blockstack.js</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="to-string.html">toString</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">toString</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>string representation in json format used by blockstack.js</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>
