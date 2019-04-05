@@ -925,18 +925,17 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
     companion object {
         /**
-<<<<<<< HEAD
          * Flag indicating whether the authentication flow should be started in custom tabs.
          * Defaults to true.
          *
          * Set this to false only if you can't use Verified App Links.
          */
         var shouldLaunchInCustomTabs = true
-=======
+
+        /**
          * Flag indicating that verified app links should not be checked for correct configuration
          */
         var doNotVerifyAppLinkConfiguration = false
->>>>>>> develop
     }
 }
 
