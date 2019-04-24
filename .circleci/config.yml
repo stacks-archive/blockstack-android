@@ -50,7 +50,7 @@ jobs:
         root: blockstack-sdk/build/javadoc
         path: blockstack-sdk
     # See https://circleci.com/docs/2.0/deployment-integrations/ for deploy examples
-  docs-deploy:
+  docsdeploy:
     docker:
     - image: node:8.10.0
     steps:
@@ -78,7 +78,7 @@ workflows:
   build:
     jobs:
       - test
-      - docs-deploy:
+      - docsdeploy:
           requires:
             - test
           filters:
