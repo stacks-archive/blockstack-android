@@ -122,6 +122,14 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         network = Network(v8networkAndroid, v8)
 
+        // check verified app link verification once
+        if (context != null &&!doNotVerifyAppLinkConfiguration) {
+            executor.onNetworkThread {
+                AppLinkVerifier(context, config).verify()
+                doNotVerifyAppLinkConfiguration = true
+            }
+        }
+
         loaded = true
     }
 
@@ -941,6 +949,13 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                 customTabsIntent.launchUrl(it, Uri.parse(location))
             }
         }
+    }
+
+    companion object {
+        /**
+         * Flag indicating that verified app links should not be checked for correct configuration
+         */
+        var doNotVerifyAppLinkConfiguration = false
     }
 }
 

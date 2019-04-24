@@ -21,6 +21,15 @@ android {
 
     }
 
+    signingConfigs {
+        debug {
+            storeFile mySigningConfigs.debug.storeFile
+            storePassword  mySigningConfigs.debug.storePassword
+            keyAlias mySigningConfigs.debug.keyAlias
+            keyPassword mySigningConfigs.debug.keyPassword
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false

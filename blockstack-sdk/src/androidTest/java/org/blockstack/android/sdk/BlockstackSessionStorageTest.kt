@@ -270,7 +270,8 @@ class BlockstackSessionStorageTest {
             latch.countDown()
         })
         latch.await(1, TimeUnit.MINUTES)
-        assertThat(countResult?.value!!, `is`(count))
+        assertThat(countResult?.error, `is`(nullValue()))
+        assertThat(countResult?.value, `is`(count))
     }
 
     @Test
