@@ -76,10 +76,10 @@ class AccountActivity : AppCompatActivity() {
     }
 
     private fun handleAuthResponse(intent: Intent?) {
-        val response = intent?.dataString
+        val response = intent?.data?.query
         Log.d(TAG, "response ${response}")
         if (response != null) {
-            val authResponseTokens = response.split(':')
+            val authResponseTokens = response.split('=')
 
             if (authResponseTokens.size > 1) {
                 val authResponse = authResponseTokens[1]
