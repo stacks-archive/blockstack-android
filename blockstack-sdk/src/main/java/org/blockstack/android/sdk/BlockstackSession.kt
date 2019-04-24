@@ -182,6 +182,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8.add("console", v8Console)
         v8Console.registerJavaMethod(console, "log", "log", arrayOf<Class<*>>(String::class.java))
         v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(String::class.java))
+        v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(V8Object::class.java))
         v8Console.registerJavaMethod(console, "debug", "debug", arrayOf<Class<*>>(String::class.java))
         v8Console.registerJavaMethod(console, "warn", "warn", arrayOf<Class<*>>(String::class.java))
         v8Console.release()
