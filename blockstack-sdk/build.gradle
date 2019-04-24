@@ -70,7 +70,7 @@ apply plugin: 'kotlin-android-extensions'
 
 
 task downloadBlockstackJs(type: Download) {
-    src 'https://github.com/blockstack/blockstack.js/archive/v19.0.1-beta.1.zip'
+    src 'https://github.com/blockstack/blockstack.js/archive/v19.0.1.zip'
     dest new File(buildDir, 'blockstack.js.zip')
 }
 
