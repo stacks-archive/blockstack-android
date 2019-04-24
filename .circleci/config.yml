@@ -45,10 +45,11 @@ jobs:
         path: blockstack-sdk/build/test-results
     - run:
         name: Generate Documentation
-        command: ./gradlew dokka
+        command: ./gradlew blockstack-sdk:dokka
     - persist_to_workspace:
         root: blockstack-sdk/build/javadoc
-        path: blockstack-sdk
+        path:
+          - blockstack-sdk
     # See https://circleci.com/docs/2.0/deployment-integrations/ for deploy examples
   docsdeploy:
     docker:
