@@ -27,7 +27,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="myblockstackapp" />
+                <data android:scheme="blockstacksample" />
             </intent-filter>
         </activity>
     </application>

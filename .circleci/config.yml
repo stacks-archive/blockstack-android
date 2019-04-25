@@ -43,35 +43,43 @@ jobs:
         destination: reports
     - store_test_results:
         path: blockstack-sdk/build/test-results
+
+  docs-deploy:
+    docker:
+    - image: circleci/android:api-28
+    environment:
+      JVM_OPTS: -Xmx3200m
+    steps:
+    - checkout
+    - restore_cache:
+        key: jars-{{ checksum "build.gradle" }}-{{ checksum  "blockstack-sdk/build.gradle" }}-{{ checksum "example/build.gradle" }}-{{ checksum "example-multi-activities/build.gradle" }}
+    #      - run:
+    #         name: Chmod permissions #if permission for Gradlew Dependencies fail, use this.
+    #         command: sudo chmod +x ./gradlew
+    - run:
+        name: Download Dependencies
+        command: ./gradlew androidDependencies
+    - save_cache:
+        paths:
+        - ~/.gradle
+        key: jars-{{ checksum "build.gradle" }}-{{ checksum  "blockstack-sdk/build.gradle" }}-{{ checksum "example/build.gradle" }}-{{ checksum "example-multi-activities/build.gradle" }}
     - run:
         name: Generate Documentation
         command: ./gradlew dokka
-    - persist_to_workspace:
-        root: blockstack-sdk/build/javadoc
-        path: blockstack-sdk
-    # See https://circleci.com/docs/2.0/deployment-integrations/ for deploy examples
-  docs-deploy:
-    docker:
-    - image: node:8.10.0
-    steps:
-    - checkout
-    - attach_workspace:
-        at: blockstack-sdk/build/javadoc
     - run:
-      name: Disable jekyll builds
-      command: touch blockstack-sdk/build/javadoc/blockstack-sdk/.nojekyll
+        name: Disable jekyll builds
+        command: touch blockstack-sdk/build/javadoc/blockstack-sdk/.nojekyll
     - run:
-        name: Install and configure dependencies
+        name: Configure git
         command: |
-          npm install -g --silent gh-pages@2.0.1
           git config user.email "ci-build@blockstack.org"
           git config user.name "ci-build"
     - add_ssh_keys:
         fingerprints:
-          - "c4:c7:e7:d1:0a:12:d9:66:ed:57:5b:40:14:db:e8:78"
+        - "c4:c7:e7:d1:0a:12:d9:66:ed:57:5b:40:14:db:e8:78"
     - run:
-        name: Deploy docs to gh-pages branch
-        command: gh-pages --message "[skip ci] Update docs" --dist blockstack-sdk/build/javadoc/blockstack-sdk
+        name: Publish Documentation
+        command: ./gradlew gitPublishPush
 
 workflows:
   version: 2
@@ -83,4 +91,4 @@ workflows:
             - test
           filters:
             branches:
-              only: develop
+              only: master
