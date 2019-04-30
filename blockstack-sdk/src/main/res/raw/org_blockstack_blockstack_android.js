@@ -151,6 +151,15 @@ userSessionAndroid.putFile = function(path, contentString, options, uniqueIdenti
     })
 }
 
+userSessionAndroid.getFileUrl = function(path, options, uniqueIdentifier) {
+  userSession.getFileUrl(path, JSON.parse(options))
+    .then(function(result) {
+      android.getFileUrlResult(result, uniqueIdentifier)
+    }, function(error) {
+      console.log("getFileUrl failure:" + error)
+      android.getFileUrlFailure(error.toString(), uniqueIdentifier)
+    })
+}
 
 userSessionAndroid.encryptContent = function(contentString, options) {
     return userSession.encryptContent(contentString, JSON.parse(options));

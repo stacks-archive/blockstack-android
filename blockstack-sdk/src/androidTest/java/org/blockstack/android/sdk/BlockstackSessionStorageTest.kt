@@ -13,12 +13,16 @@ import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.ByteArrayOutputStream
+import java.io.FileNotFoundException
+import java.io.IOException
 import java.net.URL
+import java.net.URLConnection
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -282,6 +286,62 @@ class BlockstackSessionStorageTest {
         })
         latch.await(1, TimeUnit.MINUTES)
         assertThat(countResult?.error, `is`("I want to make the API crash!"))
+    }
+
+    @Test
+    fun testGetFileUrlForEncryptedFile() {
+        val latch = CountDownLatch(1)
+        var urlResult: Result<String>? = null
+        if (session.isUserSignedIn()) {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(true), {
+                session.getFileUrl("try.txt", GetFileOptions(true), {
+                    urlResult = it
+                    latch.countDown()
+                })
+            })
+        } else {
+            latch.countDown()
+        }
+        latch.await(1, TimeUnit.MINUTES)
+        assertThat(urlResult?.value, notNullValue())
+        assertThat(URL(urlResult!!.value).readText(), startsWith("{\"iv\":"))
+    }
+
+    @Test
+    fun testGetFileUrlForUnencryptedFile() {
+        val latch = CountDownLatch(1)
+        var urlResult: Result<String>? = null
+        if (session.isUserSignedIn()) {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(false), {
+                session.getFileUrl("try.txt", GetFileOptions(false), {
+                    urlResult = it
+                    latch.countDown()
+                })
+            })
+        } else {
+            latch.countDown()
+        }
+        latch.await(1, TimeUnit.MINUTES)
+        assertThat(urlResult?.value, notNullValue())
+        assertThat(URL(urlResult!!.value).readText(), `is`("Hello Test"))
+    }
+
+    @Test
+    fun testGetFileUrlFor404File() {
+        val latch = CountDownLatch(1)
+        var urlResult: Result<String>? = null
+        session.getFileUrl("404file.txt", GetFileOptions(false), {
+            urlResult = it
+            latch.countDown()
+        })
+        latch.await(1, TimeUnit.MINUTES)
+        assertThat(urlResult?.value, notNullValue())
+        try {
+            URL(urlResult!!.value).readText()
+            fail("Should throw FileNotFoundException")
+        } catch (e:FileNotFoundException) {
+            // success
+        }
     }
 
     private fun getImageBytes(): ByteArray {
