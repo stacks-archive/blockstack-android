@@ -1,6 +1,7 @@
 package org.blockstack.android.sdk
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.preference.PreferenceManager
@@ -73,6 +74,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     private var validateProofsCallback: ((Result<ArrayList<Proof>>) -> Unit)? = null
     private var resolveZoneFileToProfileCallback: ((Result<Profile>) -> Unit)? = null
     private val getFileCallbacks = HashMap<String, ((Result<Any>) -> Unit)>()
+    private val getFileUrlCallbacks = HashMap<String, ((Result<String>) -> Unit)>()
     private val putFileCallbacks = HashMap<String, ((Result<String>) -> Unit)>()
     private var getAppBucketUrlCallback: ((Result<String>) -> Unit)? = null
     private var getUserAppFileUrlCallback: ((Result<String>) -> Unit)? = null
@@ -121,6 +123,14 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         network = Network(v8networkAndroid, v8)
 
+        // check verified app link verification once
+        if (context != null &&!doNotVerifyAppLinkConfiguration) {
+            executor.onNetworkThread {
+                AppLinkVerifier(context, config).verify()
+                doNotVerifyAppLinkConfiguration = true
+            }
+        }
+
         loaded = true
     }
 
@@ -144,6 +154,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8android.registerJavaMethod(android, "getFileFailure", "getFileFailure", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "putFileResult", "putFileResult", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "putFileFailure", "putFileFailure", arrayOf<Class<*>>(String::class.java, String::class.java))
+        v8android.registerJavaMethod(android, "getFileUrlResult", "getFileUrlResult", arrayOf<Class<*>>(String::class.java, String::class.java))
+        v8android.registerJavaMethod(android, "getFileUrlFailure", "getFileUrlFailure", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "getAppBucketUrlResult", "getAppBucketUrlResult", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getAppBucketUrlFailure", "getAppBucketUrlFailure", arrayOf<Class<*>>(String::class.java))
         v8android.registerJavaMethod(android, "getUserAppFileUrlResult", "getUserAppFileUrlResult", arrayOf<Class<*>>(String::class.java))
@@ -173,6 +185,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8.add("console", v8Console)
         v8Console.registerJavaMethod(console, "log", "log", arrayOf<Class<*>>(String::class.java))
         v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(String::class.java))
+        v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(V8Object::class.java))
         v8Console.registerJavaMethod(console, "debug", "debug", arrayOf<Class<*>>(String::class.java))
         v8Console.registerJavaMethod(console, "warn", "warn", arrayOf<Class<*>>(String::class.java))
         v8Console.release()
@@ -603,6 +616,21 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
     }
 
+    /**
+     * Get the URL for reading a file from an app's data store.
+     * @param path  the path to the file to read
+     * @param options - options object
+     * @param callback
+     * @returns {Promise<string>} that resolves to the URL or rejects with an error
+     */
+    fun getFileUrl(path: String, options: GetFileOptions, callback: (Result<String>) -> Unit) {
+        val uniqueIdentifier = addGetFileUrlCallback(callback)
+        val v8params = V8Array(v8).push(path).push(options.toJSON().toString()).push(uniqueIdentifier)
+        v8userSessionAndroid.executeVoidFunction("getFileUrl", v8params)
+        v8params.release()
+    }
+
+
     /* Crypto methods */
 
     /**
@@ -726,6 +754,12 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         return uniqueIdentifier
     }
 
+    private fun addGetFileUrlCallback(callback: (Result<String>) -> Unit): String {
+        val uniqueIdentifier = UUID.randomUUID().toString()
+        getFileUrlCallbacks[uniqueIdentifier] = callback
+        return uniqueIdentifier
+    }
+
 
     @Suppress("unused")
     private class JSAndroidBridge(private val blockstackSession: BlockstackSession, private val v8: V8, private val v8blockstackAndroid: V8Object, private val v8userSessionAndroid: V8Object) {
@@ -801,6 +835,16 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         fun putFileFailure(error: String, uniqueIdentifier: String) {
             blockstackSession.putFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
             blockstackSession.putFileCallbacks.remove(uniqueIdentifier)
+        }
+
+        fun getFileUrlResult(url: String?, uniqueIdentifier: String) {
+            blockstackSession.getFileUrlCallbacks[uniqueIdentifier]?.invoke(Result(url))
+            blockstackSession.getFileUrlCallbacks.remove(uniqueIdentifier)
+        }
+
+        fun getFileUrlFailure(error: String, uniqueIdentifier: String) {
+            blockstackSession.getFileUrlCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
+            blockstackSession.getFileUrlCallbacks.remove(uniqueIdentifier)
         }
 
         fun getAppBucketUrlResult(url: String) {
@@ -893,20 +937,40 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         fun setLocation(location: String) {
             blockstackSession.executor.onMainThread {
-                val builder = CustomTabsIntent.Builder()
-                val options = BitmapFactory.Options()
-                options.outWidth = 24
-                options.outHeight = 24
-                options.inScaled = true
-                val backButton = BitmapFactory.decodeResource(it.resources, R.drawable.ic_arrow_back, options);
-                builder.setCloseButtonIcon(backButton)
-                builder.setToolbarColor(ContextCompat.getColor(it, R.color.org_blockstack_purple_50_logos_types))
-                builder.setToolbarColor(ContextCompat.getColor(it, R.color.org_blockstack_purple_85_lines))
-                builder.setShowTitle(true)
-                val customTabsIntent = builder.build()
-                customTabsIntent.launchUrl(it, Uri.parse(location))
+                val locationUri = Uri.parse(location)
+                if (shouldLaunchInCustomTabs) {
+                    val builder = CustomTabsIntent.Builder()
+                    val options = BitmapFactory.Options()
+                    options.outWidth = 24
+                    options.outHeight = 24
+                    options.inScaled = true
+                    val backButton = BitmapFactory.decodeResource(it.resources, R.drawable.ic_arrow_back, options);
+                    builder.setCloseButtonIcon(backButton)
+                    builder.setToolbarColor(ContextCompat.getColor(it, R.color.org_blockstack_purple_50_logos_types))
+                    builder.setToolbarColor(ContextCompat.getColor(it, R.color.org_blockstack_purple_85_lines))
+                    builder.setShowTitle(true)
+                    val customTabsIntent = builder.build()
+                    customTabsIntent.launchUrl(it, locationUri)
+                } else {
+                    it.startActivity(Intent(Intent.ACTION_VIEW, locationUri).addCategory(Intent.CATEGORY_BROWSABLE))
+                }
             }
         }
+    }
+
+    companion object {
+        /**
+         * Flag indicating whether the authentication flow should be started in custom tabs.
+         * Defaults to true.
+         *
+         * Set this to false only if you can't use Verified App Links.
+         */
+        var shouldLaunchInCustomTabs = true
+
+        /**
+         * Flag indicating that verified app links should not be checked for correct configuration
+         */
+        var doNotVerifyAppLinkConfiguration = false
     }
 }
 

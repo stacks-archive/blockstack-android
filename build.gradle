@@ -7,7 +7,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.1'
+        classpath 'com.android.tools.build:gradle:3.4.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
         // NOTE: Do not place your application dependencies here; they belong
@@ -17,6 +17,7 @@ buildscript {
 
 plugins {
     id "org.jetbrains.dokka-android" version "0.9.17"
+    id 'de.undercouch.download' version '3.4.3'
 }
 
 allprojects {
@@ -24,6 +25,19 @@ allprojects {
         google()
         jcenter()
     }
+}
+
+import com.android.build.gradle.internal.dsl.SigningConfig
+
+ext {
+    mySigningConfigs = [
+            debug : SigningConfig.newInstance([
+                    storeFile: file("config/debug.keystore"),
+                    storePassword: "android",
+                    keyAlias: "androiddebugkey",
+                    keyPassword: "android"
+            ])
+    ]
 }
 
 task clean(type: Delete) {
