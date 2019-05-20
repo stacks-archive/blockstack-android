@@ -1,13 +1,10 @@
-package org.blockstack.android.sdk;
+package org.blockstack.android.sdk
 
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
-import org.blockstack.android.sdk.model.CryptoOptions
-import org.blockstack.android.sdk.model.GetFileOptions
-import org.blockstack.android.sdk.model.PutFileOptions
-import org.blockstack.android.sdk.model.toBlockstackConfig
+import org.blockstack.android.sdk.model.*
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
@@ -20,9 +17,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.ByteArrayOutputStream
 import java.io.FileNotFoundException
-import java.io.IOException
 import java.net.URL
-import java.net.URLConnection
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -60,14 +55,14 @@ class BlockstackSessionStorageTest {
         val latch = CountDownLatch(2)
 
         if (session.isUserSignedIn()) {
-            session.putFile("try.txt", "Hello Test", PutFileOptions(false), {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(false)) {
                 result1 = it.value as String
                 latch.countDown()
-            })
-            session.putFile("try.txt", "Hello Test2", PutFileOptions(false), {
+            }
+            session.putFile("try.txt", "Hello Test2", PutFileOptions(false)) {
                 result2 = it.value as String
                 latch.countDown()
-            })
+            }
         } else {
             latch.countDown()
             latch.countDown()
@@ -124,12 +119,12 @@ class BlockstackSessionStorageTest {
         val latch = CountDownLatch(1)
 
         if (session.isUserSignedIn()) {
-            session.putFile("try.txt", "Hello Test", PutFileOptions(false), {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(false)) {
                 session.getFile("try.txt", GetFileOptions(false)) {
                     result = it.value as String
                     latch.countDown()
                 }
-            })
+            }
         } else {
             latch.countDown()
         }
@@ -162,12 +157,12 @@ class BlockstackSessionStorageTest {
         val latch = CountDownLatch(1)
 
         if (session.isUserSignedIn()) {
-            session.putFile("try.txt", "Hello Test", PutFileOptions(true), {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
                 session.getFile("try.txt", GetFileOptions(true)) {
                     result = it.value as String
                     latch.countDown()
                 }
-            })
+            }
         } else {
             latch.countDown()
         }
@@ -184,12 +179,12 @@ class BlockstackSessionStorageTest {
         val latch = CountDownLatch(1)
 
         if (session.isUserSignedIn()) {
-            session.putFile("try.txt", bitMapData, PutFileOptions(false), {
+            session.putFile("try.txt", bitMapData, PutFileOptions(false)) {
                 session.getFile("try.txt", GetFileOptions(false)) {
                     result = it.value as ByteArray
                     latch.countDown()
                 }
-            })
+            }
         } else {
             latch.countDown()
         }
@@ -206,12 +201,12 @@ class BlockstackSessionStorageTest {
         val latch = CountDownLatch(1)
 
         if (session.isUserSignedIn()) {
-            session.putFile("try.txt", bitMapData, PutFileOptions(true), {
+            session.putFile("try.txt", bitMapData, PutFileOptions(true)) {
                 session.getFile("try.txt", GetFileOptions(true)) {
                     result = it.value as ByteArray
                     latch.countDown()
                 }
-            })
+            }
         } else {
             latch.countDown()
         }
@@ -293,12 +288,12 @@ class BlockstackSessionStorageTest {
         val latch = CountDownLatch(1)
         var urlResult: Result<String>? = null
         if (session.isUserSignedIn()) {
-            session.putFile("try.txt", "Hello Test", PutFileOptions(true), {
-                session.getFileUrl("try.txt", GetFileOptions(true), {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
+                session.getFileUrl("try.txt", GetFileOptions(true)) {
                     urlResult = it
                     latch.countDown()
-                })
-            })
+                }
+            }
         } else {
             latch.countDown()
         }
@@ -312,12 +307,12 @@ class BlockstackSessionStorageTest {
         val latch = CountDownLatch(1)
         var urlResult: Result<String>? = null
         if (session.isUserSignedIn()) {
-            session.putFile("try.txt", "Hello Test", PutFileOptions(false), {
-                session.getFileUrl("try.txt", GetFileOptions(false), {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(false)) {
+                session.getFileUrl("try.txt", GetFileOptions(false)) {
                     urlResult = it
                     latch.countDown()
-                })
-            })
+                }
+            }
         } else {
             latch.countDown()
         }
@@ -330,24 +325,45 @@ class BlockstackSessionStorageTest {
     fun testGetFileUrlFor404File() {
         val latch = CountDownLatch(1)
         var urlResult: Result<String>? = null
-        session.getFileUrl("404file.txt", GetFileOptions(false), {
+        session.getFileUrl("404file.txt", GetFileOptions(false)) {
             urlResult = it
             latch.countDown()
-        })
+        }
         latch.await(1, TimeUnit.MINUTES)
         assertThat(urlResult?.value, notNullValue())
         try {
             URL(urlResult!!.value).readText()
             fail("Should throw FileNotFoundException")
-        } catch (e:FileNotFoundException) {
+        } catch (e: FileNotFoundException) {
             // success
         }
+    }
+
+    @Test
+    fun testDeleteFile() {
+        var result: String? = null
+        val latch = CountDownLatch(1)
+
+        if (session.isUserSignedIn()) {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(false)) {
+                session.deleteFile("try.txt") {
+                    session.getFile("try.txt", GetFileOptions(false)) {
+                        result = it.error
+                        latch.countDown()
+                    }
+                }
+            }
+        } else {
+            latch.countDown()
+        }
+        latch.await()
+        assertThat(result, `is`("Hello Test"))
     }
 
     private fun getImageBytes(): ByteArray {
         val drawable: BitmapDrawable = rule.activity.resources.getDrawable(org.blockstack.android.sdk.test.R.drawable.blockstackteam) as BitmapDrawable
 
-        val bitmap = drawable.getBitmap()
+        val bitmap = drawable.bitmap
         val stream = ByteArrayOutputStream()
 
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)

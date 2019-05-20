@@ -8,6 +8,12 @@ var window={set location(location) {
         setLocation(location);
     }
 };
+window.crypto = {
+                    // overwritten in blockstack_android.js
+                    getRandomValues : function(array) {
+                      throw Error("not secure getRandomValues")
+                    }
+                  };
 var global = typeof(global) == 'undefined' ? {Uint8Array:Uint8Array} : global;
 if (!global.crypto){
   global.crypto = {
@@ -16,6 +22,10 @@ if (!global.crypto){
       throw Error("not secure getRandomValues")
     }
   };
+} else if (!global.crypto.getRandomValues) {
+    global.crypto.getRandomValues = function(array) {
+                                      throw Error("not secure getRandomValues")
+                                    };
 }
 var self = global;
 var module = {};
