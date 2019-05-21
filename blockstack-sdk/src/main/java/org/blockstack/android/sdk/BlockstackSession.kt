@@ -170,10 +170,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     }
 
     private fun registerCryptoMethods() {
-        val v8global = v8.getObject("global")
-        val v8crypto = v8global.getObject("crypto")
-        v8global.release()
-
+        val v8crypto = v8.getObject("crypto")
         val crypto = GlobalCrypto()
         v8crypto.registerJavaMethod(crypto, "getRandomValues", "getRandomValues", arrayOf<Class<*>>(V8TypedArray::class.java))
         v8crypto.release()
@@ -185,7 +182,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8.add("console", v8Console)
         v8Console.registerJavaMethod(console, "log", "log", arrayOf<Class<*>>(String::class.java))
         v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(String::class.java))
-        v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(V8Object::class.java))
+        v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(String::class.java))
         v8Console.registerJavaMethod(console, "debug", "debug", arrayOf<Class<*>>(String::class.java))
         v8Console.registerJavaMethod(console, "warn", "warn", arrayOf<Class<*>>(String::class.java))
         v8Console.release()
@@ -298,7 +295,6 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     fun redirectUserToSignIn(errorCallback: (Result<Unit>) -> Unit) {
         try {
             val v8params = V8Array(v8)
-                    .push(nameLookupUrl)
             v8userSession.executeVoidFunction("redirectToSignIn", v8params)
             v8params.release()
         } catch (e: Exception) {
