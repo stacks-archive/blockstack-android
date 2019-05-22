@@ -56,7 +56,8 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(true))
-        assertThat(result?.value?.json.toString(), `is`("{\"units\":\"BTC\",\"amount\":{\"0\":10240000,\"1\":0,\"t\":1,\"s\":0}}"))
+        assertThat(result?.value?.amount.toString(), `is`("10240000"))
+        assertThat(result?.value?.json.toString(), `is`("{\"units\":\"BTC\",\"amount\":\"9c4000\"}"))
     }
 
     @Test
@@ -84,7 +85,8 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(true))
-        assertThat(result?.value?.json.toString(), `is`("{\"units\":\"STACKS\",\"amount\":{\"0\":36020224,\"1\":9,\"t\":2,\"s\":0}}"))
+        assertThat(result?.value?.amount.toString(), `is`("640000000"))
+        assertThat(result?.value?.json.toString(), `is`("{\"units\":\"STACKS\",\"amount\":\"2625a000\"}"))
     }
 
     @Test
@@ -338,7 +340,7 @@ class NetworkTest {
 
         latch.await()
         assertThat(result?.hasValue, `is`(true))
-        assertThat(result?.value?.joinToString { state -> state.json.toString() }, `is`("{\"address\":\"3NmD8RN7N5ryJumThxa5pq3UUy1LUEfmir\",\"block_id\":373601,\"credit_value\":{\"0\":0,\"t\":0,\"s\":0},\"debit_value\":{\"0\":0,\"t\":0,\"s\":0},\"lock_transfer_block_id\":543805,\"txid\":\"049417c2dbf26d3dc168bcf40bb83b5d7719e49205ee97c4feac42636e3d2cc8\",\"type\":\"STACKS\",\"vtxindex\":0}"))
+        assertThat(result?.value?.joinToString { state -> state.json.toString() }, `is`("{\"address\":\"3NmD8RN7N5ryJumThxa5pq3UUy1LUEfmir\",\"block_id\":373601,\"credit_value\":\"0\",\"debit_value\":\"0\",\"lock_transfer_block_id\":543805,\"txid\":\"049417c2dbf26d3dc168bcf40bb83b5d7719e49205ee97c4feac42636e3d2cc8\",\"type\":\"STACKS\",\"vtxindex\":0}"))
     }
 
     @Test
