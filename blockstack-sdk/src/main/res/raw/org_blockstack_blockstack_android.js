@@ -151,6 +151,19 @@ userSessionAndroid.putFile = function(path, contentString, options, uniqueIdenti
     })
 }
 
+userSessionAndroid.deleteFile = function(path, options, uniqueIdentifier) {
+  try {
+  userSession.deleteFile(path, JSON.parse(options))
+    .then(function(result){
+      android.deleteFileResult(uniqueIdentifier)
+    }, function(error) {
+      android.deleteFileFailure(error.toString(), uniqueIdentifier)
+    }) }
+    catch (e) {
+      console.log(e.toString())
+    }
+}
+
 userSessionAndroid.getFileUrl = function(path, options, uniqueIdentifier) {
   userSession.getFileUrl(path, JSON.parse(options))
     .then(function(result) {
