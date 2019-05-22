@@ -170,10 +170,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     }
 
     private fun registerCryptoMethods() {
-        val v8global = v8.getObject("global")
-        val v8crypto = v8global.getObject("crypto")
-        v8global.release()
-
+        val v8crypto = v8.getObject("crypto")
         val crypto = GlobalCrypto()
         v8crypto.registerJavaMethod(crypto, "getRandomValues", "getRandomValues", arrayOf<Class<*>>(V8TypedArray::class.java))
         v8crypto.release()
@@ -251,6 +248,10 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
         val v8params = V8Array(v8)
                 .push(transitPrivateKey)
+                .push("${config.appDomain}${config.redirectPath}")
+                .push("${config.appDomain}${config.manifestPath}")
+                .push(Scope.scopesArrayToJSONString(config.scopes))
+                .push(config.appDomain.toString())
                 .push(expiresAt)
                 .push(v8ExtraParams)
         val result = v8userSession.executeStringFunction("makeAuthRequest", v8params)
@@ -298,7 +299,6 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     fun redirectUserToSignIn(errorCallback: (Result<Unit>) -> Unit) {
         try {
             val v8params = V8Array(v8)
-                    .push(nameLookupUrl)
             v8userSession.executeVoidFunction("redirectToSignIn", v8params)
             v8params.release()
         } catch (e: Exception) {
