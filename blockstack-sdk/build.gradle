@@ -79,14 +79,14 @@ apply plugin: 'kotlin-android-extensions'
 
 
 task downloadBlockstackJs(type: Download) {
-    src 'https://github.com/blockstack/blockstack.js/archive/v19.1.0.zip'
-    dest new File(buildDir, 'blockstack.js.zip')
+    src 'https://unpkg.com/blockstack@19.2.1/dist/blockstack.js'
+    dest new File(buildDir, 'blockstack.js')
 }
 
 task updateBlockstackJs(dependsOn: downloadBlockstackJs, type: Copy) {
-    from zipTree(downloadBlockstackJs.dest)
+    from downloadBlockstackJs.dest
     into 'src/main/res/raw'
-    include ('*/dist/blockstack.js')
+    include ('blockstack.js')
     rename ('(.*)', 'org_blockstack_$1')
     eachFile { fcp ->
         fcp.path = fcp.name

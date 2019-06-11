@@ -5,8 +5,7 @@ import com.eclipsesource.v8.V8Object
 
 
 interface Console {
-    fun error(msg: String)
-    fun error(error: V8Object)
+    fun error(msg: Any)
     fun warn(msg: String)
     fun debug(msg: String)
     fun log(msg: String)
@@ -15,12 +14,15 @@ interface Console {
 class LogConsole : Console {
     private val TAG = LogConsole::class.simpleName
 
-    override fun error(msg: String) {
-        Log.e(TAG, msg)
-    }
+    override fun error(msg: Any) {
+        if (msg is V8Object) {
+            Log.e(TAG, msg.toString())
+        } else if (msg is String) {
+            Log.e(TAG, msg)
+        } else {
+            Log.e(TAG, msg.toString())
+        }
 
-    override fun error (error: V8Object) {
-        Log.e(TAG, error.toString())
     }
 
     override fun warn(msg: String) {
