@@ -97,13 +97,30 @@
         app:layout_constraintTop_toBottomOf="@id/getStringFileButton" />
 
     <Button
+        android:id="@+id/deleteStringFileButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Delete String File"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/fileContentsTextView" />
+
+    <TextView
+        android:id="@+id/deleteFileMessageTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/deleteStringFileButton" />
+
+    <Button
         android:id="@+id/putImageFileButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Put Image File"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/fileContentsTextView" />
+        app:layout_constraintTop_toBottomOf="@id/deleteFileMessageTextView" />
 
     <TextView
         android:id="@+id/imageFileTextView"

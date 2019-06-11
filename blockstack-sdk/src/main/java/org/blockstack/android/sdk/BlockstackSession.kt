@@ -76,6 +76,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     private val getFileCallbacks = HashMap<String, ((Result<Any>) -> Unit)>()
     private val getFileUrlCallbacks = HashMap<String, ((Result<String>) -> Unit)>()
     private val putFileCallbacks = HashMap<String, ((Result<String>) -> Unit)>()
+    private val deleteFileCallbacks = HashMap<String, ((Result<Unit>) -> Unit)>()
     private var getAppBucketUrlCallback: ((Result<String>) -> Unit)? = null
     private var getUserAppFileUrlCallback: ((Result<String>) -> Unit)? = null
     private var listFilesCallback: ((Result<String>) -> Boolean)? = null
@@ -124,7 +125,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         network = Network(v8networkAndroid, v8)
 
         // check verified app link verification once
-        if (context != null &&!doNotVerifyAppLinkConfiguration) {
+        if (context != null && !doNotVerifyAppLinkConfiguration) {
             executor.onNetworkThread {
                 AppLinkVerifier(context, config).verify()
                 doNotVerifyAppLinkConfiguration = true
@@ -154,6 +155,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8android.registerJavaMethod(android, "getFileFailure", "getFileFailure", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "putFileResult", "putFileResult", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "putFileFailure", "putFileFailure", arrayOf<Class<*>>(String::class.java, String::class.java))
+        v8android.registerJavaMethod(android, "deleteFileResult", "deleteFileResult", arrayOf<Class<*>>(String::class.java))
+        v8android.registerJavaMethod(android, "deleteFileFailure", "deleteFileFailure", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "getFileUrlResult", "getFileUrlResult", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "getFileUrlFailure", "getFileUrlFailure", arrayOf<Class<*>>(String::class.java, String::class.java))
         v8android.registerJavaMethod(android, "getAppBucketUrlResult", "getAppBucketUrlResult", arrayOf<Class<*>>(String::class.java))
@@ -181,8 +184,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         val v8Console = V8Object(v8)
         v8.add("console", v8Console)
         v8Console.registerJavaMethod(console, "log", "log", arrayOf<Class<*>>(String::class.java))
-        v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(String::class.java))
-        v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(V8Object::class.java))
+        v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(Any::class.java))
         v8Console.registerJavaMethod(console, "debug", "debug", arrayOf<Class<*>>(String::class.java))
         v8Console.registerJavaMethod(console, "warn", "warn", arrayOf<Class<*>>(String::class.java))
         v8Console.release()
@@ -193,7 +195,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     private class GlobalCrypto {
         private val secureRandom = SecureRandom()
         fun getRandomValues(array: V8TypedArray) {
-            val buffer = array.getByteBuffer()
+            val buffer = array.byteBuffer
 
             val bytes = ByteArray(array.length())
             secureRandom.nextBytes(bytes)
@@ -616,6 +618,28 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
     }
 
+
+    /**
+     * Deletes the specified file from the app's data store.
+     * @param path - The path to the file to delete.
+     * @param options - Optional options object.
+     * @param options.wasSigned - Set to true if the file was originally signed
+     * in order for the corresponding signature file to also be deleted.
+     * @param callback called when the file has been removed or when an error occurred.
+     */
+    fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions(), callback: (Result<Unit>) -> Unit) {
+        Log.d(TAG, "delete file")
+        try {
+            val uniqueIdentifier = addDeleteFileCallback(callback)
+            val v8params = V8Array(v8).push(path).push(options.toJSON().toString()).push(uniqueIdentifier)
+            v8userSessionAndroid.executeVoidFunction("deleteFile", v8params)
+            v8params.release()
+        } catch (e:Exception) {
+            Log.d(TAG, "delete file failure", e)
+        }
+    }
+
+
     /**
      * Get the URL for reading a file from an app's data store.
      * @param path  the path to the file to read
@@ -754,12 +778,17 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         return uniqueIdentifier
     }
 
+    private fun addDeleteFileCallback(callback: (Result<Unit>) -> Unit): String {
+        val uniqueIdentifier = UUID.randomUUID().toString()
+        deleteFileCallbacks[uniqueIdentifier] = callback
+        return uniqueIdentifier
+    }
+
     private fun addGetFileUrlCallback(callback: (Result<String>) -> Unit): String {
         val uniqueIdentifier = UUID.randomUUID().toString()
         getFileUrlCallbacks[uniqueIdentifier] = callback
         return uniqueIdentifier
     }
-
 
     @Suppress("unused")
     private class JSAndroidBridge(private val blockstackSession: BlockstackSession, private val v8: V8, private val v8blockstackAndroid: V8Object, private val v8userSessionAndroid: V8Object) {
@@ -835,6 +864,16 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         fun putFileFailure(error: String, uniqueIdentifier: String) {
             blockstackSession.putFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
             blockstackSession.putFileCallbacks.remove(uniqueIdentifier)
+        }
+
+        fun deleteFileResult(uniqueIdentifier: String) {
+            blockstackSession.deleteFileCallbacks[uniqueIdentifier]?.invoke(Result(null))
+            blockstackSession.deleteFileCallbacks.remove(uniqueIdentifier)
+        }
+
+        fun deleteFileFailure(error: String, uniqueIdentifier: String) {
+            blockstackSession.deleteFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
+            blockstackSession.deleteFileCallbacks.remove(uniqueIdentifier)
         }
 
         fun getFileUrlResult(url: String?, uniqueIdentifier: String) {
@@ -944,7 +983,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                     options.outWidth = 24
                     options.outHeight = 24
                     options.inScaled = true
-                    val backButton = BitmapFactory.decodeResource(it.resources, R.drawable.ic_arrow_back, options);
+                    val backButton = BitmapFactory.decodeResource(it.resources, R.drawable.ic_arrow_back, options)
                     builder.setCloseButtonIcon(backButton)
                     builder.setToolbarColor(ContextCompat.getColor(it, R.color.org_blockstack_purple_50_logos_types))
                     builder.setToolbarColor(ContextCompat.getColor(it, R.color.org_blockstack_purple_85_lines))

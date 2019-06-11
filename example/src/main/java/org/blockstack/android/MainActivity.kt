@@ -19,10 +19,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
-import org.blockstack.android.sdk.model.GetFileOptions
-import org.blockstack.android.sdk.model.PutFileOptions
-import org.blockstack.android.sdk.model.UserData
-import org.blockstack.android.sdk.model.toBlockstackConfig
+import org.blockstack.android.sdk.model.*
 import java.io.ByteArrayOutputStream
 import java.net.URL
 import java.util.*
@@ -54,6 +51,7 @@ class MainActivity : AppCompatActivity() {
         validateProofsButton.isEnabled = false
         getStringFileButton.isEnabled = false
         putStringFileButton.isEnabled = false
+        deleteStringFileButton.isEnabled = false
         getImageFileButton.isEnabled = false
         putImageFileButton.isEnabled = false
         getStringFileFromUserButton.isEnabled = false
@@ -106,6 +104,19 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "error: " + contentResult.error, Toast.LENGTH_SHORT).show()
                 }
             })
+        }
+
+        deleteStringFileButton.setOnClickListener{
+            deleteFileMessageTextView.text = "Deleting..."
+            blockstackSession().deleteFile(textFileName, DeleteFileOptions()) {
+                if (it.hasErrors) {
+                    Toast.makeText(this, "error " + it.error, Toast.LENGTH_SHORT).show()
+                } else {
+                    runOnUiThread{
+                        deleteFileMessageTextView.text = "File $textFileName deleted."
+                    }
+                }
+            }
         }
 
         putStringFileButton.setOnClickListener { _ ->
@@ -279,6 +290,7 @@ class MainActivity : AppCompatActivity() {
         validateProofsButton.isEnabled = true
         getStringFileButton.isEnabled = true
         putStringFileButton.isEnabled = true
+        deleteStringFileButton.isEnabled = true
         putImageFileButton.isEnabled = true
         getImageFileButton.isEnabled = true
         getStringFileFromUserButton.isEnabled = true
