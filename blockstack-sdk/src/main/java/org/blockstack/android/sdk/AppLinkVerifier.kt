@@ -35,13 +35,13 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
     @WorkerThread
     fun verify(): String? {
         try {
-            val fingerprintFromDALFile = getFingerprintFromDigitalAssetLinksFile()
-            val fingerprintFromPackage = getFingerprintFromPackage()
+            val fingerprintsFromDALFile = getFingerprintsFromDigitalAssetLinksFile()
+            val fingerprintsFromPackage = getFingerprintsFromPackage()
             var msg: String? = null
-            if (TextUtils.isEmpty(fingerprintFromDALFile)) {
+            if (fingerprintsFromDALFile.isEmpty()) {
                 msg = "Digital Asset Links file for ${config.appDomain} does not contain a fingerprint for this app ${context.packageName}.\nPlease verify https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=${config.appDomain}&relation=delegate_permission/common.handle_all_urls"
             }
-            if (TextUtils.isEmpty(fingerprintFromPackage)) {
+            if (fingerprintsFromPackage.isEmpty()) {
                 val msgFromPackage = "This app ${context.packageName} does not contain a signature."
                 if (msg != null) {
                     msg = msg + "\n" + msgFromPackage
@@ -49,9 +49,9 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
                     msg = msgFromPackage
                 }
             }
-            if (!TextUtils.isEmpty(fingerprintFromDALFile) && !TextUtils.isEmpty(fingerprintFromPackage) &&
-                    !fingerprintFromDALFile.equals(fingerprintFromPackage)) {
-                msg = "Fingerprints for ${context.packageName} at ${config.appDomain} do not match.\nFingerprint from Digital Asset Links file: $fingerprintFromDALFile\nFingerprint from application signature   : $fingerprintFromPackage\nPlease verify https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=${config.appDomain}&relation=delegate_permission/common.handle_all_urls"
+            if (!fingerprintsFromDALFile.isEmpty() && !fingerprintsFromPackage.isEmpty() &&
+                    !fingerprintsFromDALFile.containsOne(fingerprintsFromPackage) ) {
+                msg = "Fingerprints for ${context.packageName} at ${config.appDomain} do not match.\nFingerprint(s) from Digital Asset Links file: ${fingerprintsFromDALFile.joinToString()}\nFingerprint from application signature   : ${fingerprintsFromPackage.joinToString()}\nPlease verify https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=${config.appDomain}&relation=delegate_permission/common.handle_all_urls"
             }
             if (msg != null) {
                 Log.w(TAG, "Blockstack apps should use Verified App Links. Read more at  https://developer.android.com/training/app-links/verify-site-associations\nThis warning can be suppressed by setting BlockstackSession.doNotVerifyAppLinkConfiguration = true.\n$msg")
@@ -64,7 +64,8 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
         }
     }
 
-    private fun getFingerprintFromDigitalAssetLinksFile(): String? {
+    private fun getFingerprintsFromDigitalAssetLinksFile(): ArrayList<String> {
+        val fingerprints = arrayListOf<String>()
 
         val responseString = URL("https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=${config.appDomain}&relation=delegate_permission/common.handle_all_urls").readText()
         val normalizedAppDomain = "${config.appDomain}."
@@ -77,14 +78,20 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
                 val site = statement.optJSONObject("source")?.optJSONObject("web")?.optString("site")
                 val androidApp = statement.optJSONObject("target")?.optJSONObject("androidApp")
                 if (normalizedAppDomain.equals(site) && context.packageName.equals(androidApp?.optString("packageName"))) {
-                    return androidApp?.optJSONObject("certificate")?.optString("sha256Fingerprint")
+                    val fingerprint = androidApp?.optJSONObject("certificate")?.optString("sha256Fingerprint")
+                    if (fingerprint != null) {
+                        fingerprints.add(fingerprint)
+                    }
                 }
             }
         }
-        return null
+
+        return fingerprints
     }
 
-    private fun getFingerprintFromPackage(): String? {
+    @Suppress("DEPRECATION")
+    private fun getFingerprintsFromPackage(): ArrayList<String> {
+        val fingerprints = arrayListOf<String>()
         val pm = context.getPackageManager()
         val packageName = context.getPackageName()
         val flags = PackageManager.GET_SIGNATURES
@@ -96,34 +103,35 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
         }
 
         val signatures = packageInfo!!.signatures
-        val cert = signatures[0].toByteArray()
-        val input = ByteArrayInputStream(cert)
-        var cf: CertificateFactory? = null
-        try {
-            cf = CertificateFactory.getInstance("X509")
-        } catch (e: CertificateException) {
-            e.printStackTrace()
-        }
+        for (signature in signatures) {
+            val cert = signature.toByteArray()
+            val input = ByteArrayInputStream(cert)
+            var cf: CertificateFactory? = null
+            try {
+                cf = CertificateFactory.getInstance("X509")
+            } catch (e: CertificateException) {
+                e.printStackTrace()
+            }
 
-        var c: X509Certificate? = null
-        try {
-            c = cf!!.generateCertificate(input) as X509Certificate
-        } catch (e: CertificateException) {
-            e.printStackTrace()
-        }
+            var c: X509Certificate? = null
+            try {
+                c = cf!!.generateCertificate(input) as X509Certificate
+            } catch (e: CertificateException) {
+                e.printStackTrace()
+            }
 
-        var hexString: String? = null
-        try {
-            val md = MessageDigest.getInstance("SHA256")
-            val publicKey = md.digest(c!!.getEncoded())
-            hexString = byte2HexFormatted(publicKey)
-        } catch (e1: NoSuchAlgorithmException) {
-            e1.printStackTrace()
-        } catch (e: CertificateEncodingException) {
-            e.printStackTrace()
+            try {
+                val md = MessageDigest.getInstance("SHA256")
+                val publicKey = md.digest(c!!.getEncoded())
+                val hexString = byte2HexFormatted(publicKey)
+                fingerprints.add(hexString)
+            } catch (e1: NoSuchAlgorithmException) {
+                e1.printStackTrace()
+            } catch (e: CertificateEncodingException) {
+                e.printStackTrace()
+            }
         }
-
-        return hexString
+        return fingerprints
     }
 
     fun byte2HexFormatted(arr: ByteArray): String {
@@ -142,4 +150,13 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
     companion object {
         private val TAG = AppLinkVerifier::class.java.simpleName
     }
+}
+
+private fun <E> java.util.ArrayList<E>.containsOne(list: java.util.ArrayList<E>): Boolean {
+    for (element in this) {
+        if (list.contains(element)) {
+            return true
+        }
+    }
+    return false
 }
