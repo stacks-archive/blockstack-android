@@ -23,6 +23,7 @@ import okhttp3.Response
 import org.blockstack.android.sdk.j2v8.LogConsole
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.net.URL
 import java.security.InvalidParameterException
@@ -286,10 +287,37 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     fun handlePendingSignIn(authResponse: String, signInCallback: (Result<UserData>) -> Unit) {
         this.signInCallback = signInCallback
 
+        if (BuildConfig.DEBUG) {
+            val error = verifyAuthResponse(authResponse)
+            if (error != null) {
+                signInCallback(Result(null, error))
+                return
+            }
+        }
         val v8params = V8Array(v8)
                 .push(authResponse)
         v8userSessionAndroid.executeVoidFunction("handlePendingSignIn", v8params)
         v8params.release()
+    }
+
+    private fun verifyAuthResponse(authResponse: String): String? {
+        try {
+            val decodedToken = Base64.decode(authResponse, Base64.DEFAULT)
+            val stringToken = decodedToken.toString(Charsets.UTF_8)
+            val jsonToken = JSONObject(stringToken)
+            if (jsonToken.getString("typ") !== "JWT") {
+                return "The authResponse parameter is an invalid base64 encoded token\nAuth response: $authResponse"
+            }
+        } catch (e: IllegalArgumentException) {
+            val error = "The authResponse parameter is an invalid base64 encoded token\nAuth response: $authResponse"
+            Log.w(TAG, IllegalArgumentException(error, e))
+            return error
+        } catch (e: JSONException) {
+            val error = "The authResponse parameter is an invalid json token\nAuth response: $authResponse"
+            Log.w(TAG, IllegalArgumentException(error, e))
+            return error
+        }
+        return null
     }
 
     /**
@@ -634,7 +662,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             val v8params = V8Array(v8).push(path).push(options.toJSON().toString()).push(uniqueIdentifier)
             v8userSessionAndroid.executeVoidFunction("deleteFile", v8params)
             v8params.release()
-        } catch (e:Exception) {
+        } catch (e: Exception) {
             Log.d(TAG, "delete file failure", e)
         }
     }
