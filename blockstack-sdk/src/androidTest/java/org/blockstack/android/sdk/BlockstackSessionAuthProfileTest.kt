@@ -78,7 +78,7 @@ class BlockstackSessionAuthProfileTest {
             error = it.error
         }
         latch.await()
-        Assert.assertThat(error, Matchers.`is`("java.lang.IllegalArgumentException: The authResponse parameter is an invalid json token\n" +
+        Assert.assertThat(error, Matchers.`is`("The authResponse parameter is an invalid json token\n" +
                 "Auth response: authResponse"))
     }
 
