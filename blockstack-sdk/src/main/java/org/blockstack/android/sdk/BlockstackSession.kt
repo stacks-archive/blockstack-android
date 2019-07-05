@@ -15,7 +15,10 @@ import com.eclipsesource.v8.V8Object
 import com.eclipsesource.v8.V8TypedArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -24,10 +27,12 @@ import org.blockstack.android.sdk.j2v8.LogConsole
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.IOException
 import java.net.URL
 import java.security.InvalidParameterException
 import java.security.SecureRandom
 import java.text.SimpleDateFormat
+import java.time.Duration
 import java.util.*
 import java.util.Calendar.YEAR
 
@@ -959,18 +964,29 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                     builder.header(key, headers.getString(key))
                 }
             }
-            blockstackSession.executor.onNetworkThread {
-                val response = httpClient.newCall(builder.build()).execute()
+
+            fun onResponse(response: String) {
                 blockstackSession.executor.onV8Thread {
                     try {
-                        val r = response.toJSONString()
-                        val v8params = V8Array(v8).push(keyForFetchUrl).push(r)
+                        val v8params = V8Array(v8).push(keyForFetchUrl).push(response)
                         v8blockstackAndroid.executeVoidFunction("fetchResolve", v8params)
                         v8params.release()
                     } catch (e: Exception) {
                         Log.d("BlockstackSession", "onfetch", e)
                     }
                 }
+            }
+
+            blockstackSession.executor.onNetworkThread {
+                httpClient.newCall(builder.build()).enqueue(object : Callback{
+                    override fun onFailure(call: Call, e: IOException) {
+                        onResponse("{\"status\":504,\"headers\":{},\"bodyEncoded\":false}")
+                    }
+
+                    override fun onResponse(call: Call, response: Response) {
+                        onResponse(response.toJSONString())
+                    }
+                })
             }
         }
 
@@ -1054,7 +1070,6 @@ class AndroidExecutor(private val ctx: Context) : Executor {
             } catch (e: Exception) {
                 Log.e(TAG, "onNetworkThread", e)
             }
-
         }
     }
 
