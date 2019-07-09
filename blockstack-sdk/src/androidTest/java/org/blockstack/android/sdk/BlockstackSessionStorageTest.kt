@@ -4,7 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
-import org.blockstack.android.sdk.model.*
+import org.blockstack.android.sdk.model.CryptoOptions
+import org.blockstack.android.sdk.model.GetFileOptions
+import org.blockstack.android.sdk.model.PutFileOptions
+import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
@@ -56,11 +59,15 @@ class BlockstackSessionStorageTest {
 
         if (session.isUserSignedIn()) {
             session.putFile("try.txt", "Hello Test", PutFileOptions(false)) {
-                result1 = it.value as String
+                if (it.value is String) {
+                    result1 = it.value as String
+                }
                 latch.countDown()
             }
             session.putFile("try.txt", "Hello Test2", PutFileOptions(false)) {
-                result2 = it.value as String
+                if (it.value != null) {
+                    result2 = it.value as String
+                }
                 latch.countDown()
             }
         } else {
@@ -121,7 +128,9 @@ class BlockstackSessionStorageTest {
         if (session.isUserSignedIn()) {
             session.putFile("try.txt", "Hello Test", PutFileOptions(false)) {
                 session.getFile("try.txt", GetFileOptions(false)) {
-                    result = it.value as String
+                    if (it.value is String) {
+                        result = it.value as String
+                    }
                     latch.countDown()
                 }
             }
@@ -159,7 +168,9 @@ class BlockstackSessionStorageTest {
         if (session.isUserSignedIn()) {
             session.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
                 session.getFile("try.txt", GetFileOptions(true)) {
-                    result = it.value as String
+                    if (it.value is String) {
+                        result = it.value as String
+                    }
                     latch.countDown()
                 }
             }
@@ -181,7 +192,9 @@ class BlockstackSessionStorageTest {
         if (session.isUserSignedIn()) {
             session.putFile("try.txt", bitMapData, PutFileOptions(false)) {
                 session.getFile("try.txt", GetFileOptions(false)) {
-                    result = it.value as ByteArray
+                    if (it.value is ByteArray) {
+                        result = it.value as ByteArray
+                    }
                     latch.countDown()
                 }
             }
@@ -203,7 +216,9 @@ class BlockstackSessionStorageTest {
         if (session.isUserSignedIn()) {
             session.putFile("try.txt", bitMapData, PutFileOptions(true)) {
                 session.getFile("try.txt", GetFileOptions(true)) {
-                    result = it.value as ByteArray
+                    if (it.value is ByteArray) {
+                        result = it.value as ByteArray
+                    }
                     latch.countDown()
                 }
             }
@@ -221,12 +236,8 @@ class BlockstackSessionStorageTest {
         var url: String? = null
 
         session.getUserAppFileUrl("non_public_file.txt", "friedger.id", "https://blockstack-todos.appartisan.com/", null) {
-            if (it.hasValue) {
-                url = it.value
-                latch.countDown()
-            } else {
-                latch.countDown()
-            }
+            url = it.value
+            latch.countDown()
         }
 
         latch.await()
@@ -239,12 +250,8 @@ class BlockstackSessionStorageTest {
         var url: String? = null
 
         session.getAppBucketUrl("https://hub.blockstack.org", PRIVATE_KEY) {
-            if (it.hasValue) {
-                url = it.value
-                latch.countDown()
-            } else {
-                latch.countDown()
-            }
+            url = it.value
+            latch.countDown()
         }
 
         latch.await()
