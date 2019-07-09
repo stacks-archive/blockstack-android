@@ -52,7 +52,7 @@ class BlockstackService : IntentService("BlockstackExample") {
                 }
 
                 override fun onNetworkThread(function: suspend () -> Unit) {
-                    GlobalScope.async(Dispatchers.IO) {
+                    GlobalScope.launch(Dispatchers.IO) {
                         function.invoke()
                     }
                 }
