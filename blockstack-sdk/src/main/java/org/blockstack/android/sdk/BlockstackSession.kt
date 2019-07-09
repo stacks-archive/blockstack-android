@@ -16,15 +16,15 @@ import com.eclipsesource.v8.V8TypedArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.Response
 import org.blockstack.android.sdk.j2v8.LogConsole
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.BufferedOutputStream
+import java.io.BufferedWriter
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
 import java.net.URL
 import java.security.InvalidParameterException
 import java.security.SecureRandom
@@ -57,7 +57,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                         private val sessionStore: ISessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context)),
                         private val executor: Executor = AndroidExecutor(context!!),
                         scriptRepo: ScriptRepo = if (context != null) AndroidScriptRepo(context) else throw InvalidParameterException("context or scriptRepo required"),
-                        private val betaMode: Boolean = false
+                        private val betaMode: Boolean = false,
+                        private val urlFactory: URLFactory = DefaultURLFactory()
 ) {
 
     private val TAG = BlockstackSession::class.simpleName
@@ -137,7 +138,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     }
 
     private fun registerJSAndroidBridgeMethods(v8blockstackAndroid: V8Object, v8userSessionAndroid: V8Object) {
-        val android = JSAndroidBridge(this, v8, v8blockstackAndroid, v8userSessionAndroid)
+        val android = JSAndroidBridge(this, v8, v8blockstackAndroid, v8userSessionAndroid, urlFactory)
         val v8android = V8Object(v8)
         v8.add("android", v8android)
 
@@ -819,9 +820,10 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     }
 
     @Suppress("unused")
-    private class JSAndroidBridge(private val blockstackSession: BlockstackSession, private val v8: V8, private val v8blockstackAndroid: V8Object, private val v8userSessionAndroid: V8Object) {
-
-        private val httpClient = OkHttpClient()
+    private class JSAndroidBridge(private val blockstackSession: BlockstackSession, private val v8: V8,
+                                  private val v8blockstackAndroid: V8Object,
+                                  private val v8userSessionAndroid: V8Object,
+                                  private val urlFactory: URLFactory) {
 
         fun signInSuccess(userDataString: String) {
             val userData = JSONObject(userDataString)
@@ -965,38 +967,72 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         fun fetchAndroid(url: String, optionsString: String, keyForFetchUrl: String) {
             val options = JSONObject(optionsString)
 
-            val builder = Request.Builder()
-                    .url(url)
-
-            if (options.has("method")) {
-                var body: RequestBody? = null
-                if (options.has("body")) {
-                    val bodyString = options.getString("body")
-                    if (options.has("bodyEncoded")) {
-                        body = RequestBody.create(null, Base64.decode(bodyString, Base64.NO_WRAP))
-                    } else {
-                        body = RequestBody.create(null, bodyString)
-                    }
-                }
-                builder.method(options.getString("method"), body)
-            }
-
-            if (options.has("headers")) {
-                val headers = options.getJSONObject("headers")
-                for (key in headers.keys()) {
-                    builder.header(key, headers.getString(key))
-                }
-            }
             blockstackSession.executor.onNetworkThread {
-                val response = httpClient.newCall(builder.build()).execute()
-                blockstackSession.executor.onV8Thread {
-                    try {
-                        val r = response.toJSONString()
-                        val v8params = V8Array(v8).push(keyForFetchUrl).push(r)
-                        v8blockstackAndroid.executeVoidFunction("fetchResolve", v8params)
-                        v8params.release()
-                    } catch (e: Exception) {
-                        Log.d("BlockstackSession", "onfetch", e)
+                try {
+                    val urlConnection = urlFactory.createUrl(url).openConnection() as HttpURLConnection
+
+                    if (options.has("headers")) {
+                        val headers = options.getJSONObject("headers")
+                        for (key in headers.keys()) {
+                            urlConnection.setRequestProperty(key, headers.getString(key))
+                        }
+                    }
+
+                    if (options.has("method")) {
+                        urlConnection.requestMethod = options.getString("method")
+
+                        var body: ByteArray? = null
+                        if (options.has("body")) {
+                            val bodyString = options.getString("body")
+                            if (options.has("bodyEncoded")) {
+                                body = Base64.decode(bodyString, Base64.NO_WRAP)
+                            } else {
+                                body = bodyString.toByteArray()
+                            }
+                        }
+
+                        urlConnection.doInput = true
+                        if (body !== null) {
+                            urlConnection.doOutput = true
+                            urlConnection.setFixedLengthStreamingMode(body.size)
+
+                            val out = BufferedOutputStream(urlConnection.outputStream)
+                            out.write(body)
+                            out.flush()
+                            out.close()
+                            urlConnection.outputStream.close()
+                        }
+                    }
+
+                    blockstackSession.executor.onV8Thread {
+                        try {
+                            val r = urlConnection.toJSONString()
+                            val v8params = V8Array(v8).push(keyForFetchUrl).push(r)
+                            v8blockstackAndroid.executeVoidFunction("fetchResolve", v8params)
+                            v8params.release()
+                        } catch (e: Exception) {
+                            Log.d("BlockstackSession", "onFetchResolve", e)
+                            try {
+                                val v8params = V8Array(v8).push(keyForFetchUrl).push(e.toString())
+                                v8blockstackAndroid.executeVoidFunction("fetchReject", v8params)
+                                v8params.release()
+                            } catch (e: Exception) {
+                                Log.d("BlockstackSession", "onfetchResolveReject", e)
+                            }
+                        } finally {
+                            urlConnection.disconnect()
+                        }
+
+                    }
+                } catch (e: Exception) {
+                    blockstackSession.executor.onV8Thread {
+                        try {
+                            val v8params = V8Array(v8).push(keyForFetchUrl).push(e.toString())
+                            v8blockstackAndroid.executeVoidFunction("fetchReject", v8params)
+                            v8params.release()
+                        } catch (e: Exception) {
+                            Log.d("BlockstackSession", "onfetchReject", e)
+                        }
                     }
                 }
             }
@@ -1114,29 +1150,42 @@ class AndroidScriptRepo(private val context: Context) : ScriptRepo {
     override fun blockstackAndroid() = context.resources.openRawResource(R.raw.org_blockstack_blockstack_android).bufferedReader().use { it.readText() }
 }
 
-private fun Response.toJSONString(): String {
+
+interface URLFactory {
+    fun createUrl(url: String): URL
+}
+
+class DefaultURLFactory : URLFactory {
+    override fun createUrl(url: String): URL {
+        return URL(url)
+    }
+}
+
+private fun HttpURLConnection.toJSONString(): String {
     val headersJson = JSONObject()
-    headers().names().forEach { headersJson.put(it.toLowerCase(), header(it)) }
+    headerFields.forEach {
+        Log.d("HEADER", "$it")
+        if (it.key !== null) {
+            headersJson.put(it.key.toLowerCase(), it.value)
+        }
+    }
     val bodyEncoded: Boolean
     val bodyJson: String
-    if (headersJson.optString("content-type")?.contentEquals("application/octet-stream") == true) {
+    val bytes = inputStream.readBytes()
+    inputStream.close()
+    val contentType = headersJson.optString("content-type") ?: ""
+    if (contentType.contentEquals("application/octet-stream")) {
         bodyEncoded = true
-        val bytes = body()?.bytes()
-        if (bytes != null) {
-            bodyJson = Base64.encodeToString(bytes, Base64.NO_WRAP)
-        } else {
-            bodyJson = ""
-        }
+        bodyJson = Base64.encodeToString(bytes, Base64.NO_WRAP)
     } else {
         bodyEncoded = false
-        bodyJson = body()?.string() ?: ""
+        bodyJson = String(bytes)
     }
 
-
-    return JSONObject()
-            .put("status", code())
+    val json = JSONObject()
+            .put("status", responseCode)
             .put("body", bodyJson)
             .put("bodyEncoded", bodyEncoded)
             .put("headers", headersJson)
-            .toString()
+    return json.toString()
 }

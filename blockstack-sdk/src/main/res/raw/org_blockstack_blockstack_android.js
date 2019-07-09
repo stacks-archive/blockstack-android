@@ -434,6 +434,19 @@ blockstackAndroid.fetchResolve = function(key, response) {
   }
 }
 
+blockstackAndroid.fetchReject = function(key, error) {
+  try {
+    var error = new Error(error)
+    console.log("reject " + key)
+    fetchPromises[key].reject(error)
+    delete fetchPromises[key]
+    return "success"
+  } catch (e) {
+    console.log("error fetchReject "+ e.toString())
+    return "error " + e.toString()
+  }
+}
+
 blockstack.timeout = function() {
   fakeEventLoop()
 }
