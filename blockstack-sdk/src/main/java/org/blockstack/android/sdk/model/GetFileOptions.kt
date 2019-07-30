@@ -7,7 +7,7 @@ import java.net.URL
  * An object to configure options for `getFile` operations.
  *
  * @property decrypt attempt to decrypt the file
- * @property sign Whether the content should be verified, only to be used when UserSession.putFile was set to sign = true.
+ * @property verify whether the content should be verified, only to be used when UserSession.putFile was set to sign = true.
  * @property username the username of the user from which you wish to read the file
  * @property app the app from which to read the file
  * @property zoneFileLookupURL The URL to use for zonefile lookup.
