@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Added
-- Support for multiple fingerprints for app link verification
+- Support for multiple fingerprints for app link verification added.
+- Parameters for signatur and its verification for `putFile` and `getFile` added.
 
 ## [0.4.6] - 2019-06-10
 
