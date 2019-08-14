@@ -298,30 +298,6 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8params.release()
     }
 
-    private fun verifyAuthResponse(authResponse: String): String? {
-        try {
-            val tokenParts = authResponse.split('.')
-            if (tokenParts.size != 3) {
-                return "The authResponse parameter is an invalid base64 encoded token\n2 dots requires\nAuth response: $authResponse"
-            }
-            val decodedToken = Base64.decode(tokenParts[0], Base64.DEFAULT)
-            val stringToken = decodedToken.toString(Charsets.UTF_8)
-            val jsonToken = JSONObject(stringToken)
-            if (jsonToken.getString("typ") != "JWT") {
-                return "The authResponse parameter is an invalid base64 encoded token\nHeader not of type JWT:${jsonToken.getString("typ")}\n Auth response: $authResponse"
-            }
-        } catch (e: IllegalArgumentException) {
-            val error = "The authResponse parameter is an invalid base64 encoded token\n${e.message}\nAuth response: $authResponse"
-            Log.w(TAG, IllegalArgumentException(error, e))
-            return error
-        } catch (e: JSONException) {
-            val error = "The authResponse parameter is an invalid json token\n${e.message}\nAuth response: $authResponse"
-            Log.w(TAG, IllegalArgumentException(error, e))
-            return error
-        }
-        return null
-    }
-
     /**
      * Generates an authentication request opens an activity that allows the user to
      * sign with an existing Blockstack ID already on the device or create a new one.
@@ -1071,6 +1047,30 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         var doNotVerifyAppLinkConfiguration = false
 
         const val TAG = "BlockstackSession"
+
+        fun verifyAuthResponse(authResponse: String): String? {
+            try {
+                val tokenParts = authResponse.split('.')
+                if (tokenParts.size != 3) {
+                    return "The authResponse parameter is an invalid base64 encoded token\n2 dots requires\nAuth response: $authResponse"
+                }
+                val decodedToken = Base64.decode(tokenParts[0], Base64.DEFAULT)
+                val stringToken = decodedToken.toString(Charsets.UTF_8)
+                val jsonToken = JSONObject(stringToken)
+                if (jsonToken.getString("typ") != "JWT") {
+                    return "The authResponse parameter is an invalid base64 encoded token\nHeader not of type JWT:${jsonToken.getString("typ")}\n Auth response: $authResponse"
+                }
+            } catch (e: IllegalArgumentException) {
+                val error = "The authResponse parameter is an invalid base64 encoded token\n${e.message}\nAuth response: $authResponse"
+                Log.w(TAG, IllegalArgumentException(error, e))
+                return error
+            } catch (e: JSONException) {
+                val error = "The authResponse parameter is an invalid json token\n${e.message}\nAuth response: $authResponse"
+                Log.w(TAG, IllegalArgumentException(error, e))
+                return error
+            }
+            return null
+        }
     }
 }
 
