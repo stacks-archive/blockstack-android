@@ -16,10 +16,7 @@ import com.eclipsesource.v8.V8TypedArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.Response
+import okhttp3.*
 import org.blockstack.android.sdk.j2v8.LogConsole
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
@@ -57,7 +54,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                         private val sessionStore: ISessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context)),
                         private val executor: Executor = AndroidExecutor(context!!),
                         scriptRepo: ScriptRepo = if (context != null) AndroidScriptRepo(context) else throw InvalidParameterException("context or scriptRepo required"),
-                        private val betaMode: Boolean = false
+                        private val betaMode: Boolean = false,
+                        callFactory: Call.Factory = OkHttpClient()
 ) {
 
     private val TAG = BlockstackSession::class.simpleName
@@ -112,7 +110,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8networkAndroid = v8.getObject("networkAndroid")
 
         registerCryptoMethods()
-        registerJSAndroidBridgeMethods(v8blockstackAndroid, v8userSessionAndroid)
+        registerJSAndroidBridgeMethods(v8blockstackAndroid, v8userSessionAndroid, callFactory)
 
         val scopesString = Scope.scopesArrayToJSONString(config.scopes)
         val authenticatorURL = if (betaMode) {
@@ -136,8 +134,8 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         loaded = true
     }
 
-    private fun registerJSAndroidBridgeMethods(v8blockstackAndroid: V8Object, v8userSessionAndroid: V8Object) {
-        val android = JSAndroidBridge(this, v8, v8blockstackAndroid, v8userSessionAndroid)
+    private fun registerJSAndroidBridgeMethods(v8blockstackAndroid: V8Object, v8userSessionAndroid: V8Object, callFactory: Call.Factory) {
+        val android = JSAndroidBridge(this, v8, v8blockstackAndroid, v8userSessionAndroid, callFactory)
         val v8android = V8Object(v8)
         v8.add("android", v8android)
 
@@ -298,26 +296,6 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                 .push(authResponse)
         v8userSessionAndroid.executeVoidFunction("handlePendingSignIn", v8params)
         v8params.release()
-    }
-
-    private fun verifyAuthResponse(authResponse: String): String? {
-        try {
-            val decodedToken = Base64.decode(authResponse, Base64.DEFAULT)
-            val stringToken = decodedToken.toString(Charsets.UTF_8)
-            val jsonToken = JSONObject(stringToken)
-            if (jsonToken.getString("typ") !== "JWT") {
-                return "The authResponse parameter is an invalid base64 encoded token\nAuth response: $authResponse"
-            }
-        } catch (e: IllegalArgumentException) {
-            val error = "The authResponse parameter is an invalid base64 encoded token\nAuth response: $authResponse"
-            Log.w(TAG, IllegalArgumentException(error, e))
-            return error
-        } catch (e: JSONException) {
-            val error = "The authResponse parameter is an invalid json token\nAuth response: $authResponse"
-            Log.w(TAG, IllegalArgumentException(error, e))
-            return error
-        }
-        return null
     }
 
     /**
@@ -819,9 +797,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
     }
 
     @Suppress("unused")
-    private class JSAndroidBridge(private val blockstackSession: BlockstackSession, private val v8: V8, private val v8blockstackAndroid: V8Object, private val v8userSessionAndroid: V8Object) {
-
-        private val httpClient = OkHttpClient()
+    private class JSAndroidBridge(private val blockstackSession: BlockstackSession, private val v8: V8, private val v8blockstackAndroid: V8Object, private val v8userSessionAndroid: V8Object, private val httpClient: Call.Factory) {
 
         fun signInSuccess(userDataString: String) {
             val userData = JSONObject(userDataString)
@@ -963,8 +939,27 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun fetchAndroid(url: String, optionsString: String, keyForFetchUrl: String) {
-            val options = JSONObject(optionsString)
 
+            blockstackSession.executor.onNetworkThread {
+                val options = JSONObject(optionsString)
+
+                val request = buildRequest(url, options)
+
+                try {
+                    val response = httpClient.newCall(request).execute()
+                    blockstackSession.executor.onV8Thread {
+                        executeFetchResolve(response, keyForFetchUrl)
+                    }
+                }  catch(e: Exception) {
+                    Log.d(TAG, "on execute call", e)
+                    blockstackSession.executor.onV8Thread {
+                        executeFetchReject(e, keyForFetchUrl)
+                    }
+                }
+            }
+        }
+
+        private fun buildRequest(url: String, options: JSONObject): Request {
             val builder = Request.Builder()
                     .url(url)
 
@@ -987,18 +982,30 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                     builder.header(key, headers.getString(key))
                 }
             }
-            blockstackSession.executor.onNetworkThread {
-                val response = httpClient.newCall(builder.build()).execute()
-                blockstackSession.executor.onV8Thread {
-                    try {
-                        val r = response.toJSONString()
-                        val v8params = V8Array(v8).push(keyForFetchUrl).push(r)
-                        v8blockstackAndroid.executeVoidFunction("fetchResolve", v8params)
-                        v8params.release()
-                    } catch (e: Exception) {
-                        Log.d("BlockstackSession", "onfetch", e)
-                    }
-                }
+            return builder.build()
+        }
+
+        private fun executeFetchResolve(response: Response, keyForFetchUrl: String) {
+            try {
+                val r = response.toJSONString()
+
+                val v8params = V8Array(v8).push(keyForFetchUrl).push(r)
+                v8blockstackAndroid.executeVoidFunction("fetchResolve", v8params)
+                v8params.release()
+
+            } catch (e: Exception) {
+                Log.d(TAG, "on fetchResolve", e)
+                executeFetchReject(e, keyForFetchUrl)
+            }
+        }
+
+        private fun executeFetchReject(e: Exception, keyForFetchUrl: String) {
+            try {
+                val v8params = V8Array(v8).push(keyForFetchUrl).push(e.toString())
+                v8blockstackAndroid.executeVoidFunction("executeFetchReject", v8params)
+                v8params.release()
+            } catch (e: Exception) {
+                Log.d(TAG, "on  executeFetchReject", e)
             }
         }
 
@@ -1038,6 +1045,32 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
          * Flag indicating that verified app links should not be checked for correct configuration
          */
         var doNotVerifyAppLinkConfiguration = false
+
+        const val TAG = "BlockstackSession"
+
+        fun verifyAuthResponse(authResponse: String): String? {
+            try {
+                val tokenParts = authResponse.split('.')
+                if (tokenParts.size != 3) {
+                    return "The authResponse parameter is an invalid base64 encoded token\n2 dots requires\nAuth response: $authResponse"
+                }
+                val decodedToken = Base64.decode(tokenParts[0], Base64.DEFAULT)
+                val stringToken = decodedToken.toString(Charsets.UTF_8)
+                val jsonToken = JSONObject(stringToken)
+                if (jsonToken.getString("typ") != "JWT") {
+                    return "The authResponse parameter is an invalid base64 encoded token\nHeader not of type JWT:${jsonToken.getString("typ")}\n Auth response: $authResponse"
+                }
+            } catch (e: IllegalArgumentException) {
+                val error = "The authResponse parameter is an invalid base64 encoded token\n${e.message}\nAuth response: $authResponse"
+                Log.w(TAG, IllegalArgumentException(error, e))
+                return error
+            } catch (e: JSONException) {
+                val error = "The authResponse parameter is an invalid json token\n${e.message}\nAuth response: $authResponse"
+                Log.w(TAG, IllegalArgumentException(error, e))
+                return error
+            }
+            return null
+        }
     }
 }
 
