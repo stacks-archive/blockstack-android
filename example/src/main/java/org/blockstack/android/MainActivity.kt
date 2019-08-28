@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
 
         getStringFileButton.setOnClickListener { _ ->
             fileContentsTextView.text = "Downloading..."
-            val options = GetFileOptions()
+            val options = GetFileOptions(decrypt = false)
             blockstackSession().getFile(textFileName, options, { contentResult ->
                 if (contentResult.hasValue) {
                     val content = contentResult.value!!
@@ -108,7 +108,7 @@ class MainActivity : AppCompatActivity() {
 
         deleteStringFileButton.setOnClickListener{
             deleteFileMessageTextView.text = "Deleting..."
-            blockstackSession().deleteFile(textFileName, DeleteFileOptions()) {
+            blockstackSession().deleteFile2(textFileName, DeleteFileOptions()) {
                 if (it.hasErrors) {
                     Toast.makeText(this, "error " + it.error, Toast.LENGTH_SHORT).show()
                 } else {
@@ -122,7 +122,7 @@ class MainActivity : AppCompatActivity() {
         putStringFileButton.setOnClickListener { _ ->
             readURLTextView.text = "Uploading..."
             val options = PutFileOptions()
-            blockstackSession().putFile(textFileName, "Hello Android!", options,
+            blockstackSession().putFile2(textFileName, "Hello Android!", options,
                     { readURLResult ->
                         if (readURLResult.hasValue) {
                             val readURL = readURLResult.value!!
@@ -280,6 +280,16 @@ class MainActivity : AppCompatActivity() {
             handleAuthResponse(intent)
         }
 
+        if (blockstackSession().isUserSignedIn()) {
+            val userData = blockstackSession().loadUserData()
+            if (userData != null) {
+                runOnUiThread {
+                    onSignIn(userData)
+                }
+            } else {
+                Toast.makeText(this, "no user data", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun onSignIn(userData: UserData) {
