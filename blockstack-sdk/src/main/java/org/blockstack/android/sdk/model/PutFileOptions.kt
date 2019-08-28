@@ -7,7 +7,10 @@ import org.json.JSONObject
  *
  * @property encrypt encrypt the with the private key of the current user before writing to storage
  * @property contentType contentType of file to be used only if not encrypted
- * @property sign sign the data using ECDSA on SHA256 hashes with the user's app private key. If a string is specified, it is used as the private key.
+ * @property sign (Boolean or String) If set to `true` the data is signed using ECDSA on SHA256 hashes
+ * with the user's app private key. If a string is specified, it is used as the private key instead
+ * of the user's app private key. The signature can be verified with `GetFileOptions.verify` set to
+ * true when retrieving the data.
  */
 public class PutFileOptions(val encrypt: Boolean = true, val contentType: String? = null, val sign: Any = false) {
 
