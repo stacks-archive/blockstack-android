@@ -2,12 +2,18 @@ package org.blockstack.android.sdk
 
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
+import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
-import org.blockstack.android.sdk.model.*
+import org.blockstack.android.sdk.model.CryptoOptions
+import org.blockstack.android.sdk.model.GetFileOptions
+import org.blockstack.android.sdk.model.PutFileOptions
+import org.blockstack.android.sdk.model.DeleteFileOptions
+import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -56,11 +62,15 @@ class BlockstackSessionStorageTest {
 
         if (session.isUserSignedIn()) {
             session.putFile("try.txt", "Hello Test", PutFileOptions(false)) {
-                result1 = it.value as String
+                if (it.value is String) {
+                    result1 = it.value as String
+                }
                 latch.countDown()
             }
             session.putFile("try.txt", "Hello Test2", PutFileOptions(false)) {
-                result2 = it.value as String
+                if (it.value != null) {
+                    result2 = it.value as String
+                }
                 latch.countDown()
             }
         } else {
@@ -121,7 +131,9 @@ class BlockstackSessionStorageTest {
         if (session.isUserSignedIn()) {
             session.putFile("try.txt", "Hello Test", PutFileOptions(false)) {
                 session.getFile("try.txt", GetFileOptions(false)) {
-                    result = it.value as String
+                    if (it.value is String) {
+                        result = it.value as String
+                    }
                     latch.countDown()
                 }
             }
@@ -159,7 +171,9 @@ class BlockstackSessionStorageTest {
         if (session.isUserSignedIn()) {
             session.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
                 session.getFile("try.txt", GetFileOptions(true)) {
-                    result = it.value as String
+                    if (it.value is String) {
+                        result = it.value as String
+                    }
                     latch.countDown()
                 }
             }
@@ -181,7 +195,9 @@ class BlockstackSessionStorageTest {
         if (session.isUserSignedIn()) {
             session.putFile("try.txt", bitMapData, PutFileOptions(false)) {
                 session.getFile("try.txt", GetFileOptions(false)) {
-                    result = it.value as ByteArray
+                    if (it.value is ByteArray) {
+                        result = it.value as ByteArray
+                    }
                     latch.countDown()
                 }
             }
@@ -203,7 +219,9 @@ class BlockstackSessionStorageTest {
         if (session.isUserSignedIn()) {
             session.putFile("try.txt", bitMapData, PutFileOptions(true)) {
                 session.getFile("try.txt", GetFileOptions(true)) {
-                    result = it.value as ByteArray
+                    if (it.value is ByteArray) {
+                        result = it.value as ByteArray
+                    }
                     latch.countDown()
                 }
             }
@@ -214,6 +232,103 @@ class BlockstackSessionStorageTest {
         assertThat(result?.size, `is`(bitMapData.size))
     }
 
+    @Test
+    fun testPutGetFileSigned() {
+        var result: String? = null
+        val latch = CountDownLatch(1)
+
+        if (session.isUserSignedIn()) {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(false, sign = true), {
+                session.getFile("try.txt", GetFileOptions(false, verify = true)) {
+                    if (!it.hasErrors) {
+                        Log.d("blockstack test", it.value as String)
+                        result = it.value as String
+                    }
+                    latch.countDown()
+                }
+            })
+        } else {
+            latch.countDown()
+        }
+        latch.await()
+        assertThat(result, `is`("Hello Test"))
+    }
+
+    @Test
+    fun testPutGetFileMissingSignature() {
+        var result: String? = null
+        val latch = CountDownLatch(1)
+
+        if (session.isUserSignedIn()) {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(false, sign = true), {
+                session.deleteFile("try.txt.sig", DeleteFileOptions()) {
+                    if (!it.hasErrors) {
+                        session.getFile("try.txt", GetFileOptions(false, verify = true)) {
+                            if (!it.hasErrors) {
+                                result = it.value as String
+                            } else {
+                                result = it.error
+                            }
+                            latch.countDown()
+                        }
+                    } else {
+                        result = "error while deleting signature"
+                        latch.countDown()
+                    }
+                }
+
+            })
+        } else {
+            latch.countDown()
+        }
+        latch.await()
+        assertThat(result, startsWith("SignatureVerificationError: Failed to verify signature: Failed to obtain signature for file: try.txt"))
+    }
+
+    @Test
+    fun testPutGetFileSignedEncrypted() {
+        var result: JSONObject? = null
+        val latch = CountDownLatch(1)
+
+        if (session.isUserSignedIn()) {
+            session.putFile("try.txt", "Hello Test", PutFileOptions(true, sign = true), {
+                session.getFile("try.txt", GetFileOptions(false)) {
+                    if (!it.hasErrors) {
+                        result = JSONObject(it.value as String)
+                    }
+                    latch.countDown()
+                }
+            })
+        } else {
+            latch.countDown()
+        }
+        latch.await()
+        assertThat(result, `is`(notNullValue()))
+        assertThat(result!!.getString("signature"), `is`(notNullValue()))
+    }
+
+    @Test
+    fun testPutGetFileInvalidSigned() {
+        var result: String? = null
+        val latch = CountDownLatch(1)
+
+        val invalidSignedEncryptedText = "{\"signature\":\"INVALID_SIGNATURE\",\"publicKey\":\"024634ee1d4ff57f2e0ec7a847e1705ec562949f84a83d1f5fdb5956220a9775e0\",\"cipherText\":\"{\\\"iv\\\":\\\"329acaeffe36e8ae58365b56b31af640\\\",\\\"ephemeralPK\\\":\\\"0333fde58c40196efa696dde93fb615e8e960bf52d78ab883d67fb56d4b9a10c5a\\\",\\\"cipherText\\\":\\\"143df68fd1542b29febe2b0843e723af\\\",\\\"mac\\\":\\\"68c3e439c26a2be400aeb278ed7061a8802b0366bf79a1d64a7a6e10e4710047\\\",\\\"wasString\\\":true}\"}"
+        if (session.isUserSignedIn()) {
+            session.putFile("try.txt", invalidSignedEncryptedText, PutFileOptions(false), {
+                session.getFile("try.txt", GetFileOptions(true, verify = true)) {
+                    if (it.hasErrors) {
+                        result = it.error
+                    }
+                    latch.countDown()
+                }
+            })
+        } else {
+            latch.countDown()
+        }
+        latch.await()
+        assertThat(result, `is`("Error: Signature without r or s"))
+    }
+
 
     @Test
     fun getUserAppFileUrlReturns_NO_URL_forNonPublicFile() {
@@ -221,12 +336,8 @@ class BlockstackSessionStorageTest {
         var url: String? = null
 
         session.getUserAppFileUrl("non_public_file.txt", "friedger.id", "https://blockstack-todos.appartisan.com/", null) {
-            if (it.hasValue) {
-                url = it.value
-                latch.countDown()
-            } else {
-                latch.countDown()
-            }
+            url = it.value
+            latch.countDown()
         }
 
         latch.await()
@@ -239,12 +350,8 @@ class BlockstackSessionStorageTest {
         var url: String? = null
 
         session.getAppBucketUrl("https://hub.blockstack.org", PRIVATE_KEY) {
-            if (it.hasValue) {
-                url = it.value
-                latch.countDown()
-            } else {
-                latch.countDown()
-            }
+            url = it.value
+            latch.countDown()
         }
 
         latch.await()

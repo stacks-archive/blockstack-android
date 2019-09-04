@@ -1,4 +1,4 @@
-package org.blockstack.android.sdk;
+package org.blockstack.android.sdk
 
 import android.content.Context
 import android.preference.PreferenceManager
@@ -78,7 +78,7 @@ class BlockstackSessionAuthProfileTest {
             error = it.error
         }
         latch.await()
-        Assert.assertThat(error, Matchers.`is`("SyntaxError: Unexpected token j in JSON at position 0"))
+        Assert.assertThat(error, Matchers.`is`("The authResponse parameter is an invalid base64 encoded token\n2 dots requires\nAuth response: authResponse"))
     }
 
     @Test
