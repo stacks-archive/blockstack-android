@@ -376,7 +376,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      * @param zoneFileLookupURL the url of the zone file lookup service like `https://core.blockstack.org/v1/names`
      * @param callback is called with the profile of the user or null if not found
      */
-    fun lookupProfile(username: String, zoneFileLookupURL: URL, callback: (Result<Profile>) -> Unit) {
+    fun lookupProfile(username: String, zoneFileLookupURL: URL = URL(nameLookupUrl), callback: (Result<Profile>) -> Unit) {
         lookupProfileCallbacks.put(username, callback)
         val v8params = V8Array(v8)
                 .push(username)
