@@ -101,7 +101,7 @@ class MainActivity : AppCompatActivity() {
                         fileContentsTextView.text = content
                     }
                 } else {
-                    Toast.makeText(this, "error: " + contentResult.error, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "error: ${contentResult.error}", Toast.LENGTH_SHORT).show()
                 }
             })
         }
@@ -131,7 +131,7 @@ class MainActivity : AppCompatActivity() {
                                 readURLTextView.text = "File stored at: ${readURL}"
                             }
                         } else {
-                            Toast.makeText(this, "error: " + readURLResult.error, Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "error: ${readURLResult.error}", Toast.LENGTH_SHORT).show()
                         }
                     })
         }
@@ -157,7 +157,7 @@ class MainActivity : AppCompatActivity() {
                                 imageFileTextView.text = "File stored at: ${readURL}"
                             }
                         } else {
-                            Toast.makeText(this, "error: " + readURLResult.error, Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "error: ${readURLResult.error}", Toast.LENGTH_SHORT).show()
                         }
                     })
         }
@@ -173,7 +173,7 @@ class MainActivity : AppCompatActivity() {
                         imageView.setImageBitmap(bitmap)
                     }
                 } else {
-                    Toast.makeText(this, "error: " + contentsResult.error, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "error: ${contentsResult.error}", Toast.LENGTH_SHORT).show()
                 }
             })
         }
@@ -197,14 +197,14 @@ class MainActivity : AppCompatActivity() {
                                     fileFromUserContentsTextView.text = "from ${profile.name}($username):\n ${content as String}"
                                 }
                             } else {
-                                val errorMsg = "error: " + contentResult.error
+                                val errorMsg = "error: ${contentResult.error}"
                                 fileFromUserContentsTextView.text = errorMsg
                                 Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show()
                             }
                         })
                     }
                 } else {
-                    val errorMsg = "error: " + profileResult.error
+                    val errorMsg = "error: ${profileResult.error}"
                     fileFromUserContentsTextView.text = errorMsg
                     Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show()
                 }
@@ -221,7 +221,7 @@ class MainActivity : AppCompatActivity() {
                                 if (result.hasValue) {
                                     result.value
                                 } else {
-                                    result.error
+                                    result.error?.message
                                 }
                     }
                 }
@@ -236,7 +236,7 @@ class MainActivity : AppCompatActivity() {
                     getUserAppFileUrlText.text = if (it.hasValue) {
                         it.value
                     } else {
-                        it.error
+                        it.error?.message
                     }
                 }
             }
@@ -270,7 +270,7 @@ class MainActivity : AppCompatActivity() {
                     getNameInfoText.text = if (it.hasValue) {
                         it.value?.json.toString()
                     } else {
-                        it.error
+                        it.error?.message
                     }
                 }
             }
@@ -353,7 +353,7 @@ class MainActivity : AppCompatActivity() {
                             onSignIn(userData)
                         }
                     } else {
-                        Toast.makeText(this, "error: " + userDataResult.error, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "error: ${userDataResult.error}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

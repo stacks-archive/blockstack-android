@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+- A `ResultError` type and enum `ErrorCode` to better represent errors from Blockstack
+
+### Changed
+- Replaced `Result.error` type String with type `ResultError`
+
 ## [0.4.7] - 2019-09-04
 
 ### Added
