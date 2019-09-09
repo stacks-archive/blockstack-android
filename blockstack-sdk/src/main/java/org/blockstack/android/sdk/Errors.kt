@@ -1,5 +1,6 @@
 package org.blockstack.android.sdk
 
+import org.json.JSONException
 import org.json.JSONObject
 
 /**
@@ -37,11 +38,15 @@ open class ResultError(
          * @param error json string representation of the error
          */
         fun fromJS(error: String): ResultError {
-            val jsonError = JSONObject(error)
-            return ResultError(ErrorCode.fromJS(jsonError.optString("code", ErrorCode.UnknownError.code)),
-                    jsonError.optString("message"),
-                    jsonError.optString("parameter"),
-                    jsonError)
+            try {
+                val jsonError = JSONObject(error)
+                return ResultError(ErrorCode.fromJS(jsonError.optString("code", ErrorCode.UnknownError.code)),
+                        jsonError.optString("message"),
+                        jsonError.optString("parameter"),
+                        jsonError)
+            } catch (e:JSONException) {
+                return ResultError(ErrorCode.UnknownError, error)
+            }
         }
     }
 }
