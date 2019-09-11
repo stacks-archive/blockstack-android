@@ -28,14 +28,13 @@ android {
 dependencies {
     implementation project(':blockstack-sdk')
     implementation 'androidx.appcompat:appcompat:1.0.2'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1'
+    implementation "androidx.core:core-ktx:1.0.2"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.2.2'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test:rules:1.2.0'
     androidTestImplementation 'org.mockito:mockito-android:3.0.0'
-    compile "androidx.core:core-ktx:1.0.2"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-
 }
 repositories {
     mavenCentral()

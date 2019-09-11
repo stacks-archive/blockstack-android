@@ -10,6 +10,13 @@ import org.json.JSONObject
  */
 class CipherObject(private val jsonObject: JSONObject) {
 
+    constructor (iv: String, ephemeralPK: String, cipherText: String, mac: String, wasString: Boolean) : this(JSONObject()
+            .put("iv", iv)
+            .put("ephemeralPK", ephemeralPK)
+            .put("cipherText", cipherText)
+            .put("mac", mac)
+            .put("wasString", wasString))
+
     /**
      * json representation of the encrypted content
      *
@@ -20,5 +27,26 @@ class CipherObject(private val jsonObject: JSONObject) {
     val json: JSONObject
         get() {
             return jsonObject
+        }
+
+    val iv: String
+        get() {
+            return jsonObject.getString("iv")
+        }
+    val ephemeralPK: String
+        get() {
+            return jsonObject.getString("ephemeralPK")
+        }
+    val cipherText: String
+        get() {
+            return jsonObject.getString("cipherText")
+        }
+    val mac: String
+        get() {
+            return jsonObject.getString("mac")
+        }
+    val wasString: Boolean
+        get() {
+            return jsonObject.getBoolean("wasString")
         }
 }

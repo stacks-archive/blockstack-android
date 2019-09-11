@@ -9,6 +9,8 @@ import android.util.Base64
 import android.util.Log
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
+import com.colendi.ecies.EncryptedResultForm
+import com.colendi.ecies.Encryption
 import com.eclipsesource.v8.V8
 import com.eclipsesource.v8.V8Array
 import com.eclipsesource.v8.V8Object
@@ -22,6 +24,9 @@ import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import org.kethereum.crypto.publicKeyFromPrivate
+import org.kethereum.extensions.toHexStringNoPrefix
+import org.kethereum.model.PrivateKey
 import java.net.URL
 import java.security.InvalidParameterException
 import java.security.SecureRandom
@@ -577,6 +582,69 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      * @property callback a function that is called with the file contents. It is not called on the
      * UI thread so you should execute any UI interactions in a `runOnUIThread` block
      */
+    fun getFile2(path: String, options: GetFileOptions, callback: (Result<Any>) -> Unit) {
+        Log.d(TAG, "getFile: path: ${path} options: ${options}")
+
+        val gaiaHubConfig = sessionStore.sessionData.json.getJSONObject("userData").getJSONObject("gaiaHubConfig")
+        val getRequest = buildGetRequest(path, options, gaiaHubConfig)
+        executor.onNetworkThread {
+            try {
+                val response = callFactory.newCall(getRequest).execute()
+                Log.d(TAG, "get2" + response.toString())
+
+                if (!response.isSuccessful) {
+                    throw Error("Error when loading from Gaia hub, status:" + response.code())
+                }
+                val contentType = response.header("Content-Type")
+
+                var result: Any? = null
+                if (options.decrypt) {
+                    val responseJSON = JSONObject(response.body()!!.string())
+                    val cipherObject = CipherObject(responseJSON)
+                    val appPrivateKey = sessionStore.sessionData.json.getJSONObject("userData").getString("appPrivateKey")
+                    result = Encryption().decryptWithPrivateKey(EncryptedResultForm(cipherObject.ephemeralPK,
+                            cipherObject.iv, cipherObject.mac, cipherObject.cipherText, appPrivateKey))
+                } else {
+                    result = if (contentType === null
+                            || contentType.startsWith("text")
+                            || contentType === "application/json") {
+                        response.body()?.string()
+                    } else {
+                        response.body()?.bytes()
+                    }
+                }
+
+                if (result !== null) {
+                    callback(Result(result))
+                } else {
+                    callback(Result(null, "invalid response from getFile"))
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, e.message, e)
+                callback(Result(null, e.message))
+            }
+
+        }
+    }
+
+
+    private fun buildGetRequest(path: String, options: GetFileOptions, hubConfig: JSONObject): Request {
+        val url = "${hubConfig.getString("url_prefix")}${hubConfig.getString("address")}/${path}"
+        val builder = Request.Builder()
+                .url(url)
+        builder.addHeader("Referrer-Policy", "no-referrer")
+        return builder.build()
+    }
+
+    /**
+     * Retrieves the specified file from the app's data store.
+     *
+     * @property path the path of the file from which to read data
+     * @property options an instance of a `GetFileOptions` object which is used to configure
+     * options such as decryption and reading files from other apps or users.
+     * @property callback a function that is called with the file contents. It is not called on the
+     * UI thread so you should execute any UI interactions in a `runOnUIThread` block
+     */
     fun getFile(path: String, options: GetFileOptions, callback: (Result<Any>) -> Unit) {
         Log.d(TAG, "getFile: path: ${path} options: ${options}")
 
@@ -592,8 +660,20 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         if (!valid) {
             throw IllegalArgumentException("putFile content only supports String or ByteArray")
         }
+
+        val requestContent = if (options.encrypt) {
+            val enc = Encryption()
+            val appPrivateKey = sessionStore.sessionData.json.getJSONObject("userData").getString("appPrivateKey")
+            val publicKey = getPublicKeyFromPrivate(appPrivateKey)
+            val result = enc.encryptWithPublicKey(content as String, publicKey)
+                    CipherObject (result.iv, result.ephemPublicKey, result.ciphertext, result.mac, content is String)
+                    .json.toString()
+        } else {
+            content as String
+        }
+
         val gaiaHubConfig = sessionStore.sessionData.json.getJSONObject("userData").getJSONObject("gaiaHubConfig")
-        val putRequest = buildPutRequest(path, content as String, options, gaiaHubConfig)
+        val putRequest = buildPutRequest(path, requestContent, options, gaiaHubConfig)
         executor.onNetworkThread {
             try {
                 val response = callFactory.newCall(putRequest).execute()
@@ -620,6 +700,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
     private fun buildPutRequest(path: String, content: String, options: PutFileOptions, hubConfig: JSONObject): Request {
         val url = "${hubConfig.getString("server")}/store/${hubConfig.getString("address")}/${path}"
+
         val contentType = options.contentType ?: "application/octet-stream"
         val builder = Request.Builder()
                 .url(url)
@@ -777,7 +858,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         val valid = cipherObject is String || cipherObject is ByteArray
         if (!valid) {
-            throw IllegalArgumentException("decrypt content only supports JSONObject or ByteArray not " + cipherObject::class.java)
+            throw IllegalArgumentException("decrypt content only supports (json) String or ByteArray not " + cipherObject::class.java)
         }
 
         val v8params: V8Array
@@ -839,6 +920,16 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
         v8blockstackAndroid.executeVoidFunction("getUserAppFileUrl", v8params)
         v8params.release()
+    }
+
+    fun getPublicKeyFromPrivate(privateKey:String): String {
+        try {
+            val publicKey = v8.executeStringScript("blockstack.getPublicKeyFromPrivate('${privateKey}')");
+            return publicKey
+        } catch (e: Exception) {
+            Log.d(TAG, e.toString(), e)
+            throw e
+        }
     }
 
     private fun addGetFileCallback(callback: (Result<Any>) -> Unit): String {

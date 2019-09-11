@@ -18,6 +18,7 @@ android {
         versionName "0.2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
 
     }
 
@@ -41,6 +42,10 @@ android {
         unitTests.returnDefaultValues = true
     }
 
+    packagingOptions {
+        exclude 'META-INF/kotlinx-io.kotlin_module'
+        exclude 'META-INF/atomicfu.kotlin_module'
+    }
 }
 
 dokka {
@@ -59,9 +64,27 @@ gitPublish {
 }
 
 dependencies {
+    implementation project(':lib')
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.eclipsesource.j2v8:j2v8:4.8.4@aar'
     implementation 'androidx.browser:browser:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.0.2'
+
+
+    implementation "com.github.walleth.kethereum:model:$kethereum_version"
+    implementation "com.github.walleth.kethereum:crypto:$kethereum_version"
+    implementation "com.github.walleth.kethereum:crypto_api:$kethereum_version"
+    implementation "com.github.walleth.kethereum:bip32:$kethereum_version"
+    implementation "com.github.walleth.kethereum:bip39:$kethereum_version"
+    implementation "com.github.walleth.kethereum:bip39_wordlist_en:$kethereum_version"
+    implementation "com.github.walleth.kethereum:bip44:$kethereum_version"
+    implementation "com.github.walleth.kethereum:wallet:$kethereum_version"
+    implementation "com.github.walleth.kethereum:keystore:$kethereum_version"
+    implementation "com.github.walleth.kethereum:crypto_impl_bouncycastle:$kethereum_version"
+    implementation "com.github.walleth.kethereum:extensions:$kethereum_version"
+
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.62'
+    implementation "com.github.komputing:KHex:$khex_version"
     api 'com.squareup.okhttp3:okhttp:3.12.1'
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.json:json:20180130'
