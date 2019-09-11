@@ -81,7 +81,7 @@ public class Encryption {
 
 		byte[] encryptedMsg = encryptAES256CBC(plainText, macAesPair.getEncKeyAES(), IV);
 
-		byte[] ephemPubBytes = ephemPub.getEncoded(false);
+		byte[] ephemPubBytes = ephemPub.getEncoded(true);
 
 		byte[] dataToMac = generateMAC(IV,ephemPubBytes,encryptedMsg);
 
@@ -107,10 +107,10 @@ public class Encryption {
 		return agreement.calculateAgreement(pubKeyP);
 	}
 
-	private static byte [] encryptAES256CBC(String plaintext, String encKey,  byte[] IV) throws Exception {
+	static byte [] encryptAES256CBC(String plaintext, String encKey,  byte[] IV) throws Exception {
 
 		SecretKeySpec secretKeySpec = new SecretKeySpec(Hex.decode(encKey), "AES");
-		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 		cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, new IvParameterSpec(IV));
 		return cipher.doFinal(plaintext.getBytes());
 	}
@@ -129,8 +129,7 @@ public class Encryption {
 
 	}
 
-	private static byte[] getHMAC(byte[] macKey, byte[] dataToMac ){
-
+	public static byte[] getHMAC(byte[] macKey, byte[] dataToMac ){
 		HMac hmac = new HMac(new SHA256Digest());
 		byte[] resBuf=new byte[hmac.getMacSize()];
 		hmac.init(new KeyParameter(macKey));
@@ -149,7 +148,7 @@ public class Encryption {
 			MacAesPair macAesPair = getMacKeyAndAesKey(privKey, ecPoint);
 
 
-			byte[] ephemPubBytes = ecPoint.getEncoded(false);
+			byte[] ephemPubBytes = ecPoint.getEncoded(true);
 
 			byte[] dataToMac = generateMAC(Hex.decode(IV),ephemPubBytes,Hex.decode(ciphertext));
 
@@ -168,22 +167,26 @@ public class Encryption {
 		}
 	}
 
-	private static String decryptAES256CBC(byte [] ciphertext, String encKey,  byte[] IV) throws Exception {
-		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+	public static String decryptAES256CBC(byte [] ciphertext, String encKey,  byte[] IV) throws Exception {
+		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 		SecretKeySpec secretKeySpec = new SecretKeySpec(Hex.decode(encKey), "AES");
 		cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, new IvParameterSpec(IV));
 		return new String(cipher.doFinal(ciphertext));
 	}
 
 	private static MacAesPair getMacKeyAndAesKey(BigInteger privKey, ECPoint ecPoint) throws Exception {
-		MessageDigest mda = MessageDigest.getInstance("SHA-512", PROVIDER);
+		MessageDigest mda = MessageDigest.getInstance("SHA-512");
 
 		BigInteger derivedKey = calculateKeyAgreement(privKey, ecPoint);
 
 
 		byte[] derivedKeyInBytes = BigIntegers.asUnsignedByteArray(derivedKey);
+		return sharedSecretToKeys(mda, derivedKeyInBytes);
+	}
+
+	public static MacAesPair sharedSecretToKeys(MessageDigest mda, byte[] derivedKeyInBytes) {
 		byte[] digestKey = new byte[32];
-		System.arraycopy(derivedKeyInBytes,0,digestKey,32-derivedKeyInBytes.length, derivedKeyInBytes.length);
+		System.arraycopy(derivedKeyInBytes,0,digestKey,0, 32);
 
 		byte [] digested = mda.digest(digestKey);
 
