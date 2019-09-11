@@ -34,16 +34,6 @@ class EncryptionEthereumTest {
         assertThat(decryptedText.toString(Charsets.UTF_8), `is`(plainText))
     }
 
-    @Test
-    fun testEncryptDecryptWorks() {
-        val plainText = "a"
-        val cipher = encryptECIES(PUBLIC_KEY, plainText, PRIVATE_KEY)
-        Log.d(TAG, cipher.json.toString())
-        val decryptedText = decryptECIES(PRIVATE_KEY, cipher)
-
-        assertThat(decryptedText as String, `is`(plainText))
-    }
-
     companion object {
         val TAG = EncryptionEthereumTest.javaClass.simpleName
     }

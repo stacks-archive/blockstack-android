@@ -1,12 +1,10 @@
 package org.blockstack.android.sdk
 
-import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
+import org.blockstack.android.sdk.ecies.EncryptedResult
 import org.blockstack.android.sdk.ecies.EncryptionColendi
 import org.blockstack.android.sdk.test.TestActivity
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,12 +22,18 @@ class EncryptionColendiKotlinTest {
     fun testEncryptDecryptWorks() {
         val encryption = EncryptionColendi()
 
-        val plainText = "a"
-        val cipher = encryption.encryptWithPublicKey("04327453891187123d8a122c47ac5a98ff9a1cbc0dd28ce6fae2183a51a7b8aeaaea8b75c7ac46fbc2434c0fe8b8fecb5fee1be8b52bff3072046fe26ca3652279", plainText)
-        Log.d(TAG, cipher.toString())
-        val decryptedText = encryption.decryptWithPrivateKey(cipher, "7a7480972a756b1f117faadd23f9af00bdb309d3553e47b3b5d7f2756df620b3")
+        val message = "Colendi"
 
-        assertThat(decryptedText, `is`(plainText))
+
+        val encryptedResult = encryption.encryptWithPublicKey(message, PUBLIC_KEY)
+
+        val formData = EncryptedResult(encryptedResult.ephemPubString,
+                encryptedResult.ivString,
+                encryptedResult.macString,
+                encryptedResult.encryptedText)
+
+        val result = encryption.decryptWithPrivateKey(formData, PRIVATE_KEY)
+        assert(result == message)
     }
 
     companion object {

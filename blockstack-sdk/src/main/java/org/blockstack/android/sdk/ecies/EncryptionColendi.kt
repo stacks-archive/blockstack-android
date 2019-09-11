@@ -11,14 +11,15 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.math.ec.ECPoint
 import org.bouncycastle.util.BigIntegers
 import org.bouncycastle.util.encoders.Hex
-
-import javax.crypto.Cipher
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.math.BigInteger
-import java.security.*
+import java.security.MessageDigest
+import java.security.SecureRandom
+import java.security.Security
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 
 class EncryptionColendi {
@@ -38,7 +39,7 @@ class EncryptionColendi {
 
     }
 
-    fun decryptWithPrivateKey(formData: EncryptedResult, privateKey:String): String {
+    fun decryptWithPrivateKey(formData: EncryptedResult, privateKey: String): String {
         val privateKey = BigInteger(privateKey, 16)
 
         return decrypt(privateKey, formData.ivString, formData.ephemPubString, formData.encryptedText, formData.macString)
@@ -63,7 +64,7 @@ class EncryptionColendi {
 
         val encryptedMsg = encryptAES256CBC(plainText, macAesPair.encKeyAES, IV)
 
-        val ephemPubBytes = ephemPub.getEncoded(false)
+        val ephemPubBytes = ephemPub.getEncoded(true)
 
         val dataToMac = generateMAC(IV, ephemPubBytes, encryptedMsg)
 
@@ -112,7 +113,7 @@ class EncryptionColendi {
         private fun encryptAES256CBC(plaintext: String, encKey: String, IV: ByteArray): ByteArray {
 
             val secretKeySpec = SecretKeySpec(Hex.decode(encKey), "AES")
-            val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
+            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
             cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, IvParameterSpec(IV))
             return cipher.doFinal(plaintext.toByteArray())
         }
@@ -171,7 +172,7 @@ class EncryptionColendi {
 
         @Throws(Exception::class)
         private fun decryptAES256CBC(ciphertext: ByteArray, encKey: String, IV: ByteArray): String {
-            val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
+            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
             val secretKeySpec = SecretKeySpec(Hex.decode(encKey), "AES")
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, IvParameterSpec(IV))
             return String(cipher.doFinal(ciphertext))
@@ -186,7 +187,7 @@ class EncryptionColendi {
 
             val derivedKeyInBytes = BigIntegers.asUnsignedByteArray(derivedKey)
             val digestKey = ByteArray(32)
-            System.arraycopy(derivedKeyInBytes, 0, digestKey, 32 - derivedKeyInBytes.size, derivedKeyInBytes.size)
+            System.arraycopy(derivedKeyInBytes, 0, digestKey, 0, 32)
 
             val digested = mda.digest(digestKey)
 
@@ -202,5 +203,5 @@ class EncryptionColendi {
 
 data class EncryptedResult(val ephemPubString: String, val ivString: String, val macString: String, val encryptedText: String)
 
-data class MacAesPair(val macKey:String, val encKeyAES: String)
+data class MacAesPair(val macKey: String, val encKeyAES: String)
 
