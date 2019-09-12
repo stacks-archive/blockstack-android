@@ -772,6 +772,19 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         v8params.release()
     }
 
+
+    fun getPublicKeyFromPrivate(privateKey: String): String? {
+        return v8.executeStringScript("blockstack.getPublicKeyFromPrivate('${privateKey}')")
+    }
+
+    fun makeECPrivateKey(): String? {
+        return v8.executeStringScript("blockstack.makeECPrivateKey()")
+    }
+
+    fun publicKeyToAddress(publicKey: String): String? {
+        return v8.executeStringScript("blockstack.publicKeyToAddress('${publicKey}')")
+    }
+
     private fun addGetFileCallback(callback: (Result<Any>) -> Unit): String {
         val uniqueIdentifier = UUID.randomUUID().toString()
         getFileCallbacks[uniqueIdentifier] = callback
