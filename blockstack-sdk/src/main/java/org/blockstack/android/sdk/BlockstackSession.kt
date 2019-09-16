@@ -376,7 +376,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      * @param zoneFileLookupURL the url of the zone file lookup service like `https://core.blockstack.org/v1/names`
      * @param callback is called with the profile of the user or null if not found
      */
-    fun lookupProfile(username: String, zoneFileLookupURL: URL, callback: (Result<Profile>) -> Unit) {
+    fun lookupProfile(username: String, zoneFileLookupURL: URL = URL(nameLookupUrl), callback: (Result<Profile>) -> Unit) {
         lookupProfileCallbacks.put(username, callback)
         val v8params = V8Array(v8)
                 .push(username)
@@ -770,6 +770,19 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
         v8blockstackAndroid.executeVoidFunction("getUserAppFileUrl", v8params)
         v8params.release()
+    }
+
+
+    fun getPublicKeyFromPrivate(privateKey: String): String? {
+        return v8.executeStringScript("blockstack.getPublicKeyFromPrivate('${privateKey}')")
+    }
+
+    fun makeECPrivateKey(): String? {
+        return v8.executeStringScript("blockstack.makeECPrivateKey()")
+    }
+
+    fun publicKeyToAddress(publicKey: String): String? {
+        return v8.executeStringScript("blockstack.publicKeyToAddress('${publicKey}')")
     }
 
     private fun addGetFileCallback(callback: (Result<Any>) -> Unit): String {

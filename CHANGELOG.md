@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+- Add getPublicKeyFromPrivate, publicKeyToAddress, makeECPrivateKey
+
+
 ## [0.4.7] - 2019-09-04
 
 ### Added
