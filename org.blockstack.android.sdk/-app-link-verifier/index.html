@@ -1,0 +1,57 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>AppLinkVerifier - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="./index.html">AppLinkVerifier</a><br/>
+<br/>
+<h1>AppLinkVerifier</h1>
+<code><span class="keyword">class </span><span class="identifier">AppLinkVerifier</span></code>
+<p>Object to check Verified App links (@see https://developer.android.com/training/app-links/verify-site-associations).
+Verified App Links is the recommended way for Android Blockstack apps to handle the redirect after login.</p>
+<h3>Parameters</h3>
+<p><a name="context"></a>
+<code>context</code> - an activity or the application context</p>
+<p><a name="config"></a>
+<code>config</code> - the blockstack configuration used for this app</p>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">AppLinkVerifier</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.AppLinkVerifier$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig)/context">context</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/android/content/Context.html"><span class="identifier">Context</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.AppLinkVerifier$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig)/config">config</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-blockstack-config/index.html"><span class="identifier">BlockstackConfig</span></a><span class="symbol">)</span></code>
+<p>Object to check Verified App links (@see https://developer.android.com/training/app-links/verify-site-associations).
+Verified App Links is the recommended way for Android Blockstack apps to handle the redirect after login.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="byte2-hex-formatted.html">byte2HexFormatted</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">byte2HexFormatted</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.AppLinkVerifier$byte2HexFormatted(kotlin.ByteArray)/arr">arr</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="verify.html">verify</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">verify</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>Verifies that digital asset links file of the Blockstack configuration and the
+applications's signature matches.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

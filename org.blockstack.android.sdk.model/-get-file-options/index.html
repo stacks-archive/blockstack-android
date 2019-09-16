@@ -18,7 +18,7 @@
 <p><a href="-init-.html">&lt;init&gt;</a></p>
 </td>
 <td>
-<code><span class="identifier">GetFileOptions</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/decrypt">decrypt</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;true<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/username">username</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/app">app</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/zoneFileLookupURL">zoneFileLookupURL</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/java/net/URL.html"><span class="identifier">URL</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span></code>
+<code><span class="identifier">GetFileOptions</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/decrypt">decrypt</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;true<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/verify">verify</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;false<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/username">username</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/app">app</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.GetFileOptions$<init>(kotlin.Boolean, kotlin.Boolean, kotlin.String, kotlin.String, java.net.URL)/zoneFileLookupURL">zoneFileLookupURL</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/java/net/URL.html"><span class="identifier">URL</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span></code>
 <p>An object to configure options for <code>getFile</code> operations.</p>
 </td>
 </tr>
@@ -52,6 +52,16 @@
 <td>
 <code><span class="keyword">val </span><span class="identifier">username</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
 <p>the username of the user from which you wish to read the file</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="verify.html">verify</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">verify</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
+<p>indicate if the content should be verified. Verification also requires that
+UserSession.putFile was set to sign=true.</p>
 </td>
 </tr>
 <tr>

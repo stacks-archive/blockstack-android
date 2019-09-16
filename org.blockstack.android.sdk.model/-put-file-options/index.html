@@ -18,7 +18,7 @@
 <p><a href="-init-.html">&lt;init&gt;</a></p>
 </td>
 <td>
-<code><span class="identifier">PutFileOptions</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.PutFileOptions$<init>(kotlin.Boolean, kotlin.String)/encrypt">encrypt</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;true<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.PutFileOptions$<init>(kotlin.Boolean, kotlin.String)/contentType">contentType</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span></code>
+<code><span class="identifier">PutFileOptions</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.PutFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.Any)/encrypt">encrypt</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;true<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.PutFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.Any)/contentType">contentType</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.PutFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.Any)/sign">sign</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a>&nbsp;<span class="symbol">=</span>&nbsp;false<span class="symbol">)</span></code>
 <p>An object to configure options for <code>putFile</code> operations.</p>
 </td>
 </tr>
@@ -43,6 +43,18 @@
 <td>
 <code><span class="keyword">val </span><span class="identifier">encrypt</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
 <p>encrypt the with the private key of the current user before writing to storage</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="sign.html">sign</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">sign</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a></code>
+<p>(Boolean or String) If set to <code>true</code> the data is signed using ECDSA on SHA256 hashes
+with the user's app private key. If a string is specified, it is used as the private key instead
+of the user's app private key. The signature can be verified with <code>GetFileOptions.verify</code> set to
+true when retrieving the data.</p>
 </td>
 </tr>
 </tbody>
