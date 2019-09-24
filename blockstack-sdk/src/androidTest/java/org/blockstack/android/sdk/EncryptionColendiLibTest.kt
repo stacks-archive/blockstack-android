@@ -16,7 +16,7 @@ import org.json.JSONObject
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.walleth.khex.hexToByteArray
+import org.komputing.khex.extensions.hexToByteArray
 import java.security.MessageDigest
 
 private val PRIVATE_KEY = "a5c61c6ca7b3e7e55edee68566aeab22e4da26baa285c7bd10e8d2218aa3b229"

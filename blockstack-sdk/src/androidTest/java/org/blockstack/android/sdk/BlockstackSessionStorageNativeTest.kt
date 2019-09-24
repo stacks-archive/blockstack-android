@@ -2,6 +2,7 @@ package org.blockstack.android.sdk
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
+import okhttp3.OkHttpClient
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
 import org.blockstack.android.sdk.model.toBlockstackConfig
@@ -28,22 +29,26 @@ class BlockstackSessionStorageColendiTest {
     val rule = ActivityTestRule(TestActivity::class.java)
 
     private lateinit var session: BlockstackSession
+    private lateinit var session2: BlockstackSession2
 
     @Before
     fun setup() {
+        val sessionStore = sessionStoreforIntegrationTests(rule)
+        val executor = IntegrationTestExecutor(rule)
+        val callFactory = OkHttpClient()
         session = BlockstackSession(rule.activity,
                 "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
-                sessionStore = sessionStoreforIntegrationTests(rule),
-                executor = IntegrationTestExecutor(rule))
+                sessionStore = sessionStore,
+                executor = executor,
+                callFactory = callFactory)
 
         // get a gaiaHubConfig by using a j2v8 call to gaia
         session.listFiles({ false}, { } )
+
+        session2 = BlockstackSession2(sessionStore, executor, callFactory = callFactory)
+
     }
 
-    @After
-    fun teardown() {
-        session.release()
-    }
 
 
     @Test
@@ -53,7 +58,7 @@ class BlockstackSessionStorageColendiTest {
 
         if (session.isUserSignedIn()) {
             session.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
-                session.getFile2("try.txt", GetFileOptions(true)) {
+                session.getFile("try.txt", GetFileOptions(true)) {
                     if (it.value is String) {
                         result = it.value as String
                     }
@@ -73,7 +78,7 @@ class BlockstackSessionStorageColendiTest {
         val latch = CountDownLatch(1)
 
         if (session.isUserSignedIn()) {
-            session.putFile2("try.txt", "Hello Test", PutFileOptions(true)) {
+            session2.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
                 session.getFile("try.txt", GetFileOptions(true)) {
                     if (it.value is String) {
                         result = it.value as String
@@ -94,8 +99,8 @@ class BlockstackSessionStorageColendiTest {
         val latch = CountDownLatch(1)
 
         if (session.isUserSignedIn()) {
-            session.putFile2("try.txt", "Hello Test", PutFileOptions(true)) {
-                session.getFile2("try.txt", GetFileOptions(true)) {
+            session2.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
+                session2.getFile("try.txt", GetFileOptions(true)) {
                     if (it.value is String) {
                         result = it.value as String
                     }
