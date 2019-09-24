@@ -122,7 +122,7 @@ class MainActivity : AppCompatActivity() {
         putStringFileButton.setOnClickListener { _ ->
             readURLTextView.text = "Uploading..."
             val options = PutFileOptions()
-            blockstackSession().putFile2(textFileName, "Hello Android!", options,
+            blockstackSession().putFile(textFileName, "Hello Android!", options,
                     { readURLResult ->
                         if (readURLResult.hasValue) {
                             val readURL = readURLResult.value!!

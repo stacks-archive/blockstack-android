@@ -4,8 +4,6 @@ import android.util.Base64
 import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import me.uport.sdk.core.toBase64UrlSafe
@@ -18,10 +16,16 @@ import okhttp3.*
 import org.blockstack.android.sdk.model.*
 import org.json.JSONObject
 import org.kethereum.crypto.SecureRandomUtils
+import org.kethereum.crypto.getCompressedPublicKey
 import org.kethereum.crypto.toAddress
 import org.kethereum.crypto.toECKeyPair
+import org.kethereum.encodings.encodeToBase58String
 import org.kethereum.extensions.toHexStringNoPrefix
+import org.kethereum.hashes.ripemd160
+import org.kethereum.hashes.sha256
+import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PrivateKey
+import org.komputing.khex.extensions.hexToByteArray
 import org.komputing.khex.extensions.toNoPrefixHexString
 import java.lang.Integer.parseInt
 import java.security.SecureRandom
@@ -30,19 +34,13 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
                          private val callFactory: Call.Factory = OkHttpClient()) {
 
     private var appPrivateKey: String?
-    private var gaiaHubConfig: GaiaHubConfig? = null
+    var gaiaHubConfig: GaiaHubConfig? = null
     private val secureRandom = SecureRandom()
     private val jwtTools = JWTTools()
 
     init {
         val appPrivateKey = sessionStore.sessionData.json.getJSONObject("userData").getString("appPrivateKey")
         this.appPrivateKey = appPrivateKey
-        val hubUrl = sessionStore.sessionData.json.getJSONObject("userData").getString("hubUrl")
-        val associationToken = sessionStore.sessionData.json.getJSONObject("userData").getString("gaiaAssociationToken")
-
-        GlobalScope.launch {
-            gaiaHubConfig =  connectToGaia(hubUrl, appPrivateKey, associationToken)
-        }
     }
 
     suspend fun connectToGaia(gaiaHubUrl: String,
@@ -59,13 +57,7 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
 
         val readURL = hubInfo.getString("read_url_prefix")
         val token = makeV1GaiaAuthToken(hubInfo, challengeSignerHex, gaiaHubUrl, associationToken)
-        val address = PrivateKey(challengeSignerHex.also {
-            it + if (challengeSignerHex.length == 64) {
-                "01"
-            } else {
-                ""
-            }
-        }).toECKeyPair().toAddress().cleanHex
+        val address = PrivateKey(challengeSignerHex).toECKeyPair().toBtcAddress()
 
         return GaiaHubConfig(readURL, address, token, gaiaHubUrl)
 
@@ -91,7 +83,7 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
             parseInt(it, 10) >= 1
         } ?: false
 
-        val iss = PrivateKey(signerKeyHex).toECKeyPair().publicKey.toAddress().cleanHex
+        val iss = "02" + PrivateKey(signerKeyHex).toECKeyPair().publicKey.key.toHexStringNoPrefix().slice(0..63)
 
         if (!handlesV1Auth) {
             throw NotImplementedError("only v1 auth supported, please upgrade your gaia server")
@@ -99,14 +91,14 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
 
         val saltArray = ByteArray(16) { 0 }
         SecureRandomUtils.secureRandom().nextBytes(saltArray)
+
+        // {"gaiaChallenge":"[\"gaiahub\",\"0\",\"storage2.blockstack.org\",\"blockstack_storage_please_sign\"]","hubUrl":"https://hub.blockstack.org","iss":"024634ee1d4ff57f2e0ec7a847e1705ec562949f84a83d1f5fdb5956220a9775e0","salt":"c3b9b4aefad343f204bd95c2fa1ae0a4"}
         val payload = mapOf("gaiaChallenge" to challengeText,
                 "hubUrl" to hubUrl,
                 "iss" to iss,
-                "salt" to saltArray.toNoPrefixHexString(),
-                "associationToken" to associationToken)
+                "salt" to "c3b9b4aefad343f204bd95c2fa1ae0a4")
 
         val header = JwtHeader(alg = JwtHeader.ES256K)
-        JWTSignerAlgorithm(header)
         val serializedPayload = Json(JsonConfiguration.Stable)
                 .stringify(ArbitraryMapSerializer, payload)
         val signingInput = listOf(header.toJson(), serializedPayload)
@@ -116,6 +108,7 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
         val jwtSigner = JWTSignerAlgorithm(header)
         val signature: String = jwtSigner.sign(signingInput, KPSigner(signerKeyHex))
         val token = listOf(signingInput, signature).joinToString(".")
+        Log.d(TAG, token)
         return "v1:${token}"
     }
 
@@ -194,7 +187,7 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
         val requestContent = if (options.encrypt) {
             val enc = Encryption()
             val appPrivateKeyPair = PrivateKey(appPrivateKey!!).toECKeyPair()
-            val publicKey = appPrivateKeyPair.publicKey.key.toHexStringNoPrefix()
+            val publicKey = "02" + appPrivateKeyPair.publicKey.key.toHexStringNoPrefix().substring(0, 64)
             val result = enc.encryptWithPublicKey(content as String, publicKey)
             CipherObject(result.iv, result.ephemPublicKey, result.ciphertext, result.mac, content is String)
                     .json.toString()
@@ -317,4 +310,20 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
     companion object {
         val TAG = BlockstackSession2::class.java.simpleName
     }
+}
+
+private fun checksum(extended: String): String {
+    val checksum = extended.hexToByteArray().sha256().sha256()
+    val shortPrefix = checksum.slice(0..3)
+    return shortPrefix.toNoPrefixHexString()
+}
+
+fun ECKeyPair.toBtcAddress(): String {
+    val publicKey = "02" + this.publicKey.key.toHexStringNoPrefix().substring(0, 64)
+    val sha256 = publicKey.hexToByteArray().sha256()
+    val hash160 = sha256.ripemd160()
+    val extended = "00${hash160.toNoPrefixHexString()}"
+    val checksum = checksum(extended)
+    val address = (extended + checksum).hexToByteArray().encodeToBase58String()
+    return address
 }
