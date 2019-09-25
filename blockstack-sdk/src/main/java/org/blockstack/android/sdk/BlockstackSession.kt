@@ -623,34 +623,6 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
     }
 
-    fun deleteFile2(path: String, options: DeleteFileOptions = DeleteFileOptions(), callback: (Result<Unit>) -> Unit) {
-        Log.d(TAG, sessionStore.sessionData.json.toString())
-        val gaiaHubConfig = sessionStore.sessionData.json.getJSONObject("userData").getJSONObject("gaiaHubConfig")
-        val deleteRequest = buildDeleteRequest(path, gaiaHubConfig)
-
-        executor.onNetworkThread {
-            try {
-                val result = callFactory.newCall(deleteRequest).execute()
-                Log.d(TAG, "delete2" + result.toString())
-                callback(Result(null))
-            } catch (e: Exception) {
-                Log.d(TAG, e.message, e)
-                callback(Result(null, e.message))
-            }
-
-        }
-
-    }
-
-    private fun buildDeleteRequest(filename: String, hubConfig: JSONObject): Request {
-        val url = "${hubConfig.getString("server")}/delete/${hubConfig.getString("address")}/${filename}"
-        val builder = Request.Builder()
-                .url(url)
-        builder.method("DELETE", null)
-        builder.header("Authorization", "bearer ${hubConfig.getString("token")}")
-        return builder.build()
-    }
-
     /**
      * Deletes the specified file from the app's data store.
      * @param path - The path to the file to delete.

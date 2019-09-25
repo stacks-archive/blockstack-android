@@ -39,7 +39,7 @@ private val BITCOIN_ADDRESS = "1NZNxhoxobqwsNvTb16pdeiqvFvce3Yg8U"
 
 
 @RunWith(AndroidJUnit4::class)
-class BlockstackSessionStorageColendiTest {
+class BlockstackSession2StorageTest {
     @get:Rule
     val rule = ActivityTestRule(TestActivity::class.java)
 
@@ -81,6 +81,8 @@ class BlockstackSessionStorageColendiTest {
         Log.d(TAG, "header: " + triple.first.toJson())
         Log.d(TAG,triple.second.toString())
         Log.d(TAG,triple.third.toHexString())
+
+        "CZfrO3SS7f0UHNxmQH4cQuOX3ShOJqbqFOYtcSF58KyaXAUXw_CUClyXw6o4hQMb6jWVJSTUi7QB_qoY672nuw"
 
     }
 
@@ -149,6 +151,6 @@ class BlockstackSessionStorageColendiTest {
     }
 
     companion object {
-        val TAG = BlockstackSessionStorageColendiTest::class.java.simpleName
+        val TAG = BlockstackSession2StorageTest::class.java.simpleName
     }
 }

@@ -4,6 +4,8 @@ import android.util.Base64
 import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
+import com.eclipsesource.v8.V8Array
+import com.eclipsesource.v8.V8Object
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import me.uport.sdk.core.toBase64UrlSafe
@@ -11,6 +13,7 @@ import me.uport.sdk.jwt.JWTSignerAlgorithm
 import me.uport.sdk.jwt.JWTTools
 import me.uport.sdk.jwt.model.ArbitraryMapSerializer
 import me.uport.sdk.jwt.model.JwtHeader
+import me.uport.sdk.jwt.model.JwtHeader.Companion.ES256K
 import me.uport.sdk.signer.KPSigner
 import okhttp3.*
 import org.blockstack.android.sdk.model.*
@@ -28,9 +31,12 @@ import org.kethereum.model.PrivateKey
 import org.komputing.khex.extensions.hexToByteArray
 import org.komputing.khex.extensions.toNoPrefixHexString
 import java.lang.Integer.parseInt
+import java.security.InvalidParameterException
 import java.security.SecureRandom
+import java.util.*
+import kotlin.math.exp
 
-class BlockstackSession2(sessionStore: SessionStore, private val executor: Executor,
+class BlockstackSession2(sessionStore: SessionStore, private val executor: Executor, private val appConfig: BlockstackConfig?,
                          private val callFactory: Call.Factory = OkHttpClient()) {
 
     private var appPrivateKey: String?
@@ -63,6 +69,45 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
 
     }
 
+    /**
+     * Generates an authentication request that can be sent to the Blockstack browser
+     * for the user to approve sign in. This authentication request can then be used for
+     * sign in by passing it to the redirectToSignInWithAuthRequest method.
+     *
+     * Note: This method should only be used if you want to roll your own authentication flow.
+     * Typically you'd use redirectToSignIn which takes care of this under the hood.
+     *
+     * @param transitPrivateKey hex encoded transit private key
+     * @param expiresAt the time at which this request is no longer valid
+     * @param extraParams key, value pairs that are transferred with the auth request,
+     * only Boolean and String values are supported
+     */
+    suspend fun makeAuthRequest(transitPrivateKey: String, expiresAt: Long, extraParams: Map<String, Any>): String {
+
+        val domainName = appConfig!!.appDomain.toString()
+        val manifestUrl = "${domainName}${appConfig.manifestPath}"
+        val redirectUrl = "${domainName}${appConfig.redirectPath}"
+        val transitKeyPair = PrivateKey(transitPrivateKey).toECKeyPair()
+        val btcAddress = transitKeyPair.toBtcAddress()
+        val issuerDID = "did:btc-addr:${btcAddress}"
+        val payload = mapOf(
+                "jti" to UUID.randomUUID(),
+                "iat" to Date().time/1000,
+                "exp" to expiresAt / 1000,
+                "iss" to issuerDID,
+                "public_keys" to arrayOf(transitKeyPair.toHexPublicKey64()),
+                "domain_name" to domainName ,
+                "manifest_uri" to manifestUrl,
+                "redirect_uri" to redirectUrl,
+                "version" to "1.3.1",
+                "do_not_include_profile" to true,
+                "supports_hub_url" to true,
+                "scopes" to appConfig.scopes.map{it.name}
+
+
+        )
+        return JWTTools().createJWT(payload, issuerDID, KPSigner(transitPrivateKey), algorithm = ES256K)
+    }
 
     /**
      *
@@ -91,16 +136,17 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
 
         val saltArray = ByteArray(16) { 0 }
         SecureRandomUtils.secureRandom().nextBytes(saltArray)
-
+        val salt = saltArray.toNoPrefixHexString()
         // {"gaiaChallenge":"[\"gaiahub\",\"0\",\"storage2.blockstack.org\",\"blockstack_storage_please_sign\"]","hubUrl":"https://hub.blockstack.org","iss":"024634ee1d4ff57f2e0ec7a847e1705ec562949f84a83d1f5fdb5956220a9775e0","salt":"c3b9b4aefad343f204bd95c2fa1ae0a4"}
         val payload = mapOf("gaiaChallenge" to challengeText,
                 "hubUrl" to hubUrl,
                 "iss" to iss,
-                "salt" to "c3b9b4aefad343f204bd95c2fa1ae0a4")
+                "salt" to salt)
 
         val header = JwtHeader(alg = JwtHeader.ES256K)
         val serializedPayload = Json(JsonConfiguration.Stable)
                 .stringify(ArbitraryMapSerializer, payload)
+        Log.d(TAG, header.toJson() + ", " + serializedPayload)
         val signingInput = listOf(header.toJson(), serializedPayload)
                 .map { it.toBase64UrlSafe() }
                 .joinToString(".")
@@ -187,7 +233,7 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
         val requestContent = if (options.encrypt) {
             val enc = Encryption()
             val appPrivateKeyPair = PrivateKey(appPrivateKey!!).toECKeyPair()
-            val publicKey = "02" + appPrivateKeyPair.publicKey.key.toHexStringNoPrefix().substring(0, 64)
+            val publicKey = appPrivateKeyPair.toHexPublicKey64()
             val result = enc.encryptWithPublicKey(content as String, publicKey)
             CipherObject(result.iv, result.ephemPublicKey, result.ciphertext, result.mac, content is String)
                     .json.toString()
@@ -241,6 +287,32 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
         return builder.build()
     }
 
+
+
+    fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions(), callback: (Result<Unit>) -> Unit) {
+        val deleteRequest = buildDeleteRequest(path, gaiaHubConfig!!)
+
+        executor.onNetworkThread {
+            try {
+                val result = callFactory.newCall(deleteRequest).execute()
+                callback(Result(null))
+            } catch (e: Exception) {
+                Log.d(TAG, e.message, e)
+                callback(Result(null, e.message))
+            }
+
+        }
+
+    }
+
+    private fun buildDeleteRequest(filename: String, hubConfig: GaiaHubConfig): Request {
+        val url = "${hubConfig.server}/delete/${hubConfig.address}/${filename}"
+        val builder = Request.Builder()
+                .url(url)
+        builder.method("DELETE", null)
+        builder.header("Authorization", "bearer ${hubConfig.token}")
+        return builder.build()
+    }
 
     /**
      * Encrypt content
@@ -318,8 +390,13 @@ private fun checksum(extended: String): String {
     return shortPrefix.toNoPrefixHexString()
 }
 
+
+fun ECKeyPair.toHexPublicKey64(): String {
+    return "02" + this.publicKey.key.toHexStringNoPrefix().substring(0, 64)
+}
+
 fun ECKeyPair.toBtcAddress(): String {
-    val publicKey = "02" + this.publicKey.key.toHexStringNoPrefix().substring(0, 64)
+    val publicKey = toHexPublicKey64()
     val sha256 = publicKey.hexToByteArray().sha256()
     val hash160 = sha256.ripemd160()
     val extended = "00${hash160.toNoPrefixHexString()}"
