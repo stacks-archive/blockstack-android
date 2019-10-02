@@ -128,13 +128,6 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
 
     }
 
-
-    private fun deriveAppPrivateKey(account: BlockstackAccount, domain: String): ExtendedKey? {
-
-        val appIndex = Sha256.digest("$domain${account.salt}".toByteArray()).contentHashCode()
-        return account.keys.generateChildKey(BIP44Element(true, appIndex))
-    }
-
     /**
      * Process a pending sign in. This method should be called by your app when it
      * receives a request to the app's custom protocol handler.
@@ -214,7 +207,7 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
     }
 
     private suspend fun doSignaturesMatchPublicKeys(token: String, payload: JSONObject): Boolean {
-        val payload = JWTTools().verify(token, false)
+        JWTTools().verify(token, false) // throws an exception if invalid
         return true
 
     }

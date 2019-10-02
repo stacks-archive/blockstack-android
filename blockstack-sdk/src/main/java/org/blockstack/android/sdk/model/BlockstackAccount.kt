@@ -6,26 +6,18 @@ import org.json.JSONObject
 import org.kethereum.bip32.generateChildKey
 import org.kethereum.bip32.model.ExtendedKey
 import org.kethereum.bip44.BIP44Element
-import org.kethereum.crypto.getCompressedPublicKey
 import org.kethereum.hashes.Sha256
 import org.komputing.khex.extensions.toNoPrefixHexString
 
-data class BlockstackAccount(val username: String?, val identityKeys: ExtendedKey, val keys: ExtendedKey) {
+data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val salt: String) {
 
     fun getAppsNode(): AppsNode {
         return AppsNode(keys.generateChildKey(BIP44Element(true, APPS_NODE_INDEX)), salt)
     }
 
-
-    var salt: String
-        private set
-
-    init {
-        salt = Sha256.digest(identityKeys.keyPair.toHexPublicKey64().toByteArray()).toNoPrefixHexString()
-    }
-
     companion object {
         val APPS_NODE_INDEX = 0
+
         data class MetaData(
                 var permissions: List<String> = emptyList(),
                 var email: String? = null,
@@ -34,7 +26,7 @@ data class BlockstackAccount(val username: String?, val identityKeys: ExtendedKe
     }
 }
 
-data class AppsNode(val keys: ExtendedKey, val salt:String) {
+data class AppsNode(val keys: ExtendedKey, val salt: String) {
 
     fun getAppNode(origin: String): ExtendedKey {
         val hash = Sha256.digest("$origin$salt".toByteArray()).toNoPrefixHexString()
@@ -53,12 +45,12 @@ fun BlockstackAccount.toUserData(): UserData {
     )
 }
 
-fun hashCode(string:String): Int {
+fun hashCode(string: String): Int {
     var hash = 0
     if (string.length == 0) return hash
 
-    for (i in 0 ..string.length -1) {
-        var character = string.codePointAt(i)
+    for (i in 0..string.length - 1) {
+        val character = string.codePointAt(i)
         hash = (hash shl 5) - hash + character
         hash = hash and hash
     }

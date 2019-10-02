@@ -6,10 +6,7 @@ import androidx.test.rule.ActivityTestRule
 import kotlinx.coroutines.runBlocking
 import me.uport.sdk.jwt.JWTTools
 import okhttp3.OkHttpClient
-import org.blockstack.android.sdk.model.BlockstackAccount
-import org.blockstack.android.sdk.model.BlockstackConfig
-import org.blockstack.android.sdk.model.UserData
-import org.blockstack.android.sdk.model.toBlockstackConfig
+import org.blockstack.android.sdk.model.*
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
@@ -38,13 +35,14 @@ private val TRANSIT_PRIVATE_KEY = "000102030405060708090a0b0c0d0e0f1011121314151
 @RunWith(AndroidJUnit4::class)
 class BlockstackSession2AuthTest {
 
+
     @get:Rule
     val rule = ActivityTestRule(TestActivity::class.java)
 
     private lateinit var session: BlockstackSession
     private lateinit var session2: BlockstackSession2
     private lateinit var appConfig: BlockstackConfig
-    private lateinit var identityKeys: ExtendedKey
+    private lateinit var identity: BlockstackIdentity
     private lateinit var keys: ExtendedKey
     private lateinit var privateKey: String
 
@@ -54,8 +52,8 @@ class BlockstackSession2AuthTest {
         val executor = IntegrationTestExecutor(rule)
         val callFactory = OkHttpClient()
         val words = MnemonicWords(SEED_PHRASE)
-        identityKeys = words.toSeed().toKey("m/888'/0'")
-        keys = identityKeys.generateChildKey(BIP44Element(true, 0))
+        identity = BlockstackIdentity(words.toSeed().toKey("m/888'/0'"))
+        keys = identity.identityKeys.generateChildKey(BIP44Element(true, 0))
         privateKey = keys.keyPair.privateKey.key.toHexStringNoPrefix()
         val publicKey = keys.keyPair.toHexPublicKey64()
         val btcAddress = keys.keyPair.toBtcAddress()
@@ -78,7 +76,7 @@ class BlockstackSession2AuthTest {
 
     @Test
     fun testSalt() {
-        val account = BlockstackAccount(null, identityKeys, keys)
+        val account = BlockstackAccount(null, keys, identity.salt)
         val expectedSalt = "c15619adafe7e75a195a1a2b5788ca42e585a3fd181ae2ff009c6089de54ed9e"
         assertThat(account.salt, `is`(expectedSalt))
     }
@@ -86,7 +84,7 @@ class BlockstackSession2AuthTest {
 
     @Test
     fun testAppsNode() {
-        val account = BlockstackAccount(null, identityKeys, keys)
+        val account = BlockstackAccount(null, keys, identity.salt)
         val appsNode = account.getAppsNode()
 
         val origin = "https://amazing.app:443"
@@ -117,7 +115,7 @@ class BlockstackSession2AuthTest {
             BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
         val authResponse = runBlocking {
-            val account = BlockstackAccount(null, identityKeys, keys)
+            val account = BlockstackAccount(null, keys, identity.salt)
             session2.makeAuthResponse(account, authRequest)
         }
 
@@ -143,7 +141,7 @@ class BlockstackSession2AuthTest {
             BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
         val authResponse = runBlocking {
-            val account = BlockstackAccount(null, identityKeys, keys)
+            val account = BlockstackAccount(null, keys, identity.salt)
             session2.makeAuthResponse(account, authRequest)
         }
 
