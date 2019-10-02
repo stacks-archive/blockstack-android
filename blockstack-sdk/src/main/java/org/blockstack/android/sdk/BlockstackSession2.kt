@@ -18,16 +18,12 @@ import okhttp3.*
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONObject
-import org.kethereum.bip32.generateChildKey
-import org.kethereum.bip32.model.ExtendedKey
-import org.kethereum.bip44.BIP44Element
 import org.kethereum.crypto.SecureRandomUtils
 import org.kethereum.crypto.getCompressedPublicKey
 import org.kethereum.crypto.toECKeyPair
 import org.kethereum.encodings.encodeToBase58String
 import org.kethereum.extensions.toBytesPadded
 import org.kethereum.extensions.toHexStringNoPrefix
-import org.kethereum.hashes.Sha256
 import org.kethereum.hashes.ripemd160
 import org.kethereum.hashes.sha256
 import org.kethereum.model.ECKeyPair
