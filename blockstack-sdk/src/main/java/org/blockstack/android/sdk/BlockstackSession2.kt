@@ -4,39 +4,45 @@ import android.util.Base64
 import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
-import com.eclipsesource.v8.V8Array
-import com.eclipsesource.v8.V8Object
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
+import kotlinx.serialization.json.JsonException
+import me.uport.sdk.core.decodeBase64
 import me.uport.sdk.core.toBase64UrlSafe
-import me.uport.sdk.jwt.JWTSignerAlgorithm
-import me.uport.sdk.jwt.JWTTools
+import me.uport.sdk.jwt.*
 import me.uport.sdk.jwt.model.ArbitraryMapSerializer
 import me.uport.sdk.jwt.model.JwtHeader
-import me.uport.sdk.jwt.model.JwtHeader.Companion.ES256K
 import me.uport.sdk.signer.KPSigner
+import me.uport.sdk.universaldid.UniversalDID
 import okhttp3.*
 import org.blockstack.android.sdk.model.*
+import org.json.JSONArray
 import org.json.JSONObject
+import org.kethereum.bip32.generateChildKey
+import org.kethereum.bip32.model.ExtendedKey
+import org.kethereum.bip44.BIP44Element
 import org.kethereum.crypto.SecureRandomUtils
 import org.kethereum.crypto.getCompressedPublicKey
-import org.kethereum.crypto.toAddress
 import org.kethereum.crypto.toECKeyPair
 import org.kethereum.encodings.encodeToBase58String
+import org.kethereum.extensions.toBytesPadded
 import org.kethereum.extensions.toHexStringNoPrefix
+import org.kethereum.hashes.Sha256
 import org.kethereum.hashes.ripemd160
 import org.kethereum.hashes.sha256
 import org.kethereum.model.ECKeyPair
+import org.kethereum.model.PUBLIC_KEY_SIZE
 import org.kethereum.model.PrivateKey
+import org.kethereum.model.PublicKey
 import org.komputing.khex.extensions.hexToByteArray
 import org.komputing.khex.extensions.toNoPrefixHexString
 import java.lang.Integer.parseInt
+import java.lang.Long
 import java.security.InvalidParameterException
 import java.security.SecureRandom
 import java.util.*
-import kotlin.math.exp
 
-class BlockstackSession2(sessionStore: SessionStore, private val executor: Executor, private val appConfig: BlockstackConfig?,
+class BlockstackSession2(private val sessionStore: SessionStore, private val executor: Executor, private val appConfig: BlockstackConfig? = null,
                          private val callFactory: Call.Factory = OkHttpClient()) {
 
     private var appPrivateKey: String?
@@ -47,6 +53,211 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
     init {
         val appPrivateKey = sessionStore.sessionData.json.getJSONObject("userData").getString("appPrivateKey")
         this.appPrivateKey = appPrivateKey
+        UniversalDID.registerResolver(BitAddrResolver(callFactory))
+    }
+
+
+    suspend fun makeAuthResponse(account: BlockstackAccount, authRequest: String): String {
+        val jwt = JWTTools()
+        val authRequestTriple = decodeToken(authRequest)
+        val transitPublicKey = authRequestTriple.second.getJSONArray("public_keys").getString(0)
+        val appPrivateKey = account.getAppsNode().getAppNode(appConfig!!.appDomain.toString())
+
+        val privateKeyPayload = encryptContent(
+                appPrivateKey.keyPair.privateKey.key.toHexStringNoPrefix(),
+                CryptoOptions(publicKey = transitPublicKey)
+        ).value?.json?.toString()?.toByteArray()?.toNoPrefixHexString()
+
+        val profile = if (account.username != null) {
+            lookupProfile(account.username, null)
+        } else {
+            Profile(JSONObject())
+        }
+
+        val expiresAt = (Date().time + 3600 * 24 * 30) / 1000
+        val payload = mapOf(
+                "jti" to UUID.randomUUID().toString(),
+                "iat" to Date().time / 1000,
+                "exp" to expiresAt,
+                "private_key" to privateKeyPayload,
+                "public_keys" to arrayOf(account.keys.keyPair.toHexPublicKey64()),
+                "profile" to profile.json.toMap(),
+                "username" to account.username,
+                "email" to "",
+                "profile_url" to null,
+                "hubUrl" to "https://hub.blockstack.org",
+                "blockstackAPIUrl" to "https://core.blockstack.org",
+                "associationToken" to null,
+                "version" to VERSION
+        )
+
+        val signer = KPSigner(
+                account.keys.keyPair.privateKey.key.toHexStringNoPrefix()
+        )
+        val issuerDID =
+                "did:btc-addr:${account.keys.keyPair.toBtcAddress()}"
+
+        return jwt.createJWT(payload, issuerDID, signer, algorithm = JwtHeader.ES256K)
+    }
+
+    /**
+     * Look up a user profile by blockstack ID
+     *
+     * @param {string} username - The Blockstack ID of the profile to look up
+     * @param {string} [zoneFileLookupURL=null] - The URL
+     * to use for zonefile lookup. If falsey, lookupProfile will use the
+     * blockstack.js [[getNameInfo]] function.
+     * @returns {Promise} that resolves to a profile object
+     */
+    suspend fun lookupProfile(username: String, zoneFileLookupUrl: String?): Profile {
+        val request = buildLookupProfileRequest(username, zoneFileLookupUrl)
+        val response = callFactory.newCall(request).execute()
+        if (response.code() == 200) {
+            return Profile(JSONObject(response.body()!!.string()))
+        } else {
+            return Profile(JSONObject())
+        }
+    }
+
+    private fun buildLookupProfileRequest(username: String, zoneFileLookupUrl: String?): Request {
+        val url = zoneFileLookupUrl ?: DEFAULT_CORE_API_ENDPOINT
+        val builder = Request.Builder()
+                .url(url)
+        builder.addHeader("Referrer-Policy", "no-referrer")
+        return builder.build()
+
+    }
+
+
+    private fun deriveAppPrivateKey(account: BlockstackAccount, domain: String): ExtendedKey? {
+
+        val appIndex = Sha256.digest("$domain${account.salt}".toByteArray()).contentHashCode()
+        return account.keys.generateChildKey(BIP44Element(true, appIndex))
+    }
+
+    /**
+     * Process a pending sign in. This method should be called by your app when it
+     * receives a request to the app's custom protocol handler.
+     *
+     * @param authResponse authentication response token
+     * @param signInCallback called with the user data after sign-in or with an error
+     *
+     */
+    suspend fun handlePendingSignIn(authResponse: String, transitKey: String, signInCallback: (Result<UserData>) -> Unit) {
+        //val transitKey = sessionStore.sessionData.json.getString("blockstack-transit-private-key")
+        val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "https://core.blockstack.org")
+
+        val tokenTriple = decodeToken(authResponse)
+        val tokenPayload = tokenTriple.second
+        val isValidToken = verifyToken(authResponse)
+
+        if (!isValidToken) {
+            signInCallback(Result(null, "invalid auth response"))
+            return
+        }
+        val appPrivateKey = decrypt(tokenPayload.getString("private_key"), transitKey)
+        val coreSessionToken = decrypt(tokenPayload.optString("core_token"), transitKey)
+
+        val iss = tokenPayload.getString("iss")
+
+        val identityAddress = DIDs.getAddressFromDID(iss)
+        val userData = UserData(JSONObject()
+                .put("username", tokenPayload.getString("username"))
+                .put("profile", extractProfile(tokenPayload, nameLookupUrl))
+                .put("email", tokenPayload.optString("email"))
+                .put("decentralizedID", iss)
+                .put("identityAddress", identityAddress)
+                .put("appPrivateKey", appPrivateKey)
+                .put("coreSessionToken", coreSessionToken)
+                .put("authResponseToken", authResponse)
+                .put("hubUrl", tokenPayload.optString("hubUrl", BLOCKSTACK_DEFAULT_GAIA_HUB_URL))
+                .put("gaiaAssociationToken", tokenPayload.optString("associationToken")))
+
+        sessionStore.sessionData.json.put("userData", userData.json)
+        signInCallback(Result(userData))
+    }
+
+
+    private fun extractProfile(tokenPayload: JSONObject, nameLookupUrl: String): JSONObject {
+        val profileUrl = tokenPayload.optString("profile_url")
+        if (profileUrl != null) {
+            // TODO lookup profile
+            return JSONObject()
+        }
+        return tokenPayload.getJSONObject("profile")
+    }
+
+    private fun decrypt(cipherObjectHex: String, privateKey: String): String? {
+        if (cipherObjectHex.isEmpty() || cipherObjectHex === "null") {
+            return null
+        }
+        return decryptContent(cipherObjectHex.hexToByteArray().toString(Charsets.UTF_8), false,
+                CryptoOptions(privateKey = privateKey)
+        ).value as String
+    }
+
+
+    private suspend fun verifyToken(token: String): Boolean {
+        val tokenTriple = decodeToken(token)
+        return isExpirationDateValid(tokenTriple.second) &&
+                isIssuanceDateValid(tokenTriple.second) &&
+                doSignaturesMatchPublicKeys(token, tokenTriple.second) &&
+                doPublicKeysMatchIssuer(tokenTriple.second) &&
+                doPublicKeysMatchUsername(tokenTriple.second, null)
+    }
+
+    private fun doPublicKeysMatchIssuer(payload: JSONObject): Boolean {
+        val issAddress = DIDs.getAddressFromDID(payload.getString("iss"))
+        val publicKey = payload.getJSONArray("public_keys").getString(0)
+        val pkAddress = publicKey.toBtcAddress()
+        return issAddress == pkAddress
+    }
+
+    private suspend fun doSignaturesMatchPublicKeys(token: String, payload: JSONObject): Boolean {
+        val payload = JWTTools().verify(token, false)
+        return true
+
+    }
+
+
+    private fun doPublicKeysMatchUsername(payload: JSONObject, nameLookupURL: String?): Boolean {
+        // TODO
+        return true
+    }
+
+    private fun isIssuanceDateValid(payload: JSONObject): Boolean {
+        val expirationDate = Date(Long.parseLong(payload.getString("iat")) * 1000)
+        val now = Date()
+        return now.after(expirationDate)
+    }
+
+    private fun isExpirationDateValid(payload: JSONObject): Boolean {
+        val expirationDate = Date(Long.parseLong(payload.getString("exp")) * 1000)
+        val now = Date()
+        return now.before(expirationDate)
+    }
+
+    private fun decodeToken(token: String): Triple<JwtHeader, JSONObject, ByteArray> {
+
+        //Split token by . from jwtUtils
+        val (encodedHeader, encodedPayload, encodedSignature) = JWTUtils.splitToken(token)
+        if (encodedHeader.isEmpty())
+            throw InvalidJWTException("Header cannot be empty")
+        else if (encodedPayload.isEmpty())
+            throw InvalidJWTException("Payload cannot be empty")
+        //Decode the pieces
+        val headerString = String(encodedHeader.decodeBase64())
+        val payloadString = String(encodedPayload.decodeBase64())
+        val signatureBytes = encodedSignature.decodeBase64()
+
+        try {
+            //Parse Json
+            val header = JwtHeader.fromJson(headerString)
+            val payload = JSONObject(payloadString)
+            return Triple(header, payload, signatureBytes)
+        } catch (ex: JsonException) {
+            throw JWTEncodingException("cannot parse the JWT($token)", ex)
+        }
     }
 
     suspend fun connectToGaia(gaiaHubUrl: String,
@@ -70,46 +281,6 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
     }
 
     /**
-     * Generates an authentication request that can be sent to the Blockstack browser
-     * for the user to approve sign in. This authentication request can then be used for
-     * sign in by passing it to the redirectToSignInWithAuthRequest method.
-     *
-     * Note: This method should only be used if you want to roll your own authentication flow.
-     * Typically you'd use redirectToSignIn which takes care of this under the hood.
-     *
-     * @param transitPrivateKey hex encoded transit private key
-     * @param expiresAt the time at which this request is no longer valid
-     * @param extraParams key, value pairs that are transferred with the auth request,
-     * only Boolean and String values are supported
-     */
-    suspend fun makeAuthRequest(transitPrivateKey: String, expiresAt: Long, extraParams: Map<String, Any>): String {
-
-        val domainName = appConfig!!.appDomain.toString()
-        val manifestUrl = "${domainName}${appConfig.manifestPath}"
-        val redirectUrl = "${domainName}${appConfig.redirectPath}"
-        val transitKeyPair = PrivateKey(transitPrivateKey).toECKeyPair()
-        val btcAddress = transitKeyPair.toBtcAddress()
-        val issuerDID = "did:btc-addr:${btcAddress}"
-        val payload = mapOf(
-                "jti" to UUID.randomUUID(),
-                "iat" to Date().time/1000,
-                "exp" to expiresAt / 1000,
-                "iss" to issuerDID,
-                "public_keys" to arrayOf(transitKeyPair.toHexPublicKey64()),
-                "domain_name" to domainName ,
-                "manifest_uri" to manifestUrl,
-                "redirect_uri" to redirectUrl,
-                "version" to "1.3.1",
-                "do_not_include_profile" to true,
-                "supports_hub_url" to true,
-                "scopes" to appConfig.scopes.map{it.name}
-
-
-        )
-        return JWTTools().createJWT(payload, issuerDID, KPSigner(transitPrivateKey), algorithm = ES256K)
-    }
-
-    /**
      *
      * @param hubInfo
      * @param signerKeyHex
@@ -128,7 +299,7 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
             parseInt(it, 10) >= 1
         } ?: false
 
-        val iss = "02" + PrivateKey(signerKeyHex).toECKeyPair().publicKey.key.toHexStringNoPrefix().slice(0..63)
+        val iss = PrivateKey(signerKeyHex).toECKeyPair().toHexPublicKey64()
 
         if (!handlesV1Auth) {
             throw NotImplementedError("only v1 auth supported, please upgrade your gaia server")
@@ -288,7 +459,6 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
     }
 
 
-
     fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions(), callback: (Result<Unit>) -> Unit) {
         val deleteRequest = buildDeleteRequest(path, gaiaHubConfig!!)
 
@@ -384,6 +554,34 @@ class BlockstackSession2(sessionStore: SessionStore, private val executor: Execu
     }
 }
 
+private fun JSONObject.toMap(): Map<String, Any> {
+    val result = mutableMapOf<String, Any>()
+    this.keys().forEach {
+        val value = this.get(it)
+        result.put(it, when (value) {
+            null -> value
+            is Number -> value
+            is String -> value
+            is Boolean -> value
+            is JSONObject -> value.toMap()
+            is JSONArray -> (0..value.length()).asSequence().map { (value.getJSONObject(it)).toMap() }
+            else -> {
+                throw InvalidParameterException("$it has unsupported type $value")
+            }
+        })
+    }
+    return result
+}
+
+private fun String.toBtcAddress(): String {
+    val sha256 = this.hexToByteArray().sha256()
+    val hash160 = sha256.ripemd160()
+    val extended = "00${hash160.toNoPrefixHexString()}"
+    val checksum = checksum(extended)
+    val address = (extended + checksum).hexToByteArray().encodeToBase58String()
+    return address
+}
+
 private fun checksum(extended: String): String {
     val checksum = extended.hexToByteArray().sha256().sha256()
     val shortPrefix = checksum.slice(0..3)
@@ -392,7 +590,7 @@ private fun checksum(extended: String): String {
 
 
 fun ECKeyPair.toHexPublicKey64(): String {
-    return "02" + this.publicKey.key.toHexStringNoPrefix().substring(0, 64)
+    return this.getCompressedPublicKey().toNoPrefixHexString()
 }
 
 fun ECKeyPair.toBtcAddress(): String {
@@ -404,3 +602,18 @@ fun ECKeyPair.toBtcAddress(): String {
     val address = (extended + checksum).hexToByteArray().encodeToBase58String()
     return address
 }
+
+fun PublicKey.toBtcAddress(): String {
+    //add the uncompressed prefix
+    val ret = this.key.toBytesPadded(PUBLIC_KEY_SIZE + 1)
+    ret[0] = 4
+    val point = org.kethereum.crypto.CURVE.decodePoint(ret)
+    val compressedPublicKey = point.encoded(true).toNoPrefixHexString()
+    val sha256 = compressedPublicKey.hexToByteArray().sha256()
+    val hash160 = sha256.ripemd160()
+    val extended = "00${hash160.toNoPrefixHexString()}"
+    val checksum = checksum(extended)
+    val address = (extended + checksum).hexToByteArray().encodeToBase58String()
+    return address
+}
+

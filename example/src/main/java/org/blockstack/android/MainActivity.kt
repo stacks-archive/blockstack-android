@@ -108,7 +108,7 @@ class MainActivity : AppCompatActivity() {
 
         deleteStringFileButton.setOnClickListener{
             deleteFileMessageTextView.text = "Deleting..."
-            blockstackSession().deleteFile2(textFileName, DeleteFileOptions()) {
+            blockstackSession().deleteFile(textFileName, DeleteFileOptions()) {
                 if (it.hasErrors) {
                     Toast.makeText(this, "error " + it.error, Toast.LENGTH_SHORT).show()
                 } else {
