@@ -93,7 +93,6 @@ class CipherActivity : AppCompatActivity() {
     fun encryptDecryptString() {
         val options = CryptoOptions()
         val cipherResult = blockstackSession().encryptContent("Hello Android", options)
-        Log.d(TAG, "result encryptDecryptString " + cipherResult.toString())
         if (cipherResult.hasValue) {
             val cipher = cipherResult.value!!
             val plainContentResult = blockstackSession().decryptContent(cipher.json.toString(), false, options)
@@ -103,10 +102,10 @@ class CipherActivity : AppCompatActivity() {
                     textView.setText(plainContent)
                 }
             } else {
-                Toast.makeText(this, "error: " + plainContentResult.error, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "error: ${plainContentResult.error}", Toast.LENGTH_SHORT).show()
             }
         } else {
-            Toast.makeText(this, "error: " + cipherResult.error, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "error: ${cipherResult.error}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -128,7 +127,6 @@ class CipherActivity : AppCompatActivity() {
             val cipher = cipherResult.value!!
             val plainContentResult = blockstackSession().decryptContent(cipher.json.toString(), true, options)
             if (plainContentResult.hasValue) {
-                Log.d(TAG, "decrypted " + plainContentResult.toString())
                 val plainContent: ByteArray = plainContentResult.value as ByteArray
                 val imageByteArray = plainContent
                 val receivedBitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
@@ -136,10 +134,10 @@ class CipherActivity : AppCompatActivity() {
                     imageView.setImageBitmap(receivedBitmap)
                 }
             } else {
-                Toast.makeText(this, "error: " + plainContentResult.error, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "error: ${plainContentResult.error}", Toast.LENGTH_SHORT).show()
             }
         } else {
-            Toast.makeText(this, "error: " + cipherResult.error, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "error: ${cipherResult.error} ", Toast.LENGTH_SHORT).show()
         }
     }
 

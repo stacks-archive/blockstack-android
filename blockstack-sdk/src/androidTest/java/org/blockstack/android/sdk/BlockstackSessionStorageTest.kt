@@ -267,7 +267,7 @@ class BlockstackSessionStorageTest {
                             if (!it.hasErrors) {
                                 result = it.value as String
                             } else {
-                                result = it.error
+                                result = it.error?.message
                             }
                             latch.countDown()
                         }
@@ -317,7 +317,7 @@ class BlockstackSessionStorageTest {
             session.putFile("try.txt", invalidSignedEncryptedText, PutFileOptions(false), {
                 session.getFile("try.txt", GetFileOptions(true, verify = true)) {
                     if (it.hasErrors) {
-                        result = it.error
+                        result = it.error?.message
                     }
                     latch.countDown()
                 }
@@ -387,7 +387,7 @@ class BlockstackSessionStorageTest {
             latch.countDown()
         })
         latch.await(1, TimeUnit.MINUTES)
-        assertThat(countResult?.error, `is`("I want to make the API crash!"))
+        assertThat(countResult?.error?.message, `is`("I want to make the API crash!"))
     }
 
     @Test

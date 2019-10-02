@@ -68,7 +68,7 @@ class BlockstackSessionStorageOfflineTest {
         latch.await()
         assertThat(result, `is`(notNullValue()))
         assertThat(result?.value, `is`(nullValue()))
-        assertThat(result?.error, `is`("Error: java.io.IOException: offline"))
+        assertThat(result?.error?.message, `is`("Error: java.io.IOException: offline"))
     }
 }
 

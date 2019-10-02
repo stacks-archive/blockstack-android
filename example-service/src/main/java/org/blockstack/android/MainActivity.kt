@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
 
         signInButton.setOnClickListener {
             blockstackSession().redirectUserToSignIn {
-                Log.e(TAG, it.error)
+                Log.e(TAG, "sign in failed: ${it.error?.message}")
             }
         }
 
