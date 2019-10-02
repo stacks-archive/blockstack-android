@@ -21,8 +21,6 @@ import org.kethereum.bip39.model.MnemonicWords
 import org.kethereum.bip39.toSeed
 import org.kethereum.bip44.BIP44Element
 import org.kethereum.extensions.toHexStringNoPrefix
-import org.kethereum.hashes.Sha256
-import org.komputing.khex.extensions.toNoPrefixHexString
 import java.util.*
 import java.util.concurrent.CountDownLatch
 
@@ -40,6 +38,7 @@ class BlockstackSession2AuthTest {
     val rule = ActivityTestRule(TestActivity::class.java)
 
     private lateinit var session: BlockstackSession
+    private lateinit var blockstack: Blockstack
     private lateinit var session2: BlockstackSession2
     private lateinit var appConfig: BlockstackConfig
     private lateinit var identity: BlockstackIdentity
@@ -71,7 +70,8 @@ class BlockstackSession2AuthTest {
             Log.d(TAG, gaiaHubConfig.toString())
         })
 
-        session2 = BlockstackSession2(sessionStore, executor, callFactory = callFactory, appConfig = appConfig)
+        blockstack = Blockstack()
+        session2 = BlockstackSession2(sessionStore, executor, callFactory = callFactory, appConfig = appConfig, blockstack = blockstack)
     }
 
     @Test
@@ -116,7 +116,7 @@ class BlockstackSession2AuthTest {
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
-            session2.makeAuthResponse(account, authRequest)
+            blockstack.makeAuthResponse(account, authRequest)
         }
 
 
@@ -129,7 +129,7 @@ class BlockstackSession2AuthTest {
             latch.countDown()
         }
         latch.await()
-        assertThat(result?.json?.getString("decentralizedID"), `is`("did:btc-addr:1JeTQ5cQjsD57YGcsVFhwT7iuQUXJR6BSk"))
+        assertThat(result?.json?.getString("decentralizedID"), `is`("did:btc-addr:${BTC_ADDRESS}"))
         assertThat(result?.json?.getString("appPrivateKey"), `is`("a8025a881da1074b012995beef7e7ccb42fea2ec66e62367c8d73734033ee33b"))
         assertThat(result?.json?.getJSONObject("profile")?.toString(), `is`("{}"))
     }
@@ -142,7 +142,7 @@ class BlockstackSession2AuthTest {
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
-            session2.makeAuthResponse(account, authRequest)
+            blockstack.makeAuthResponse(account, authRequest)
         }
 
         val latch = CountDownLatch(1)

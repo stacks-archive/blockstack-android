@@ -24,10 +24,12 @@ private val BITCOIN_ADDRESS = "1NZNxhoxobqwsNvTb16pdeiqvFvce3Yg8U"
 
 @RunWith(AndroidJUnit4::class)
 class BlockstackSession2EncryptionTest {
+
     @get:Rule
     val rule = ActivityTestRule(TestActivity::class.java)
 
     private lateinit var session: BlockstackSession
+    private lateinit var blockstack: Blockstack
     private lateinit var session2: BlockstackSession2
 
     @Before
@@ -47,7 +49,8 @@ class BlockstackSession2EncryptionTest {
             Log.d(TAG, gaiaHubConfig.toString())
         })
 
-        session2 = BlockstackSession2(sessionStore, executor, callFactory = callFactory)
+        blockstack = Blockstack()
+        session2 = BlockstackSession2(sessionStore, executor, callFactory = callFactory, blockstack = blockstack)
 
         val appPrivateKey = sessionStore.sessionData.json.getJSONObject("userData").getString("appPrivateKey")
         val hubUrl = sessionStore.sessionData.json.getJSONObject("userData").getString("hubUrl")
@@ -58,7 +61,7 @@ class BlockstackSession2EncryptionTest {
     fun testEncryptDecrypt2() {
         val message = "Hello Test"
         val result = session.encryptContent(message, CryptoOptions(publicKey = PUBLIC_KEY))
-        val plainText = session2.decryptContent(result.value!!.json.toString(), false, CryptoOptions(privateKey = PRIVATE_KEY))
+        val plainText = blockstack.decryptContent(result.value!!.json.toString(), false, CryptoOptions(privateKey = PRIVATE_KEY))
         assertThat(plainText.value as String, `is`(message))
     }
 
@@ -66,8 +69,8 @@ class BlockstackSession2EncryptionTest {
     @Test
     fun testEncrypt2Decrypt2() {
         val message = "Hello Test"
-        val result = session2.encryptContent(message, CryptoOptions(publicKey = PUBLIC_KEY))
-        val plainText = session2.decryptContent(result.value!!.json.toString(), false, CryptoOptions(privateKey = PRIVATE_KEY))
+        val result = blockstack.encryptContent(message, CryptoOptions(publicKey = PUBLIC_KEY))
+        val plainText = blockstack.decryptContent(result.value!!.json.toString(), false, CryptoOptions(privateKey = PRIVATE_KEY))
         assertThat(plainText.value as String, `is`(message))
     }
 
@@ -75,7 +78,7 @@ class BlockstackSession2EncryptionTest {
     @Test
     fun testEncrypt2Decrypt() {
         val message = "Hello Test"
-        val result = session2.encryptContent(message, CryptoOptions(publicKey = PUBLIC_KEY))
+        val result = blockstack.encryptContent(message, CryptoOptions(publicKey = PUBLIC_KEY))
         val plainText = session.decryptContent(result.value!!.json.toString(), false, CryptoOptions(privateKey = PRIVATE_KEY))
         assertThat(plainText.value as String, `is`(message))
     }

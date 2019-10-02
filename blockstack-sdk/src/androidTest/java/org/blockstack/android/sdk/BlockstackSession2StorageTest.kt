@@ -7,7 +7,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import me.uport.sdk.jwt.JWTTools
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
 import org.blockstack.android.sdk.model.toBlockstackConfig
@@ -18,17 +17,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.kethereum.crypto.getCompressedPublicKey
-import org.kethereum.crypto.toECKeyPair
-import org.kethereum.encodings.encodeToBase58String
-import org.kethereum.extensions.toHexString
-import org.kethereum.extensions.toHexStringNoPrefix
-import org.kethereum.hashes.ripemd160
-import org.kethereum.hashes.sha256
-import org.kethereum.model.PrivateKey
-import org.komputing.khex.extensions.hexToByteArray
 import org.komputing.khex.extensions.toHexString
-import org.komputing.khex.extensions.toNoPrefixHexString
 import java.util.concurrent.CountDownLatch
 
 
@@ -40,10 +29,12 @@ private val BITCOIN_ADDRESS = "1NZNxhoxobqwsNvTb16pdeiqvFvce3Yg8U"
 
 @RunWith(AndroidJUnit4::class)
 class BlockstackSession2StorageTest {
+
     @get:Rule
     val rule = ActivityTestRule(TestActivity::class.java)
 
     private lateinit var session: BlockstackSession
+    private lateinit var blockstack: Blockstack
     private lateinit var session2: BlockstackSession2
 
     @Before
@@ -63,7 +54,8 @@ class BlockstackSession2StorageTest {
             Log.d(TAG, gaiaHubConfig.toString())
         })
 
-        session2 = BlockstackSession2(sessionStore, executor, callFactory = callFactory)
+        blockstack = Blockstack()
+        session2 = BlockstackSession2(sessionStore, executor, callFactory = callFactory, blockstack = blockstack)
 
         val appPrivateKey = sessionStore.sessionData.json.getJSONObject("userData").getString("appPrivateKey")
         val hubUrl = sessionStore.sessionData.json.getJSONObject("userData").getString("hubUrl")
@@ -71,7 +63,7 @@ class BlockstackSession2StorageTest {
 
         val latch = CountDownLatch(1)
         GlobalScope.launch {
-            session2.gaiaHubConfig =  session2.connectToGaia(hubUrl, appPrivateKey, associationToken)
+            session2.gaiaHubConfig = session2.connectToGaia(hubUrl, appPrivateKey, associationToken)
             Log.d(BlockstackSession2.TAG, session2.gaiaHubConfig.toString())
             latch.countDown()
         }
@@ -79,8 +71,8 @@ class BlockstackSession2StorageTest {
 
         val triple = JWTTools().decode("eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJnYWlhQ2hhbGxlbmdlIjoiW1wiZ2FpYWh1YlwiLFwiMFwiLFwic3RvcmFnZTIuYmxvY2tzdGFjay5vcmdcIixcImJsb2Nrc3RhY2tfc3RvcmFnZV9wbGVhc2Vfc2lnblwiXSIsImh1YlVybCI6Imh0dHBzOi8vaHViLmJsb2Nrc3RhY2sub3JnIiwiaXNzIjoiMDI0NjM0ZWUxZDRmZjU3ZjJlMGVjN2E4NDdlMTcwNWVjNTYyOTQ5Zjg0YTgzZDFmNWZkYjU5NTYyMjBhOTc3NWUwIiwic2FsdCI6ImMzYjliNGFlZmFkMzQzZjIwNGJkOTVjMmZhMWFlMGE0In0.CZfrO3SS7f0UHNxmQH4cQuOX3ShOJqbqFOYtcSF58KyaXAUXw_CUClyXw6o4hQMb6jWVJSTUi7QB_qoY672nuw")
         Log.d(TAG, "header: " + triple.first.toJson())
-        Log.d(TAG,triple.second.toString())
-        Log.d(TAG,triple.third.toHexString())
+        Log.d(TAG, triple.second.toString())
+        Log.d(TAG, triple.third.toHexString())
 
         "CZfrO3SS7f0UHNxmQH4cQuOX3ShOJqbqFOYtcSF58KyaXAUXw_CUClyXw6o4hQMb6jWVJSTUi7QB_qoY672nuw"
 
