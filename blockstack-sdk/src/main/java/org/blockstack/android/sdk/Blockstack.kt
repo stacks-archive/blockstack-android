@@ -67,7 +67,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                 "private_key" to privateKeyPayload,
                 "public_keys" to arrayOf(account.keys.keyPair.toHexPublicKey64()),
                 "profile" to profile.json.toMap(),
-                "username" to account.username,
+                "username" to (account.username ?: ""),
                 "email" to "",
                 "profile_url" to null,
                 "hubUrl" to "https://hub.blockstack.org",
@@ -105,23 +105,13 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
     private fun buildLookupProfileRequest(username: String, zoneFileLookupUrl: String?): Request {
-        val url = zoneFileLookupUrl ?: DEFAULT_CORE_API_ENDPOINT
+        val url = zoneFileLookupUrl ?: "$DEFAULT_CORE_API_ENDPOINT/v1/names/$username"
         val builder = Request.Builder()
                 .url(url)
         builder.addHeader("Referrer-Policy", "no-referrer")
         return builder.build()
 
     }
-
-    private fun decrypt(cipherObjectHex: String, privateKey: String): String? {
-        if (cipherObjectHex.isEmpty() || cipherObjectHex === "null") {
-            return null
-        }
-        return decryptContent(cipherObjectHex.hexToByteArray().toString(Charsets.UTF_8), false,
-                CryptoOptions(privateKey = privateKey)
-        ).value as String
-    }
-
 
     suspend fun verifyToken(token: String): Boolean {
         val tokenTriple = decodeToken(token)
@@ -145,10 +135,15 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
 
     }
 
-
-    private fun doPublicKeysMatchUsername(payload: JSONObject, nameLookupURL: String?): Boolean {
-        // TODO
-        return true
+    private suspend fun doPublicKeysMatchUsername(payload: JSONObject, nameLookupURL: String?): Boolean {
+        val username = payload.optString("username")
+        if (username == null || username.isEmpty()) {
+            return true
+        }
+        val profile = lookupProfile(username, null)
+        val nameOwningAddress = profile.json.optString("address")
+        val addressFromIssuer = DIDs.getAddressFromDID(payload.optString("iss"))
+        return !nameOwningAddress.isEmpty() && nameOwningAddress == addressFromIssuer
     }
 
     private fun isIssuanceDateValid(payload: JSONObject): Boolean {

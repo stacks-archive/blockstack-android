@@ -181,6 +181,56 @@ class BlockstackSession2AuthTest {
 
     }
 
+    @Test
+    fun testVerifyAuthRequestWithoutUsername() {
+        val expiresAt = Date().time + 3600 * 24 * 7
+        val authRequest = runBlocking {
+            BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+        }
+        val authResponse = runBlocking {
+            val account = BlockstackAccount(null, keys, identity.salt)
+            blockstack.makeAuthResponse(account, authRequest)
+        }
+        val isValid = runBlocking {
+            blockstack.verifyToken(authResponse)
+        }
+        assertThat(isValid, `is`(true))
+    }
+
+
+    @Test
+    fun testVerifyAuthRequestWithUsername() {
+        val expiresAt = Date().time + 3600 * 24 * 7
+        val authRequest = runBlocking {
+            BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+        }
+        val authResponse = runBlocking {
+            val account = BlockstackAccount("public_profile_for_testing.id.blockstack", keys, identity.salt)
+            blockstack.makeAuthResponse(account, authRequest)
+        }
+        val isValid = runBlocking {
+            blockstack.verifyToken(authResponse)
+        }
+        assertThat(isValid, `is`(true))
+    }
+
+
+    @Test
+    fun testVerifyAuthRequestWithWrongUsername() {
+        val expiresAt = Date().time + 3600 * 24 * 7
+        val authRequest = runBlocking {
+            BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+        }
+        val authResponse = runBlocking {
+            val account = BlockstackAccount("invalid.id.blockstack", keys, identity.salt)
+            blockstack.makeAuthResponse(account, authRequest)
+        }
+        val isValid = runBlocking {
+            blockstack.verifyToken(authResponse)
+        }
+        assertThat(isValid, `is`(false))
+    }
+
     companion object {
         val TAG = BlockstackSession2AuthTest::class.java.simpleName
     }
