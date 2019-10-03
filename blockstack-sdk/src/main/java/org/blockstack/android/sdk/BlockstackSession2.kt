@@ -336,10 +336,10 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
      * @return {Promise} that resolves to the number of files listed
      */
     suspend fun listFiles(callback: (String) -> Boolean): Int {
-        return listFilesLoop(callback, 0, 0, 0)
+        return listFilesLoop(callback, null, 0, 0)
     }
 
-    private fun listFilesLoop(callback: (String) -> Boolean, page: Int, callCount: Int, fileCount: Int): Int {
+    private fun listFilesLoop(callback: (String) -> Boolean, page: String?, callCount: Int, fileCount: Int): Int {
         if (callCount > 65536) {
             throw RuntimeException("Too many entries to list")
         }
@@ -356,7 +356,11 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
         } else {
             val responseJson = JSONObject(response.body()!!.string())
             val fileEntries = responseJson.optJSONArray("entries")
-            val nextPage = responseJson.optInt("page")
+            val nextPage = if (responseJson.isNull("page")) {
+                null
+            } else {
+                responseJson.getString("page")
+            }
 
             if (fileEntries === null) {
                 // indicates a misbehaving Gaia hub or a misbehaving driver
@@ -370,7 +374,7 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
                     return fileCount + index
                 }
             }
-            if (fileEntries.length() > 0) {
+            if (nextPage != null && nextPage.isNotEmpty() && fileEntries.length() > 0) {
                 return listFilesLoop(callback, nextPage, callCount + 1, fileCount + fileEntries.length())
             } else {
                 return fileCount + fileEntries.length()
@@ -385,8 +389,9 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
     }
 
 
-    private fun buildListFilesRequest(page: Int, hubConfig: GaiaHubConfig): Request {
+    private fun buildListFilesRequest(page: String?, hubConfig: GaiaHubConfig): Request {
         val pageRequest = JSONObject().put("page", page).toString()
+        Log.d(TAG, pageRequest)
         return Request.Builder()
                 .url("${hubConfig.server}/list-files/${hubConfig.address}")
                 .addHeader("Content-Type", CONTENT_TYPE_JSON)
