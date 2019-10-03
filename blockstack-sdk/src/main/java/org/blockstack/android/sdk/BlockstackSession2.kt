@@ -3,11 +3,13 @@ package org.blockstack.android.sdk
 import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import me.uport.sdk.core.toBase64UrlSafe
 import me.uport.sdk.jwt.JWTSignerAlgorithm
-import me.uport.sdk.jwt.JWTTools
 import me.uport.sdk.jwt.model.ArbitraryMapSerializer
 import me.uport.sdk.jwt.model.JwtHeader
 import me.uport.sdk.signer.KPSigner
@@ -20,7 +22,6 @@ import org.kethereum.model.PrivateKey
 import org.komputing.khex.extensions.hexToByteArray
 import org.komputing.khex.extensions.toNoPrefixHexString
 import java.lang.Integer.parseInt
-import java.security.SecureRandom
 
 class BlockstackSession2(private val sessionStore: SessionStore, private val executor: Executor, private val appConfig: BlockstackConfig? = null,
                          private val callFactory: Call.Factory = OkHttpClient(), val blockstack: Blockstack) {
@@ -77,11 +78,21 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
     }
 
 
-    private fun extractProfile(tokenPayload: JSONObject, nameLookupUrl: String): JSONObject {
+    private suspend fun extractProfile(tokenPayload: JSONObject, nameLookupUrl: String): JSONObject {
         val profileUrl = tokenPayload.optString("profile_url")
         if (profileUrl != null) {
-            // TODO lookup profile
-            return JSONObject()
+            val fetchProfileJson = GlobalScope.async {
+                val request = Request.Builder().url(profileUrl)
+                        .build()
+                val response = callFactory.newCall(request).execute()
+                if (response.isSuccessful) {
+                    JSONObject(response.body()!!.string())
+                } else {
+                    Log.d(TAG, "invalid profile url $profileUrl: ${response.code()}")
+                    JSONObject()
+                }
+            }
+            return fetchProfileJson.await()
         }
         return tokenPayload.getJSONObject("profile")
     }
@@ -305,9 +316,7 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
                 Log.d(TAG, e.message, e)
                 callback(Result(null, e.message))
             }
-
         }
-
     }
 
     private fun buildDeleteRequest(filename: String, hubConfig: GaiaHubConfig): Request {
@@ -319,7 +328,78 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
         return builder.build()
     }
 
+
+    /**
+     * List the set of files in this application's Gaia storage bucket.
+     * @param {function} callback - a callback to invoke on each named file that
+     * returns `true` to continue the listing operation or `false` to end it
+     * @return {Promise} that resolves to the number of files listed
+     */
+    suspend fun listFiles(callback: (String) -> Boolean): Int {
+        return listFilesLoop(callback, 0, 0, 0)
+    }
+
+    private fun listFilesLoop(callback: (String) -> Boolean, page: Int, callCount: Int, fileCount: Int): Int {
+        if (callCount > 65536) {
+            throw RuntimeException("Too many entries to list")
+        }
+
+        val request = buildListFilesRequest(page, getHubConfig())
+        val response = callFactory.newCall(request).execute()
+        if (!response.isSuccessful) {
+            if (callCount == 0) {
+                // TODO reconnect
+                throw NotImplementedError("reconnect to gaia ${response.code()}")
+            } else {
+                throw IOException("call to list-files failed ${response.code()}")
+            }
+        } else {
+            val responseJson = JSONObject(response.body()!!.string())
+            val fileEntries = responseJson.optJSONArray("entries")
+            val nextPage = responseJson.optInt("page")
+
+            if (fileEntries === null) {
+                // indicates a misbehaving Gaia hub or a misbehaving driver
+                // (i.e. the data is malformed)
+                throw RuntimeException("Bad listFiles response: no entries")
+            }
+
+            for (index in 0 until fileEntries.length()) {
+                val shouldContinue = callback(fileEntries.getString(index))
+                if (!shouldContinue) {
+                    return fileCount + index
+                }
+            }
+            if (fileEntries.length() > 0) {
+                return listFilesLoop(callback, nextPage, callCount + 1, fileCount + fileEntries.length())
+            } else {
+                return fileCount + fileEntries.length()
+            }
+        }
+
+    }
+
+    private fun getHubConfig(): GaiaHubConfig {
+        return gaiaHubConfig?.run { gaiaHubConfig }
+                ?: throw RuntimeException("not connected to gaia")
+    }
+
+
+    private fun buildListFilesRequest(page: Int, hubConfig: GaiaHubConfig): Request {
+        val pageRequest = JSONObject().put("page", page).toString()
+        return Request.Builder()
+                .url("${hubConfig.server}/list-files/${hubConfig.address}")
+                .addHeader("Content-Type", CONTENT_TYPE_JSON)
+                .addHeader("Content-Length", pageRequest.length.toString())
+                .addHeader("Authorization", "bearer ${hubConfig.token}")
+                .addHeader("Referrer-Policy", "no-referrer")
+
+                .method("POST", RequestBody.create(MediaType.get(CONTENT_TYPE_JSON), pageRequest))
+                .build()
+    }
+
     companion object {
         val TAG = BlockstackSession2::class.java.simpleName
+        val CONTENT_TYPE_JSON = "application/json"
     }
 }

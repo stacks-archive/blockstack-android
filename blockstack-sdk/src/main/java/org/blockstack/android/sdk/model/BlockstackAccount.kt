@@ -15,6 +15,9 @@ data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val s
         return AppsNode(keys.generateChildKey(BIP44Element(true, APPS_NODE_INDEX)), salt)
     }
 
+    val ownerAddress:String
+            get() = keys.keyPair.toBtcAddress()
+
     companion object {
         val APPS_NODE_INDEX = 0
 

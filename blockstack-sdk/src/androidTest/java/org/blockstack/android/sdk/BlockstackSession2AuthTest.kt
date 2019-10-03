@@ -81,6 +81,11 @@ class BlockstackSession2AuthTest {
         assertThat(account.salt, `is`(expectedSalt))
     }
 
+    @Test
+    fun testOwnerAddress(){
+        val account = BlockstackAccount(null, keys, identity.salt)
+        assertThat(account.ownerAddress, `is`(BTC_ADDRESS))
+    }
 
     @Test
     fun testAppsNode() {

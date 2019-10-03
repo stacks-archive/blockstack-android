@@ -5,6 +5,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import me.uport.sdk.jwt.JWTTools
 import okhttp3.OkHttpClient
 import org.blockstack.android.sdk.model.GetFileOptions
@@ -13,6 +14,7 @@ import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -142,6 +144,22 @@ class BlockstackSession2StorageTest {
         assertThat(result, `is`("Hello Test"))
     }
 
+    @Test
+    fun testListFiles() {
+        var fileCount: Int? = null
+        val latch = CountDownLatch(1)
+        session2.putFile("try.text", "Hello Test", PutFileOptions()) {
+            fileCount = runBlocking {
+                session2.listFiles {
+                    true
+                }
+            }
+            latch.countDown()
+        }
+
+        latch.await()
+        assertThat(fileCount, `is`(Matchers.greaterThanOrEqualTo(1)))
+    }
     companion object {
         val TAG = BlockstackSession2StorageTest::class.java.simpleName
     }
