@@ -82,7 +82,7 @@ class BlockstackSession2AuthTest {
     }
 
     @Test
-    fun testOwnerAddress(){
+    fun testOwnerAddress() {
         val account = BlockstackAccount(null, keys, identity.salt)
         assertThat(account.ownerAddress, `is`(BTC_ADDRESS))
     }
@@ -187,7 +187,21 @@ class BlockstackSession2AuthTest {
     }
 
     @Test
-    fun testVerifyAuthRequestWithoutUsername() {
+    fun testVerifyAuthResponse() {
+        val expiresAt = Date().time + 3600 * 24 * 7
+        val authRequest = runBlocking {
+            BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+        }
+
+        val result = runBlocking {
+            blockstack.verifyAuthRequest(authRequest)
+        }
+
+        assertThat(result, `is`(true))
+    }
+
+    @Test
+    fun testVerifyAuthResponseWithoutUsername() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
             BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
@@ -204,7 +218,7 @@ class BlockstackSession2AuthTest {
 
 
     @Test
-    fun testVerifyAuthRequestWithUsername() {
+    fun testVerifyAuthResponseWithUsername() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
             BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
@@ -221,7 +235,7 @@ class BlockstackSession2AuthTest {
 
 
     @Test
-    fun testVerifyAuthRequestWithWrongUsername() {
+    fun testVerifyAuthResponseWithWrongUsername() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
             BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())

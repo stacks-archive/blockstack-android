@@ -70,16 +70,26 @@ class BitAddrResolver(private val okHttpClient: Call.Factory) : DIDResolver {
     }
 
     private fun getPublicKeyHex(address: String?): String? {
-        val request = Request.Builder()
-                .url("https://core.blockstack.org/v1/search?query=$address")
-                .build()
-        val response = okHttpClient.newCall(request).execute()
-        val searchResult = response.body()?.string()?.let {
-            JSONObject(it)
+        if (publicKeyMap.contains(address)) {
+            return publicKeyMap[address]
+        } else {
+            return null
         }
-        return "03e93ae65d6675061a167c34b8321bef87594468e9b2dd19c05a67a7b4caefa017"
     }
 
+    fun add(address: String?, publicKey: String?) {
+        if (address != null) {
+            publicKeyMap[address] = publicKey
+        }
+    }
+
+    fun remove(address: String?) {
+        if (address != null) {
+            publicKeyMap.remove(address)
+        }
+    }
+
+    private val publicKeyMap: MutableMap<String, String?> = mutableMapOf()
     override val method: String
         get() = "btc-addr"
 

@@ -32,13 +32,17 @@ import org.kethereum.model.PUBLIC_KEY_SIZE
 import org.kethereum.model.PublicKey
 import org.komputing.khex.extensions.hexToByteArray
 import org.komputing.khex.extensions.toNoPrefixHexString
+import java.net.URI
 import java.security.InvalidParameterException
 import java.util.*
 
 class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
 
+    private var btcAddrResolver: BitAddrResolver
+
     init {
-        UniversalDID.registerResolver(BitAddrResolver(callFactory))
+        btcAddrResolver = BitAddrResolver(callFactory)
+        UniversalDID.registerResolver(btcAddrResolver)
     }
 
 
@@ -121,6 +125,73 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                 doPublicKeysMatchIssuer(tokenTriple.second) &&
                 doPublicKeysMatchUsername(tokenTriple.second, null)
     }
+
+    suspend fun verifyAuthRequest(token: String): Boolean {
+        val tokenTriple = decodeToken(token)
+        btcAddrResolver.add(DIDs.getAddressFromDID(tokenTriple.second.getString("iss")), tokenTriple.second.getJSONArray("public_keys").getString(0))
+        val result = isExpirationDateValid(tokenTriple.second) &&
+                isIssuanceDateValid(tokenTriple.second) &&
+                doSignaturesMatchPublicKeys(token, tokenTriple.second) &&
+                doPublicKeysMatchIssuer(tokenTriple.second) &&
+                isManifestUriValid(tokenTriple.second) &&
+                isRedirectUriValid(tokenTriple.second)
+        btcAddrResolver.remove(tokenTriple.second.getString("iss"))
+        return result
+
+    }
+
+    private fun isRedirectUriValid(payload: JSONObject): Boolean {
+        return isSameOriginAbsoluteUrl(payload.getString("domain_name"), payload.getString("redirect_uri"))
+    }
+
+    private fun isManifestUriValid(payload: JSONObject): Boolean {
+        return isSameOriginAbsoluteUrl(payload.getString("domain_name"), payload.getString("manifest_uri"))
+    }
+
+    /**
+     * Checks if both urls pass the same origin check & are absolute
+     * @param  {[type]}  uri1 first uri to check
+     * @param  {[type]}  uri2 second uri to check
+     * @return {Boolean} true if they pass the same origin check
+     * @private
+     * @ignore
+     */
+    private fun isSameOriginAbsoluteUrl(uri1: String, uri2: String): Boolean {
+
+        val parsedUri1 = URI.create(uri1)
+        val parsedUri2 = URI.create(uri2)
+
+        val port1 = if (parsedUri1.port == -1) {
+            if (parsedUri1.scheme == "https:") {
+                443
+            } else {
+                80
+            }
+        } else {
+            parsedUri1.port
+        }
+        val port2 = if (parsedUri2.port == -1) {
+            if (parsedUri2.scheme == "https:") {
+                443
+            } else {
+                80
+            }
+        } else {
+            parsedUri2.port
+        }
+
+        val match = mapOf<String, Boolean>(
+                "scheme" to (parsedUri1.scheme == parsedUri2.scheme),
+                "hostname" to (parsedUri1.host == parsedUri2.host),
+                "port" to (port1 == port2),
+                "absolute" to ((uri1.indexOf("http://") >= 0 || uri1.indexOf("https://") >= 0)
+                        && (uri2.indexOf("http://") >= 0 || uri2.indexOf("https://") >= 0))
+        )
+
+        return match.getValue("scheme") && match.getValue("hostname")
+                && match.getValue("port") && match.getValue("absolute")
+    }
+
 
     private fun doPublicKeysMatchIssuer(payload: JSONObject): Boolean {
         val issAddress = DIDs.getAddressFromDID(payload.getString("iss"))
