@@ -99,16 +99,57 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      * @returns {Promise} that resolves to a profile object
      */
     suspend fun lookupProfile(username: String, zoneFileLookupUrl: String?): Profile {
-        val request = buildLookupProfileRequest(username, zoneFileLookupUrl)
+        val request = buildLookupNameInfoRequest(username, zoneFileLookupUrl)
         val response = callFactory.newCall(request).execute()
         if (response.code() == 200) {
-            return Profile(JSONObject(response.body()!!.string()))
+            val nameInfo = JSONObject(response.body()!!.string())
+            if (nameInfo.has("address") && nameInfo.has("zonefile")) {
+                val profile = resolveZoneFileToProfile(nameInfo)
+                if (profile == null) {
+                    return Profile(JSONObject())
+                }
+                return profile
+
+            } else {
+                throw InvalidParameterException("name info does not contain address or zonefile property")
+            }
         } else {
-            return Profile(JSONObject())
+            throw InvalidParameterException("could not fetch name info")
         }
     }
 
-    private fun buildLookupProfileRequest(username: String, zoneFileLookupUrl: String?): Request {
+    private fun resolveZoneFileToProfile(nameInfo: JSONObject): Profile? {
+        val zoneFileJson = parseZoneFile(nameInfo.getString("zonefile"))
+        val tokenFileUri = zoneFileJson.tokenFileUri
+        if (tokenFileUri != null) {
+            val request = Request.Builder().url(tokenFileUri)
+                    .addHeader("Referrer-Policy", "no-referrer")
+                    .build()
+            val result = callFactory.newCall(request).execute()
+            if (result.isSuccessful) {
+                val tokenFile = result.body()!!.string()
+                val tokenRecords = JSONArray(tokenFile)
+                return extractProfile(tokenRecords.getJSONObject(0).getString("token"),
+                        nameInfo.getString("address"))
+            }
+
+        }
+        return null
+
+    }
+
+
+    private fun extractProfile(token: String, address: String): Profile? {
+        val decodedToken = decodeToken(token)
+        val payload = decodedToken.second
+        if (payload.has("claim")) {
+            return Profile(payload.getJSONObject("claim"))
+        } else {
+            return null
+        }
+    }
+
+    private fun buildLookupNameInfoRequest(username: String, zoneFileLookupUrl: String?): Request {
         val url = zoneFileLookupUrl ?: "$DEFAULT_CORE_API_ENDPOINT/v1/names/$username"
         val builder = Request.Builder()
                 .url(url)

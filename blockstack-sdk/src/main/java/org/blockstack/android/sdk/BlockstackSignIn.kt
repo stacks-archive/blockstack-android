@@ -1,21 +1,20 @@
 package org.blockstack.android.sdk
 
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import me.uport.sdk.jwt.JWTTools
 import me.uport.sdk.jwt.model.JwtHeader
 import me.uport.sdk.signer.KPSigner
 import org.blockstack.android.sdk.Scope.Companion.scopesArrayToJSONString
 import org.blockstack.android.sdk.model.BlockstackConfig
+import org.blockstack.android.sdk.model.SessionData
 import org.kethereum.crypto.CryptoAPI
 import org.kethereum.crypto.toECKeyPair
 import org.kethereum.extensions.toHexStringNoPrefix
-import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PrivateKey
 import java.util.*
 
-class BlockstackSignIn (private val appConfig: BlockstackConfig) {
+class BlockstackSignIn (private val appConfig: BlockstackConfig, private val sessionStore: ISessionStore) {
 
 
     /**
@@ -60,6 +59,8 @@ class BlockstackSignIn (private val appConfig: BlockstackConfig) {
     suspend fun redirectToSignIn(context: Context) {
         val keyPair = CryptoAPI.keyPairGenerator.generate()
         val transitPrivateKey = keyPair.privateKey.key.toHexStringNoPrefix()
+        sessionStore.sessionData = SessionData(sessionStore.sessionData.json
+                .put("blockstack-transit-private-key", transitPrivateKey))
         val authRequest = makeAuthRequest(transitPrivateKey, Date().time + 3600 * 24 * 7, emptyMap())
         Log.d(TAG, authRequest)
     }

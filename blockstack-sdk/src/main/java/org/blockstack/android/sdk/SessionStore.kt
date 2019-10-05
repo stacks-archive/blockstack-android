@@ -14,7 +14,18 @@ private val TAG = SessionStore::class.java.simpleName
 interface ISessionStore {
     var sessionData: SessionData
     fun deleteSessionData()
+
+    fun setTransitPrivateKey(transitPrivateKey: String) {
+        sessionData = SessionData(this.sessionData.json.put("blockstack-private-transit-key", transitPrivateKey))
+    }
+
+    fun getTransitPrivateKey():String {
+        return sessionData.json.getString("blockstack-private-transit-key")
+    }
 }
+
+
+
 
 class SessionStore(private val prefs: SharedPreferences) : ISessionStore {
     private var sessionDataObject = SessionData(JSONObject(prefs.getString(BLOCKSTACK_SESSION, EMPTY_DATA)))

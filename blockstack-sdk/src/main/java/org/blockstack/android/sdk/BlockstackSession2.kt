@@ -43,8 +43,8 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
      * @param signInCallback called with the user data after sign-in or with an error
      *
      */
-    suspend fun handlePendingSignIn(authResponse: String, transitKey: String, signInCallback: (Result<UserData>) -> Unit) {
-        //val transitKey = sessionStore.sessionData.json.getString("blockstack-transit-private-key")
+    suspend fun handlePendingSignIn(authResponse: String, signInCallback: (Result<UserData>) -> Unit) {
+        val transitKey = sessionStore.getTransitPrivateKey()
         val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "https://core.blockstack.org")
 
         val tokenTriple = blockstack.decodeToken(authResponse)

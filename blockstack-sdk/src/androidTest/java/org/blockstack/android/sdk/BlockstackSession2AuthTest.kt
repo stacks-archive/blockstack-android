@@ -37,6 +37,7 @@ class BlockstackSession2AuthTest {
     @get:Rule
     val rule = ActivityTestRule(TestActivity::class.java)
 
+    private lateinit var sessionStore: SessionStore
     private lateinit var session: BlockstackSession
     private lateinit var blockstack: Blockstack
     private lateinit var session2: BlockstackSession2
@@ -47,7 +48,7 @@ class BlockstackSession2AuthTest {
 
     @Before
     fun setup() {
-        val sessionStore = sessionStoreforIntegrationTests(rule)
+        sessionStore = sessionStoreforIntegrationTests(rule)
         val executor = IntegrationTestExecutor(rule)
         val callFactory = OkHttpClient()
         val words = MnemonicWords(SEED_PHRASE)
@@ -105,7 +106,7 @@ class BlockstackSession2AuthTest {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = session.makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         val authRequest2 = runBlocking {
-            BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(appConfig, sessionStore).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
         val token = JWTTools().decodeRaw(authRequest)
         val token2 = JWTTools().decodeRaw(authRequest2)
@@ -117,7 +118,7 @@ class BlockstackSession2AuthTest {
     fun testMakeAuthResponse2HandlePendingLogin() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(appConfig, sessionStore).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
@@ -143,7 +144,7 @@ class BlockstackSession2AuthTest {
     fun testMakeAuthResponse2HandlePendingLogin2() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(appConfig, sessionStore).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
@@ -153,7 +154,9 @@ class BlockstackSession2AuthTest {
         val latch = CountDownLatch(1)
         var result: UserData? = null
         runBlocking {
-            session2.handlePendingSignIn(authResponse, TRANSIT_PRIVATE_KEY) {
+            sessionStore.setTransitPrivateKey(TRANSIT_PRIVATE_KEY)
+
+            session2.handlePendingSignIn(authResponse) {
                 Log.d(TAG, it.error + " " + it.value)
                 result = it.value
                 latch.countDown()
@@ -172,7 +175,8 @@ class BlockstackSession2AuthTest {
         val latch = CountDownLatch(1)
         var result: UserData? = null
         runBlocking {
-            session2.handlePendingSignIn(authResponse, "602f0c6d2ea9a6318063c5dcaa1add5686a78a641efa9875b32c62b0716d7a63") {
+            sessionStore.setTransitPrivateKey("602f0c6d2ea9a6318063c5dcaa1add5686a78a641efa9875b32c62b0716d7a63")
+            session2.handlePendingSignIn(authResponse) {
                 Log.d(TAG, it.error + " " + it.value)
                 result = it.value
                 latch.countDown()
@@ -190,7 +194,7 @@ class BlockstackSession2AuthTest {
     fun testVerifyAuthResponse() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(appConfig, sessionStore).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
 
         val result = runBlocking {
@@ -204,7 +208,7 @@ class BlockstackSession2AuthTest {
     fun testVerifyAuthResponseWithoutUsername() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(appConfig, sessionStore).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
@@ -221,7 +225,7 @@ class BlockstackSession2AuthTest {
     fun testVerifyAuthResponseWithUsername() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(appConfig, sessionStore).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount("public_profile_for_testing.id.blockstack", keys, identity.salt)
@@ -238,7 +242,7 @@ class BlockstackSession2AuthTest {
     fun testVerifyAuthResponseWithWrongUsername() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(appConfig, sessionStore).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount("invalid.id.blockstack", keys, identity.salt)
@@ -254,3 +258,4 @@ class BlockstackSession2AuthTest {
         val TAG = BlockstackSession2AuthTest::class.java.simpleName
     }
 }
+
