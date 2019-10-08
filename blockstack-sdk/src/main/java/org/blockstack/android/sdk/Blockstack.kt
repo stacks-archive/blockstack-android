@@ -46,8 +46,14 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
 
+    suspend fun makeAuthResponseUnencrypted(account: BlockstackAccount, domainName: String): String {
+        val appPrivateKey = account.getAppsNode().getAppNode(domainName)
+
+        val privateKeyPayload = appPrivateKey.keyPair.privateKey.key.toHexStringNoPrefix()
+        return makeAuthResponseToken(account, privateKeyPayload)
+    }
+
     suspend fun makeAuthResponse(account: BlockstackAccount, authRequest: String): String {
-        val jwt = JWTTools()
         val authRequestTriple = decodeToken(authRequest)
         val transitPublicKey = authRequestTriple.second.getJSONArray("public_keys").getString(0)
         val appPrivateKey = account.getAppsNode().getAppNode(authRequestTriple.second.getString("domain_name"))
@@ -57,8 +63,13 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                 CryptoOptions(publicKey = transitPublicKey)
         ).value?.json?.toString()?.toByteArray()?.toNoPrefixHexString()
 
-        val profile = if (account.username != null) {
-            lookupProfile(account.username, null)
+        return makeAuthResponseToken(account, privateKeyPayload)
+    }
+
+    private suspend fun makeAuthResponseToken(account: BlockstackAccount, privateKeyPayload: String?): String {
+        val username = account.username
+        val profile = if (username != null) {
+            lookupProfile(username, null)
         } else {
             Profile(JSONObject())
         }
@@ -86,6 +97,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
         val issuerDID =
                 "did:btc-addr:${account.keys.keyPair.toBtcAddress()}"
 
+        val jwt = JWTTools()
         return jwt.createJWT(payload, issuerDID, signer, algorithm = JwtHeader.ES256K)
     }
 
@@ -98,17 +110,13 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      * blockstack.js [[getNameInfo]] function.
      * @returns {Promise} that resolves to a profile object
      */
-    suspend fun lookupProfile(username: String, zoneFileLookupUrl: String?): Profile {
+    fun lookupProfile(username: String, zoneFileLookupUrl: String?): Profile {
         val request = buildLookupNameInfoRequest(username, zoneFileLookupUrl)
         val response = callFactory.newCall(request).execute()
-        if (response.code() == 200) {
+        if (response.isSuccessful) {
             val nameInfo = JSONObject(response.body()!!.string())
             if (nameInfo.has("address") && nameInfo.has("zonefile")) {
-                val profile = resolveZoneFileToProfile(nameInfo)
-                if (profile == null) {
-                    return Profile(JSONObject())
-                }
-                return profile
+                return resolveZoneFileToProfile(nameInfo) ?: return Profile(JSONObject())
 
             } else {
                 throw InvalidParameterException("name info does not contain address or zonefile property")
@@ -160,11 +168,15 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
 
     suspend fun verifyToken(token: String): Boolean {
         val tokenTriple = decodeToken(token)
-        return isExpirationDateValid(tokenTriple.second) &&
+        val issuer = tokenTriple.second.getString("iss")
+        btcAddrResolver.add(DIDs.getAddressFromDID(issuer), tokenTriple.second.getJSONArray("public_keys").getString(0))
+        val result = isExpirationDateValid(tokenTriple.second) &&
                 isIssuanceDateValid(tokenTriple.second) &&
                 doSignaturesMatchPublicKeys(token, tokenTriple.second) &&
                 doPublicKeysMatchIssuer(tokenTriple.second) &&
                 doPublicKeysMatchUsername(tokenTriple.second, null)
+        btcAddrResolver.remove(issuer)
+        return result
     }
 
     suspend fun verifyAuthRequest(token: String): Boolean {
@@ -247,21 +259,28 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
 
     }
 
-    private suspend fun doPublicKeysMatchUsername(payload: JSONObject, nameLookupURL: String?): Boolean {
+    private fun doPublicKeysMatchUsername(payload: JSONObject, nameLookupURL: String?): Boolean {
         val username = payload.optString("username")
         if (username == null || username.isEmpty()) {
             return true
         }
-        val profile = lookupProfile(username, null)
-        val nameOwningAddress = profile.json.optString("address")
-        val addressFromIssuer = DIDs.getAddressFromDID(payload.optString("iss"))
-        return !nameOwningAddress.isEmpty() && nameOwningAddress == addressFromIssuer
+        val request = buildLookupNameInfoRequest(username, nameLookupURL)
+        val response = callFactory.newCall(request).execute()
+        if (response.isSuccessful) {
+            val body = response.body()!!.string()
+            val nameInfo = JSONObject(body)
+            val nameOwningAddress = nameInfo.optString("address")
+            val addressFromIssuer = DIDs.getAddressFromDID(payload.optString("iss"))
+            return nameOwningAddress.isNotEmpty() && nameOwningAddress == addressFromIssuer
+        } else {
+            return false
+        }
     }
 
     private fun isIssuanceDateValid(payload: JSONObject): Boolean {
-        val expirationDate = Date(payload.getString("iat").toLong() * 1000)
+        val issuanceDate = Date(payload.getString("iat").toLong() * 1000)
         val now = Date()
-        return now.after(expirationDate)
+        return now.after(issuanceDate)
     }
 
     private fun isExpirationDateValid(payload: JSONObject): Boolean {

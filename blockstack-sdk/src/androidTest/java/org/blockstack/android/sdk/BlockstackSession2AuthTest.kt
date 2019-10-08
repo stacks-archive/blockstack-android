@@ -10,6 +10,7 @@ import org.blockstack.android.sdk.model.*
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -21,6 +22,7 @@ import org.kethereum.bip39.model.MnemonicWords
 import org.kethereum.bip39.toSeed
 import org.kethereum.bip44.BIP44Element
 import org.kethereum.extensions.toHexStringNoPrefix
+import java.security.InvalidParameterException
 import java.util.*
 import java.util.concurrent.CountDownLatch
 
@@ -244,14 +246,29 @@ class BlockstackSession2AuthTest {
         val authRequest = runBlocking {
             BlockstackSignIn(appConfig, sessionStore).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
+        runBlocking {
+            val account = BlockstackAccount("invalid$$.id.blockstack", keys, identity.salt)
+            try {
+                blockstack.makeAuthResponse(account, authRequest)
+                throw RuntimeException("should have failed")
+            } catch (e: InvalidParameterException) {
+                assertThat(e.message, `is`("could not fetch name info"))
+            }
+        }
+    }
+
+    @Test
+    fun testVerifyAuthUnencryptedAuthResponse() {
         val authResponse = runBlocking {
-            val account = BlockstackAccount("invalid.id.blockstack", keys, identity.salt)
-            blockstack.makeAuthResponse(account, authRequest)
+            val account = BlockstackAccount("public_profile_for_testing.id.blockstack", keys, identity.salt)
+            blockstack.makeAuthResponseUnencrypted(account, "https://flamboyant-darwin-d11c17.netlify.com")
         }
-        val isValid = runBlocking {
-            blockstack.verifyToken(authResponse)
+        assertThat(authResponse, Matchers.notNullValue())
+        val result = runBlocking {
+            session2.handleUnencryptedSignIn(authResponse)
         }
-        assertThat(isValid, `is`(false))
+        assertThat(result.error, Matchers.isEmptyOrNullString())
+        assertThat(result.value?.decentralizedID, `is`("did:btc-addr:1JeTQ5cQjsD57YGcsVFhwT7iuQUXJR6BSk"))
     }
 
     companion object {

@@ -3,7 +3,8 @@ package org.blockstack.android.sdk
 import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
@@ -15,6 +16,7 @@ import me.uport.sdk.jwt.model.JwtHeader
 import me.uport.sdk.signer.KPSigner
 import okhttp3.*
 import org.blockstack.android.sdk.model.*
+import org.json.JSONArray
 import org.json.JSONObject
 import org.kethereum.crypto.SecureRandomUtils
 import org.kethereum.crypto.toECKeyPair
@@ -58,6 +60,33 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
         val appPrivateKey = decrypt(tokenPayload.getString("private_key"), transitKey)
         val coreSessionToken = decrypt(tokenPayload.optString("core_token"), transitKey)
 
+        val userData = authResponseToUserData(tokenPayload, nameLookupUrl, appPrivateKey, coreSessionToken, authResponse)
+        sessionStore.sessionData.json.put("userData", userData.json)
+        signInCallback(Result(userData))
+    }
+
+    suspend fun handleUnencryptedSignIn(authResponse: String): Result<UserData> {
+        val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "https://core.blockstack.org")
+
+        val tokenTriple = blockstack.decodeToken(authResponse)
+        val tokenPayload = tokenTriple.second
+        try {
+            val isValidToken = blockstack.verifyToken(authResponse)
+            if (!isValidToken) {
+                return Result(null, "invalid auth response")
+            }
+        } catch (e: Exception) {
+            return Result(null, "invalid auth response " + e.message)
+        }
+
+        val appPrivateKey = tokenPayload.getString("private_key")
+        val coreSessionToken = tokenPayload.optString("core_token")
+        val userData = authResponseToUserData(tokenPayload, nameLookupUrl, appPrivateKey, coreSessionToken, authResponse)
+        return Result(userData)
+    }
+
+
+    suspend fun authResponseToUserData(tokenPayload: JSONObject, nameLookupUrl: String, appPrivateKey: String?, coreSessionToken: String?, authResponse: String): UserData {
         val iss = tokenPayload.getString("iss")
 
         val identityAddress = DIDs.getAddressFromDID(iss)
@@ -72,21 +101,24 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
                 .put("authResponseToken", authResponse)
                 .put("hubUrl", tokenPayload.optString("hubUrl", BLOCKSTACK_DEFAULT_GAIA_HUB_URL))
                 .put("gaiaAssociationToken", tokenPayload.optString("associationToken")))
-
-        sessionStore.sessionData.json.put("userData", userData.json)
-        signInCallback(Result(userData))
+        return userData
     }
 
 
     private suspend fun extractProfile(tokenPayload: JSONObject, nameLookupUrl: String): JSONObject {
-        val profileUrl = tokenPayload.optString("profile_url")
-        if (profileUrl != null) {
-            val fetchProfileJson = GlobalScope.async {
+        val profileUrl = tokenPayload.optStringOrNull("profile_url")
+        if (profileUrl != null && profileUrl.isNotBlank()) {
+            val fetchProfileJson = CoroutineScope(Dispatchers.IO).async {
                 val request = Request.Builder().url(profileUrl)
                         .build()
                 val response = callFactory.newCall(request).execute()
                 if (response.isSuccessful) {
-                    JSONObject(response.body()!!.string())
+                    val profiles = JSONArray(response.body()!!.string())
+                    if (profiles.length() > 0) {
+                        profiles.getJSONObject(0)
+                    } else {
+                        JSONObject()
+                    }
                 } else {
                     Log.d(TAG, "invalid profile url $profileUrl: ${response.code()}")
                     JSONObject()
@@ -406,5 +438,13 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
     companion object {
         val TAG = BlockstackSession2::class.java.simpleName
         val CONTENT_TYPE_JSON = "application/json"
+    }
+}
+
+fun JSONObject.optStringOrNull(name: String): String? {
+    if (isNull(name)) {
+        return null
+    } else {
+        return optString(name)
     }
 }
