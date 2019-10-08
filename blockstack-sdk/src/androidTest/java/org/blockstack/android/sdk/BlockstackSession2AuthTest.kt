@@ -9,6 +9,7 @@ import okhttp3.OkHttpClient
 import org.blockstack.android.sdk.model.*
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.junit.Before
@@ -132,7 +133,7 @@ class BlockstackSession2AuthTest {
         var result: UserData? = null
         Log.d(TAG, authResponse)
         session.handlePendingSignIn(authResponse) {
-            Log.d(TAG, it.error + " " + it.value)
+            Log.d(TAG, it.error?.toString() + " " + it.value)
             result = it.value
             latch.countDown()
         }
@@ -159,7 +160,7 @@ class BlockstackSession2AuthTest {
             sessionStore.setTransitPrivateKey(TRANSIT_PRIVATE_KEY)
 
             session2.handlePendingSignIn(authResponse) {
-                Log.d(TAG, it.error + " " + it.value)
+                Log.d(TAG, it.error?.toString() + " " + it.value)
                 result = it.value
                 latch.countDown()
             }
@@ -179,7 +180,7 @@ class BlockstackSession2AuthTest {
         runBlocking {
             sessionStore.setTransitPrivateKey("602f0c6d2ea9a6318063c5dcaa1add5686a78a641efa9875b32c62b0716d7a63")
             session2.handlePendingSignIn(authResponse) {
-                Log.d(TAG, it.error + " " + it.value)
+                Log.d(TAG, it.error?.toString() + " " + it.value)
                 result = it.value
                 latch.countDown()
             }
@@ -239,6 +240,22 @@ class BlockstackSession2AuthTest {
         assertThat(isValid, `is`(true))
     }
 
+    @Test
+    fun testVerifyAuthResponseWithWrongUsernameWithImage() {
+        val expiresAt = Date().time + 3600 * 24 * 7
+        val authRequest = runBlocking {
+            BlockstackSignIn(appConfig, sessionStore).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+        }
+        val authResponse = runBlocking {
+            val account = BlockstackAccount("friedger.id", keys, identity.salt)
+            blockstack.makeAuthResponse(account, authRequest)
+        }
+        val isValid = runBlocking {
+            blockstack.verifyToken(authResponse)
+        }
+        assertThat(isValid, `is`(false)) // public keys do not match username
+    }
+
 
     @Test
     fun testVerifyAuthResponseWithWrongUsername() {
@@ -267,7 +284,7 @@ class BlockstackSession2AuthTest {
         val result = runBlocking {
             session2.handleUnencryptedSignIn(authResponse)
         }
-        assertThat(result.error, Matchers.isEmptyOrNullString())
+        assertThat(result.error, nullValue())
         assertThat(result.value?.decentralizedID, `is`("did:btc-addr:1JeTQ5cQjsD57YGcsVFhwT7iuQUXJR6BSk"))
     }
 

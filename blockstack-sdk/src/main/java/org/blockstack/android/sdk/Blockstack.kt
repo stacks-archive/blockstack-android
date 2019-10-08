@@ -254,9 +254,12 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
     private suspend fun doSignaturesMatchPublicKeys(token: String, payload: JSONObject): Boolean {
-        JWTTools().verify(token, false) // throws an exception if invalid
-        return true
-
+        try {
+            JWTTools().verify(token, false) // throws an exception if invalid
+            return true
+        } catch (e: InvalidJWTException) {
+            return false
+        }
     }
 
     private fun doPublicKeysMatchUsername(payload: JSONObject, nameLookupURL: String?): Boolean {
@@ -392,13 +395,21 @@ private fun JSONObject.toMap(): Map<String, Any> {
             is String -> value
             is Boolean -> value
             is JSONObject -> value.toMap()
-            is JSONArray -> (0..value.length()).asSequence().map { (value.getJSONObject(it)).toMap() }
+            is JSONArray -> value.toMap()
             else -> {
                 throw InvalidParameterException("$it has unsupported type $value")
             }
         })
     }
     return result
+}
+
+private fun JSONArray.toMap(): Array<Any?> {
+    val array = arrayOfNulls<Any>(length())
+    for (index in 0 until length()) {
+        array[index] = getJSONObject(index).toMap()
+    }
+    return array
 }
 
 private fun String.toBtcAddress(): String {
