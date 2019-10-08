@@ -4,16 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# Changelog
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
-
 ## Unreleased
 
 ### Added
-- Support for multiple fingerprints for app link verification
+- A `ResultError` type and enum `ErrorCode` to better represent errors from Blockstack
+
+### Changed
+- Replaced `Result.error` type String with type `ResultError`
+
+## [0.4.7] - 2019-09-04
+
+### Added
+- Support for multiple fingerprints for app link verification added.
+- Parameters for signature and its verification for `putFile` and `getFile` added.
+
+### Changed
+- Errors on network calls are reported back
 
 ## [0.4.6] - 2019-06-10
 

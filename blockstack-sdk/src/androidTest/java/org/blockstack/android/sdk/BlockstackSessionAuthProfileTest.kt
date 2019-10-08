@@ -75,7 +75,7 @@ class BlockstackSessionAuthProfileTest {
         var error: String? = null
         session.handlePendingSignIn("authResponse") {
             latch.countDown()
-            error = it.error
+            error = it.error?.message
         }
         latch.await()
         Assert.assertThat(error, Matchers.`is`("The authResponse parameter is an invalid base64 encoded token\n2 dots requires\nAuth response: authResponse"))

@@ -308,7 +308,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             v8userSession.executeVoidFunction("redirectToSignIn", v8params)
             v8params.release()
         } catch (e: Exception) {
-            errorCallback(Result(null, e.toString()))
+            errorCallback(Result(null, ResultError(ErrorCode.RedirectFailed, e.toString())))
         }
     }
 
@@ -330,7 +330,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             v8userSession.executeVoidFunction("redirectToSignInWithAuthRequest", v8params)
             v8params.release()
         } catch (e: Exception) {
-            errorCallback(Result(null, e.toString()))
+            errorCallback(Result(null, ResultError(ErrorCode.UnknownError, e.toString())))
         }
     }
 
@@ -374,7 +374,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
      * @param zoneFileLookupURL the url of the zone file lookup service like `https://core.blockstack.org/v1/names`
      * @param callback is called with the profile of the user or null if not found
      */
-    fun lookupProfile(username: String, zoneFileLookupURL: URL, callback: (Result<Profile>) -> Unit) {
+    fun lookupProfile(username: String, zoneFileLookupURL: URL = URL(nameLookupUrl), callback: (Result<Profile>) -> Unit) {
         lookupProfileCallbacks.put(username, callback)
         val v8params = V8Array(v8)
                 .push(username)
@@ -691,7 +691,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
             val cipherObject = JSONObject(result)
             return Result(CipherObject(cipherObject))
         } else {
-            return Result(null, "failed to encrypt")
+            return Result(null, ResultError(ErrorCode.UnknownError,"failed to encrypt"))
         }
     }
 
@@ -727,7 +727,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
                 return Result(Base64.decode(plainContent, Base64.DEFAULT))
             }
         } else {
-            return Result(null, "failed to decrypt")
+            return Result(null, ResultError(ErrorCode.FailedDecryptionError,"failed to decrypt"))
         }
     }
 
@@ -817,7 +817,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         fun signInFailure(error: String) {
             if (blockstackSession.signInCallback != null) {
-                blockstackSession.signInCallback!!.invoke(Result(null, error))
+                blockstackSession.signInCallback!!.invoke(Result(null, ResultError.fromJS(error)))
                 blockstackSession.signInCallback = null
             }
         }
@@ -832,7 +832,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun validateProofsFailure(error: String) {
-            blockstackSession.validateProofsCallback?.invoke(Result(null, error))
+            blockstackSession.validateProofsCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun resolveZoneFileToProfileResult(profileString: String) {
@@ -841,7 +841,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun resolveZoneFileToProfileFailure(error: String) {
-            blockstackSession.resolveZoneFileToProfileCallback?.invoke(Result(null, error))
+            blockstackSession.resolveZoneFileToProfileCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun lookupProfileResult(username: String, userDataString: String) {
@@ -850,7 +850,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun lookupProfileFailure(username: String, error: String) {
-            blockstackSession.lookupProfileCallbacks[username]?.invoke(Result(null, error))
+            blockstackSession.lookupProfileCallbacks[username]?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getFileResult(content: String?, uniqueIdentifier: String, isBinary: Boolean) {
@@ -864,7 +864,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun getFileFailure(error: String, uniqueIdentifier: String) {
-            blockstackSession.getFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
+            blockstackSession.getFileCallbacks[uniqueIdentifier]?.invoke(Result(null, ResultError.fromJS(error)))
             blockstackSession.getFileCallbacks.remove(uniqueIdentifier)
         }
 
@@ -874,7 +874,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun putFileFailure(error: String, uniqueIdentifier: String) {
-            blockstackSession.putFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
+            blockstackSession.putFileCallbacks[uniqueIdentifier]?.invoke(Result(null, ResultError.fromJS(error)))
             blockstackSession.putFileCallbacks.remove(uniqueIdentifier)
         }
 
@@ -884,7 +884,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun deleteFileFailure(error: String, uniqueIdentifier: String) {
-            blockstackSession.deleteFileCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
+            blockstackSession.deleteFileCallbacks[uniqueIdentifier]?.invoke(Result(null, ResultError.fromJS(error)))
             blockstackSession.deleteFileCallbacks.remove(uniqueIdentifier)
         }
 
@@ -894,7 +894,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun getFileUrlFailure(error: String, uniqueIdentifier: String) {
-            blockstackSession.getFileUrlCallbacks[uniqueIdentifier]?.invoke(Result(null, error))
+            blockstackSession.getFileUrlCallbacks[uniqueIdentifier]?.invoke(Result(null, ResultError.fromJS(error)))
             blockstackSession.getFileUrlCallbacks.remove(uniqueIdentifier)
         }
 
@@ -903,7 +903,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun getAppBucketUrlFailure(error: String) {
-            blockstackSession.getAppBucketUrlCallback?.invoke(Result(null, error))
+            blockstackSession.getAppBucketUrlCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getUserAppFileUrlResult(url: String) {
@@ -911,7 +911,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun getUserAppFileUrlFailure(error: String) {
-            blockstackSession.getAppBucketUrlCallback?.invoke(Result(null, error))
+            blockstackSession.getAppBucketUrlCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun listFilesResult(url: String) {
@@ -923,7 +923,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun listFilesFailure(error: String) {
-            blockstackSession.listFilesCallback?.invoke(Result(null, error))
+            blockstackSession.listFilesCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun listFilesCountResult(count: Int) {
@@ -931,7 +931,7 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
         }
 
         fun listFilesCountFailure(error: String) {
-            blockstackSession.listFilesCountCallback?.invoke(Result(null, error))
+            blockstackSession.listFilesCountCallback?.invoke(Result(null, ResultError.fromJS(error)))
         }
 
         fun getSessionData(): String {
@@ -1056,25 +1056,25 @@ class BlockstackSession(context: Context? = null, private val config: Blockstack
 
         const val TAG = "BlockstackSession"
 
-        fun verifyAuthResponse(authResponse: String): String? {
+        fun verifyAuthResponse(authResponse: String): ResultError? {
             try {
                 val tokenParts = authResponse.split('.')
                 if (tokenParts.size != 3) {
-                    return "The authResponse parameter is an invalid base64 encoded token\n2 dots requires\nAuth response: $authResponse"
+                    return ResultError(ErrorCode.UnknownError,"The authResponse parameter is an invalid base64 encoded token\n2 dots requires\nAuth response: $authResponse")
                 }
                 val decodedToken = Base64.decode(tokenParts[0], Base64.DEFAULT)
                 val stringToken = decodedToken.toString(Charsets.UTF_8)
                 val jsonToken = JSONObject(stringToken)
                 if (jsonToken.getString("typ") != "JWT") {
-                    return "The authResponse parameter is an invalid base64 encoded token\nHeader not of type JWT:${jsonToken.getString("typ")}\n Auth response: $authResponse"
+                    return ResultError(ErrorCode.UnknownError, "The authResponse parameter is an invalid base64 encoded token\nHeader not of type JWT:${jsonToken.getString("typ")}\n Auth response: $authResponse")
                 }
             } catch (e: IllegalArgumentException) {
-                val error = "The authResponse parameter is an invalid base64 encoded token\n${e.message}\nAuth response: $authResponse"
-                Log.w(TAG, IllegalArgumentException(error, e))
+                val error = ResultError(ErrorCode.UnknownError,"The authResponse parameter is an invalid base64 encoded token\n${e.message}\nAuth response: $authResponse")
+                Log.w(TAG, error.toString(), e)
                 return error
             } catch (e: JSONException) {
-                val error = "The authResponse parameter is an invalid json token\n${e.message}\nAuth response: $authResponse"
-                Log.w(TAG, IllegalArgumentException(error, e))
+                val error =  ResultError(ErrorCode.UnknownError,"The authResponse parameter is an invalid json token\n${e.message}\nAuth response: $authResponse")
+                Log.w(TAG, error.toString(), e)
                 return error
             }
             return null
