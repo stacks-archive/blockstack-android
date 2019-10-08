@@ -54,7 +54,7 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
         val isValidToken = blockstack.verifyToken(authResponse)
 
         if (!isValidToken) {
-            signInCallback(Result(null, "invalid auth response"))
+            signInCallback(Result(null, ResultError(ErrorCode.LoginFailedError, "invalid auth response")))
             return
         }
         val appPrivateKey = decrypt(tokenPayload.getString("private_key"), transitKey)
@@ -73,10 +73,10 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
         try {
             val isValidToken = blockstack.verifyToken(authResponse)
             if (!isValidToken) {
-                return Result(null, "invalid auth response")
+                return Result(null, ResultError(ErrorCode.LoginFailedError, "invalid auth response"))
             }
         } catch (e: Exception) {
-            return Result(null, "invalid auth response " + e.message)
+            return Result(null, ResultError(ErrorCode.LoginFailedError, "invalid auth response " + e.message))
         }
 
         val appPrivateKey = tokenPayload.getString("private_key")
@@ -250,11 +250,12 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
                 if (result !== null) {
                     callback(Result(result))
                 } else {
-                    callback(Result(null, "invalid response from getFile"))
+                    callback(Result(null, ResultError(ErrorCode.UnknownError, "invalid response from getFile")))
                 }
             } catch (e: Exception) {
                 Log.d(TAG, e.message, e)
-                callback(Result(null, e.message))
+                callback(Result(null, ResultError(ErrorCode.UnknownError, e.message
+                        ?: e.toString())))
             }
 
         }
@@ -305,11 +306,11 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
 
                     callback(Result(responseJSON.getString("publicURL")))
                 } else {
-                    callback(Result(null, "invalid response from putFile $responseText"))
+                    callback(Result(null, ResultError(ErrorCode.UnknownError,"invalid response from putFile $responseText")))
                 }
             } catch (e: Exception) {
                 Log.d(TAG, e.message, e)
-                callback(Result(null, e.message))
+                callback(Result(null, ResultError(ErrorCode.UnknownError, e.message ?: e.toString())))
             }
 
         }
@@ -346,7 +347,7 @@ class BlockstackSession2(private val sessionStore: SessionStore, private val exe
                 callback(Result(null))
             } catch (e: Exception) {
                 Log.d(TAG, e.message, e)
-                callback(Result(null, e.message))
+                callback(Result(null, ResultError(ErrorCode.UnknownError, e.message ?: e.toString())))
             }
         }
     }

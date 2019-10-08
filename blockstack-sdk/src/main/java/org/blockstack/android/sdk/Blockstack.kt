@@ -338,7 +338,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
         if (result.iv.isNotEmpty()) {
             return Result(CipherObject(result.iv, result.ephemPublicKey, result.ciphertext, result.mac, !isBinary))
         } else {
-            return Result(null, "failed to encrypt")
+            return Result(null, ResultError(ErrorCode.UnknownError, "failed to encrypt"))
         }
     }
 
@@ -373,7 +373,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                 return Result(Base64.decode(plainContent, Base64.DEFAULT))
             }
         } else {
-            return Result(null, "failed to decrypt")
+            return Result(null, ResultError(ErrorCode.FailedDecryptionError, "failed to decrypt"))
         }
     }
 
