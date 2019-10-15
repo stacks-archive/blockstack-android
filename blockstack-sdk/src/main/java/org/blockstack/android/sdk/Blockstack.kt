@@ -1,27 +1,31 @@
 package org.blockstack.android.sdk
 
 import android.util.Base64
+import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
 import kotlinx.serialization.json.JsonException
 import me.uport.sdk.core.decodeBase64
-import me.uport.sdk.jwt.InvalidJWTException
-import me.uport.sdk.jwt.JWTEncodingException
-import me.uport.sdk.jwt.JWTTools
-import me.uport.sdk.jwt.JWTUtils
+import me.uport.sdk.core.toBase64UrlSafe
+import me.uport.sdk.jwt.*
+import me.uport.sdk.jwt.model.ArbitraryMapSerializer
 import me.uport.sdk.jwt.model.JwtHeader
 import me.uport.sdk.signer.KPSigner
 import me.uport.sdk.universaldid.UniversalDID
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.blockstack.android.sdk.model.BlockstackAccount
-import org.blockstack.android.sdk.model.CipherObject
-import org.blockstack.android.sdk.model.CryptoOptions
-import org.blockstack.android.sdk.model.Profile
+import okhttp3.Response
+import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import org.kethereum.crypto.getCompressedPublicKey
+import org.kethereum.crypto.toECKeyPair
 import org.kethereum.encodings.encodeToBase58String
 import org.kethereum.extensions.toBytesPadded
 import org.kethereum.extensions.toHexStringNoPrefix
@@ -29,11 +33,13 @@ import org.kethereum.hashes.ripemd160
 import org.kethereum.hashes.sha256
 import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PUBLIC_KEY_SIZE
+import org.kethereum.model.PrivateKey
 import org.kethereum.model.PublicKey
 import org.komputing.khex.extensions.hexToByteArray
 import org.komputing.khex.extensions.toNoPrefixHexString
 import java.net.URI
 import java.security.InvalidParameterException
+import java.text.SimpleDateFormat
 import java.util.*
 
 class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
@@ -127,7 +133,11 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
     private fun resolveZoneFileToProfile(nameInfo: JSONObject): Profile? {
-        val zoneFileJson = parseZoneFile(nameInfo.getString("zonefile"))
+        return resolveZoneFileToProfile(nameInfo.getString("zonefile"), nameInfo.getString("address"))
+    }
+
+    fun resolveZoneFileToProfile(zoneFileContent: String, address: String): Profile? {
+        val zoneFileJson = parseZoneFile(zoneFileContent)
         val tokenFileUri = zoneFileJson.tokenFileUri
         if (tokenFileUri != null) {
             val request = Request.Builder().url(tokenFileUri)
@@ -138,7 +148,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                 val tokenFile = result.body()!!.string()
                 val tokenRecords = JSONArray(tokenFile)
                 return extractProfile(tokenRecords.getJSONObject(0).getString("token"),
-                        nameInfo.getString("address"))
+                        address)
             }
 
         }
@@ -147,7 +157,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
 
-    private fun extractProfile(token: String, address: String): Profile? {
+    fun extractProfile(token: String, address: String): Profile? {
         val decodedToken = decodeToken(token)
         val payload = decodedToken.second
         if (payload.has("claim")) {
@@ -380,8 +390,205 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
         }
     }
 
+    /**
+     * Get the app storage bucket URL
+     *
+     * @param gaiaHubUrl (String) the gaia hub URL
+     * @param appPrivateKey (String) the app private key used to generate the app address
+     * @result the URL of the app index file or null if it fails
+     */
+    suspend fun getAppBucketUrl(gaiaHubUrl: String, privateKey: String): String? {
+        val challengeSigner = PrivateKey(privateKey).toECKeyPair()
+        val response = fetchPrivate("${gaiaHubUrl}/hub_info")
+        val responseJSON = response.json()
+        if (responseJSON != null) {
+            val readURL = responseJSON.getString("read_url_prefix")
+            val address = challengeSigner.toBtcAddress()
+            return "${readURL}${address}/"
+        } else {
+            return null
+        }
+    }
+
+    /**
+     * Fetch the public read URL of a user file for the specified app.
+     *
+     *@param path the path to the file to read
+     *@param username The Blockstack ID of the user to look up
+     *@param appOrigin The app origin
+     *@param zoneFileLookupURL The URL to use for zonefile lookup. If false, this will use the blockstack.js's getNameInfo function instead.
+     *@result the public read URL of the file or null on error
+     */
+    fun getUserAppFileUrl(path: String, username: String, appOrigin: String, zoneFileLookupURL: String?): String? {
+        val profile = lookupProfile(username, zoneFileLookupURL)
+        var bucketUrl: String? = null
+        if (profile.json.has("apps")) {
+            val apps = profile.json.getJSONObject("apps")
+            if (apps.has(appOrigin)) {
+                val url = apps.getString(appOrigin)
+                val bucket = url.replace(Regex("/?(\\?|#|$)"), "/$1")
+                bucketUrl = "${bucket}${path}"
+            }
+        }
+        return bucketUrl
+    }
+
+    private suspend fun fetchPrivate(url: String): Response {
+        val request = Request.Builder().url(url)
+                .addHeader("Referrer-Policy", "no-referrer")
+                .build()
+        return withContext(Dispatchers.IO) {
+            callFactory.newCall(request).execute()
+        }
+    }
+
+    fun wrapProfileToken(token: String): ProfileTokenPair {
+        val decodedToken = decodeToken(token)
+        val token = JSONObject()
+                .put("token", token)
+                .put("decodedToken", decodedToken)
+
+        return ProfileTokenPair(token)
+    }
+
+    /**
+     * Verifies a profile token
+     * @param {String} token - the token to be verified
+     * @param {String} publicKeyOrAddress - the public key or address of the
+     *   keypair that is thought to have signed the token
+     * @returns {Object} - the verified, decoded profile token
+     * @throws {Error} - throws an error if token verification fails
+     */
+    suspend fun verifyProfileToken(token: String, publicKeyOrAddress: String): ProfileToken {
+        val decodedToken = decodeToken(token)
+        val payload = decodedToken.second
+
+        // Inspect and verify the subject
+        if (payload.has("subject")) {
+            if (!payload.getJSONObject("subject").has("publicKey")) {
+                throw Error("Token doesn\'t have a subject public key")
+            }
+        } else {
+            throw  Error("Token doesn\'t have a subject")
+        }
+
+        // Inspect and verify the issuer
+        if (payload.has("issuer")) {
+            if (!payload.getJSONObject("issuer").has("publicKey")) {
+                throw  Error("Token doesn\'t have an issuer public key")
+            }
+        } else {
+            throw  Error("Token doesn\'t have an issuer")
+        }
+
+        // Inspect and verify the claim
+        if (!payload.has("claim")) {
+            throw Error("Token doesn\'t have a claim")
+        }
+
+        val issuerPublicKey = payload.getJSONObject("issuer").getString("publicKey")
+
+        val uncompressedAddress = PublicKey(issuerPublicKey).toBtcAddress()
+
+        if (publicKeyOrAddress === issuerPublicKey) {
+            // pass
+        } else if (publicKeyOrAddress === uncompressedAddress) {
+            // pass
+        } else {
+            throw Error("Token issuer public key does not match the verifying value")
+        }
+
+        val isValid = verifyToken(token)
+        if (isValid) {
+            return ProfileToken(decodedToken.second)
+        } else {
+            throw InvalidParameterException("invalid token")
+        }
+    }
+
+    /**
+     * Signs a profile token
+     * @param profile the profile to be signed
+     * @param privateKey the signing private key
+     * @param subject the entity that the information is about
+     * @param issuer the entity that is issuing the token
+     * @param signingAlgorithm the signing algorithm to use, defaults to 'ES256K'
+     * @param issuedAt the time of issuance of the token, defaults to now
+     * @param expiresAt the time of expiration of the token, defaults to next year
+     * @return the signed profile token
+     */
+    suspend fun signProfileToken(profile: Profile, privateKey: String, subject: Entity, issuer: Entity, issuedAt: Date = Date(), expiresAt: Date = nextYear()): ProfileTokenPair {
+
+
+        val payload = mapOf(
+            "jti" to UUID.randomUUID(),
+            "iat" to issuedAt.toZuluTime(),
+            "exp" to  expiresAt.toZuluTime(),
+            "subject" to subject,
+            "issuer" to issuer,
+            "claim" to profile
+        )
+
+        val header = JwtHeader(alg = JwtHeader.ES256K)
+        val serializedPayload = Json(JsonConfiguration.Stable)
+                .stringify(ArbitraryMapSerializer, payload)
+        Log.d(BlockstackSession.TAG, header.toJson() + ", " + serializedPayload)
+        val signingInput = listOf(header.toJson(), serializedPayload)
+                .map { it.toBase64UrlSafe() }
+                .joinToString(".")
+
+        val jwtSigner = JWTSignerAlgorithm(header)
+        val signature: String = jwtSigner.sign(signingInput, KPSigner(privateKey))
+        val token = listOf(signingInput, signature).joinToString(".")
+        Log.d(TAG, token)
+        return wrapProfileToken(token)
+    }
+
     companion object {
-        val TAG = BlockstackSession2::class.java.simpleName
+        val TAG = Blockstack::class.java.simpleName
+        fun verifyAuthResponse(authResponse: String): ResultError? {
+            try {
+                val tokenParts = authResponse.split('.')
+                if (tokenParts.size != 3) {
+                    return ResultError(ErrorCode.UnknownError, "The authResponse parameter is an invalid base64 encoded token\n2 dots requires\nAuth response: $authResponse")
+                }
+                val decodedToken = Base64.decode(tokenParts[0], Base64.DEFAULT)
+                val stringToken = decodedToken.toString(Charsets.UTF_8)
+                val jsonToken = JSONObject(stringToken)
+                if (jsonToken.getString("typ") != "JWT") {
+                    return ResultError(ErrorCode.UnknownError, "The authResponse parameter is an invalid base64 encoded token\nHeader not of type JWT:${jsonToken.getString("typ")}\n Auth response: $authResponse")
+                }
+            } catch (e: IllegalArgumentException) {
+                val error = ResultError(ErrorCode.UnknownError, "The authResponse parameter is an invalid base64 encoded token\n${e.message}\nAuth response: $authResponse")
+                Log.w(TAG, error.toString(), e)
+                return error
+            } catch (e: JSONException) {
+                val error = ResultError(ErrorCode.UnknownError, "The authResponse parameter is an invalid json token\n${e.message}\nAuth response: $authResponse")
+                Log.w(TAG, error.toString(), e)
+                return error
+            }
+            return null
+        }
+    }
+}
+
+
+private val zuluFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZ", Locale.US)
+private fun Date.toZuluTime(): String {
+    return zuluFormatter.format(this)
+}
+
+private fun Response.json(): JSONObject? {
+    if (this.isSuccessful) {
+        return this.body()?.string().let {
+            if (it != null) {
+                JSONObject(it)
+            } else {
+                null
+            }
+        }
+    } else {
+        return null
     }
 }
 
@@ -454,5 +661,12 @@ fun PublicKey.toBtcAddress(): String {
     val checksum = checksum(extended)
     val address = (extended + checksum).hexToByteArray().encodeToBase58String()
     return address
+}
+
+
+private fun nextYear(): Date {
+    val calendar = GregorianCalendar.getInstance()
+    calendar.set(Calendar.YEAR, calendar.get(Calendar.YEAR) + 1)
+    return calendar.time
 }
 

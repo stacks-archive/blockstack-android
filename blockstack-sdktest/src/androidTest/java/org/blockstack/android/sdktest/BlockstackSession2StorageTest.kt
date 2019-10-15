@@ -1,4 +1,4 @@
-package org.blockstack.android.sdk
+package org.blockstack.android.sdktest
 
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -8,10 +8,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import me.uport.sdk.jwt.JWTTools
 import okhttp3.OkHttpClient
+import org.blockstack.android.sdk.Blockstack
+import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
 import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
+import org.blockstack.android.sdktest.j2v8.BlockstackSessionJ2V8
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
@@ -35,16 +38,16 @@ class BlockstackSession2StorageTest {
     @get:Rule
     val rule = ActivityTestRule(TestActivity::class.java)
 
-    private lateinit var session: BlockstackSession
+    private lateinit var session: BlockstackSessionJ2V8
     private lateinit var blockstack: Blockstack
-    private lateinit var session2: BlockstackSession2
+    private lateinit var session2: BlockstackSession
 
     @Before
     fun setup() {
-        val sessionStore = sessionStoreforIntegrationTests(rule)
+        val sessionStore = org.blockstack.android.sdk.sessionStoreforIntegrationTests(rule)
         val executor = IntegrationTestExecutor(rule)
         val callFactory = OkHttpClient()
-        session = BlockstackSession(rule.activity,
+        session = BlockstackSessionJ2V8(rule.activity,
                 "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStore,
                 executor = executor,
@@ -57,7 +60,7 @@ class BlockstackSession2StorageTest {
         })
 
         blockstack = Blockstack()
-        session2 = BlockstackSession2(sessionStore, executor, callFactory = callFactory, blockstack = blockstack)
+        session2 = BlockstackSession(sessionStore, callFactory = callFactory, blockstack = blockstack)
 
         val appPrivateKey = sessionStore.sessionData.json.getJSONObject("userData").getString("appPrivateKey")
         val hubUrl = sessionStore.sessionData.json.getJSONObject("userData").getString("hubUrl")
@@ -66,7 +69,7 @@ class BlockstackSession2StorageTest {
         val latch = CountDownLatch(1)
         GlobalScope.launch {
             session2.gaiaHubConfig = session2.connectToGaia(hubUrl, appPrivateKey, associationToken)
-            Log.d(BlockstackSession2.TAG, session2.gaiaHubConfig.toString())
+            Log.d(BlockstackSession.TAG, session2.gaiaHubConfig.toString())
             latch.countDown()
         }
         latch.await()
@@ -75,9 +78,6 @@ class BlockstackSession2StorageTest {
         Log.d(TAG, "header: " + triple.first.toJson())
         Log.d(TAG, triple.second.toString())
         Log.d(TAG, triple.third.toHexString())
-
-        "CZfrO3SS7f0UHNxmQH4cQuOX3ShOJqbqFOYtcSF58KyaXAUXw_CUClyXw6o4hQMb6jWVJSTUi7QB_qoY672nuw"
-
     }
 
     @Test
@@ -88,11 +88,13 @@ class BlockstackSession2StorageTest {
         if (session.isUserSignedIn()) {
 
             session.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
-                session2.getFile("try.txt", GetFileOptions(true)) {
-                    if (it.value is String) {
-                        result = it.value as String
+                runBlocking {
+                    session2.getFile("try.txt", GetFileOptions(true)) {
+                        if (it.value is String) {
+                            result = it.value as String
+                        }
+                        latch.countDown()
                     }
-                    latch.countDown()
                 }
             }
         } else {
@@ -108,12 +110,14 @@ class BlockstackSession2StorageTest {
         val latch = CountDownLatch(1)
 
         if (session.isUserSignedIn()) {
-            session2.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
-                session.getFile("try.txt", GetFileOptions(true)) {
-                    if (it.value is String) {
-                        result = it.value as String
+            runBlocking {
+                session2.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
+                    session.getFile("try.txt", GetFileOptions(true)) {
+                        if (it.value is String) {
+                            result = it.value as String
+                        }
+                        latch.countDown()
                     }
-                    latch.countDown()
                 }
             }
         } else {
@@ -129,12 +133,16 @@ class BlockstackSession2StorageTest {
         val latch = CountDownLatch(1)
 
         if (session.isUserSignedIn()) {
-            session2.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
-                session2.getFile("try.txt", GetFileOptions(true)) {
-                    if (it.value is String) {
-                        result = it.value as String
+            runBlocking {
+                session2.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
+                    runBlocking {
+                        session2.getFile("try.txt", GetFileOptions(true)) {
+                            if (it.value is String) {
+                                result = it.value as String
+                            }
+                            latch.countDown()
+                        }
                     }
-                    latch.countDown()
                 }
             }
         } else {
@@ -148,13 +156,15 @@ class BlockstackSession2StorageTest {
     fun testListFiles() {
         var fileCount: Int? = null
         val latch = CountDownLatch(1)
-        session2.putFile("try.text", "Hello Test", PutFileOptions()) {
-            fileCount = runBlocking {
-                session2.listFiles {
-                    true
+        runBlocking {
+            session2.putFile("try.text", "Hello Test", PutFileOptions()) {
+                fileCount = runBlocking {
+                    session2.listFiles {
+                        true
+                    }
                 }
+                latch.countDown()
             }
-            latch.countDown()
         }
 
         latch.await()

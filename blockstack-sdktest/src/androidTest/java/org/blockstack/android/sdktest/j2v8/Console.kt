@@ -1,4 +1,4 @@
-package org.blockstack.android.sdk.j2v8
+package org.blockstack.android.sdktest.j2v8
 
 import android.util.Log
 import com.eclipsesource.v8.V8Object

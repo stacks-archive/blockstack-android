@@ -62,8 +62,6 @@ gitPublish {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.eclipsesource.j2v8:j2v8:4.8.4@aar'
-    implementation 'androidx.browser:browser:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.1.0'
     api 'com.squareup.okhttp3:okhttp:3.12.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -73,17 +71,17 @@ dependencies {
     implementation "com.github.komputing.kethereum:crypto_api:$kethereum_version"
     implementation "com.github.komputing.kethereum:base58:$kethereum_version"
     implementation "com.github.komputing.kethereum:hashes:$kethereum_version"
-    implementation ("com.github.komputing.kethereum:bip32:$kethereum_version") {
+    api ("com.github.komputing.kethereum:bip32:$kethereum_version") {
         exclude group:'com.github.komputing.KHash'
     }
-    implementation "com.github.komputing.kethereum:bip44:$kethereum_version"
-    implementation ("com.github.komputing.kethereum:bip39:$kethereum_version") {
+    api "com.github.komputing.kethereum:bip44:$kethereum_version"
+    api ("com.github.komputing.kethereum:bip39:$kethereum_version") {
         exclude group:'com.github.komputing.KHash'
     }
     implementation "com.github.komputing.kethereum:bip39_wordlist_en:$kethereum_version"
 
     implementation 'org.bouncycastle:bcprov-jdk15on:1.62'
-    implementation ("com.github.uport-project.kotlin-did-jwt:jwt:$did_jwt_version") {
+    api ("com.github.uport-project.kotlin-did-jwt:jwt:$did_jwt_version") {
         exclude group:'com.github.komputing.KHash'
         exclude group: 'com.squareup.okhttp3'
     }

@@ -13,10 +13,9 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.Executor
+import org.blockstack.android.sdktest.j2v8.Executor
 import org.blockstack.android.sdk.model.PutFileOptions
 
 
@@ -38,7 +37,7 @@ class BlockstackService : IntentService("BlockstackExample") {
 
     override fun onHandleIntent(intent: Intent?) {
         runOnV8Thread {
-            _blockstackSession = BlockstackSession(this, defaultConfig, executor = object : Executor {
+            _blockstackSession = BlockstackSession(this, defaultConfig, executor = object : org.blockstack.android.sdktest.j2v8.Executor {
                 override fun onMainThread(function: (Context) -> Unit) {
                     GlobalScope.launch(Dispatchers.Main) {
                         function.invoke(applicationContext)

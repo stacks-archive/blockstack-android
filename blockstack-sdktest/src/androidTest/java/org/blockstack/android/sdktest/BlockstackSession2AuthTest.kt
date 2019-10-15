@@ -1,4 +1,4 @@
-package org.blockstack.android.sdk
+package org.blockstack.android.sdktest
 
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -6,12 +6,12 @@ import androidx.test.rule.ActivityTestRule
 import kotlinx.coroutines.runBlocking
 import me.uport.sdk.jwt.JWTTools
 import okhttp3.OkHttpClient
+import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
 import org.blockstack.android.sdk.test.TestActivity
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.CoreMatchers.nullValue
+import org.blockstack.android.sdktest.j2v8.BlockstackSessionJ2V8
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,9 +41,9 @@ class BlockstackSession2AuthTest {
     val rule = ActivityTestRule(TestActivity::class.java)
 
     private lateinit var sessionStore: SessionStore
-    private lateinit var session: BlockstackSession
+    private lateinit var sessionJ2V8: BlockstackSessionJ2V8
     private lateinit var blockstack: Blockstack
-    private lateinit var session2: BlockstackSession2
+    private lateinit var session: BlockstackSession
     private lateinit var appConfig: BlockstackConfig
     private lateinit var identity: BlockstackIdentity
     private lateinit var keys: ExtendedKey
@@ -51,7 +51,7 @@ class BlockstackSession2AuthTest {
 
     @Before
     fun setup() {
-        sessionStore = sessionStoreforIntegrationTests(rule)
+        sessionStore = org.blockstack.android.sdk.sessionStoreforIntegrationTests(rule)
         val executor = IntegrationTestExecutor(rule)
         val callFactory = OkHttpClient()
         val words = MnemonicWords(SEED_PHRASE)
@@ -62,20 +62,20 @@ class BlockstackSession2AuthTest {
         val btcAddress = keys.keyPair.toBtcAddress()
 
         appConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray())
-        session = BlockstackSession(rule.activity,
+        sessionJ2V8 = BlockstackSessionJ2V8(rule.activity,
                 appConfig,
                 sessionStore = sessionStore,
                 executor = executor,
                 callFactory = callFactory)
 
         // get a gaiaHubConfig by using a j2v8 call to gaia
-        session.listFiles({ false }, {
+        sessionJ2V8.listFiles({ false }, {
             val gaiaHubConfig = sessionStore.sessionData.json.getJSONObject("userData").getJSONObject("gaiaHubConfig")
             Log.d(TAG, gaiaHubConfig.toString())
         })
 
         blockstack = Blockstack()
-        session2 = BlockstackSession2(sessionStore, executor, callFactory = callFactory, appConfig = appConfig, blockstack = blockstack)
+        session = BlockstackSession(sessionStore, callFactory = callFactory, appConfig = appConfig, blockstack = blockstack)
     }
 
     @Test
@@ -107,7 +107,7 @@ class BlockstackSession2AuthTest {
     fun testMakeAuthRequest2MakeAuthRequest() {
 
         val expiresAt = Date().time + 3600 * 24 * 7
-        val authRequest = session.makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+        val authRequest = sessionJ2V8.makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         val authRequest2 = runBlocking {
             BlockstackSignIn(appConfig, sessionStore).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
@@ -132,13 +132,13 @@ class BlockstackSession2AuthTest {
         val latch = CountDownLatch(1)
         var result: UserData? = null
         Log.d(TAG, authResponse)
-        session.handlePendingSignIn(authResponse) {
+        sessionJ2V8.handlePendingSignIn(authResponse) {
             Log.d(TAG, it.error?.toString() + " " + it.value)
             result = it.value
             latch.countDown()
         }
         latch.await()
-        assertThat(result?.json?.getString("decentralizedID"), `is`("did:btc-addr:${BTC_ADDRESS}"))
+        assertThat(result?.json?.getString("decentralizedID"), `is`("did:btc-addr:$BTC_ADDRESS"))
         assertThat(result?.json?.getString("appPrivateKey"), `is`("a8025a881da1074b012995beef7e7ccb42fea2ec66e62367c8d73734033ee33b"))
         assertThat(result?.json?.getJSONObject("profile")?.toString(), `is`("{}"))
     }
@@ -159,7 +159,7 @@ class BlockstackSession2AuthTest {
         runBlocking {
             sessionStore.setTransitPrivateKey(TRANSIT_PRIVATE_KEY)
 
-            session2.handlePendingSignIn(authResponse) {
+            session.handlePendingSignIn(authResponse) {
                 Log.d(TAG, it.error?.toString() + " " + it.value)
                 result = it.value
                 latch.countDown()
@@ -179,7 +179,7 @@ class BlockstackSession2AuthTest {
         var result: UserData? = null
         runBlocking {
             sessionStore.setTransitPrivateKey("602f0c6d2ea9a6318063c5dcaa1add5686a78a641efa9875b32c62b0716d7a63")
-            session2.handlePendingSignIn(authResponse) {
+            session.handlePendingSignIn(authResponse) {
                 Log.d(TAG, it.error?.toString() + " " + it.value)
                 result = it.value
                 latch.countDown()
@@ -280,9 +280,9 @@ class BlockstackSession2AuthTest {
             val account = BlockstackAccount("public_profile_for_testing.id.blockstack", keys, identity.salt)
             blockstack.makeAuthResponseUnencrypted(account, "https://flamboyant-darwin-d11c17.netlify.com")
         }
-        assertThat(authResponse, Matchers.notNullValue())
+        assertThat(authResponse, `is`(notNullValue()))
         val result = runBlocking {
-            session2.handleUnencryptedSignIn(authResponse)
+            session.handleUnencryptedSignIn(authResponse)
         }
         assertThat(result.error, nullValue())
         assertThat(result.value?.decentralizedID, `is`("did:btc-addr:1JeTQ5cQjsD57YGcsVFhwT7iuQUXJR6BSk"))

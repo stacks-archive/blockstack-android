@@ -1,14 +1,11 @@
 package org.blockstack.android.sdk
 
-import android.content.Context
 import android.preference.PreferenceManager
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
 import kotlinx.coroutines.runBlocking
 import org.blockstack.android.sdk.model.BlockstackConfig
-import org.blockstack.android.sdk.model.Profile
-import org.blockstack.android.sdk.model.Proof
 import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.CoreMatchers.`is`
@@ -17,8 +14,10 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.Matchers.notNullValue
 import org.hamcrest.Matchers.startsWith
-import org.json.JSONObject
-import org.junit.*
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
 import java.util.concurrent.CountDownLatch
@@ -43,21 +42,10 @@ class BlockstackSessionAuthProfileTest {
     fun setup() {
         config = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray())
         sessionStore = sessionStoreforIntegrationTests(rule)
-        session = BlockstackSession(rule.activity,
-                config,
-                sessionStore = sessionStore,
-                executor = IntegrationTestExecutor(rule))
+        session = BlockstackSession(sessionStore,
+                config, blockstack = Blockstack())
     }
 
-    @After
-    fun teardown() {
-        session.release()
-    }
-
-    @Test
-    fun loadedIsTrueAfterSessionCreated() {
-        Assert.assertThat(session.loaded, Matchers.`is`(true))
-    }
 
     @Test
     fun userIsSignedInAfterSessionCreated() {
@@ -73,9 +61,11 @@ class BlockstackSessionAuthProfileTest {
     fun testHandlingPendingSignInWithInvalidToken() {
         val latch = CountDownLatch(1)
         var error: String? = null
-        session.handlePendingSignIn("authResponse") {
-            latch.countDown()
-            error = it.error?.message
+        runBlocking {
+            session.handlePendingSignIn("authResponse") {
+                latch.countDown()
+                error = it.error?.message
+            }
         }
         latch.await()
         Assert.assertThat(error, Matchers.`is`("The authResponse parameter is an invalid base64 encoded token\n2 dots requires\nAuth response: authResponse"))
@@ -93,6 +83,8 @@ class BlockstackSessionAuthProfileTest {
         session.signUserOut()
         assertThat(session.isUserSignedIn(), `is`(false))
     }
+
+    /* TODO implement validateProofs
 
     @Test
     fun verifyProofsReturnsEmptyListForEmptyProfile() {
@@ -112,6 +104,7 @@ class BlockstackSessionAuthProfileTest {
         assertThat(proofList, notNullValue())
         assertThat(proofList!!.size, `is`(0))
     }
+
 
     @Test
     fun verifyProofsReturnsAllProofsForFriedger() {
@@ -139,41 +132,8 @@ class BlockstackSessionAuthProfileTest {
         assertThat(proofList!![2].valid, `is`(true))
     }
 
-    @Test
-    fun generateAndStoreTransitKeyReturnsTheCorrectKey() {
-        val key = session.generateAndStoreTransitKey()
-        val storedKey = sessionStore.sessionData.json.getString("transitKey")
-        assertThat(key, `is`(storedKey))
-    }
+    */
 
-    @Test
-    fun makeAuthRequestReturnsValidRequestToken() {
-        val key = session.generateAndStoreTransitKey()
-        val authRequest = session.makeAuthRequest(key, Date(System.currentTimeMillis() + 3600000).time, mapOf(Pair("solicitGaiaHubUrl", true)))
-        assertThat(authRequest, startsWith("ey"))
-
-        val tokenPair = session.wrapProfileToken(authRequest)
-        val payload = tokenPair.decodedToken?.json?.optJSONObject("payload")
-        Log.d("payload", payload.toString())
-        assertThat(payload?.optString("domain_name"), `is`(config.appDomain.toString()))
-        assertThat(payload?.optBoolean("solicitGaiaHubUrl"), `is`(true))
-    }
-}
-
-class IntegrationTestExecutor(var rule: ActivityTestRule<*>) : Executor {
-    override fun onMainThread(function: (Context) -> Unit) {
-        function(rule.activity)
-    }
-
-    override fun onNetworkThread(function: suspend () -> Unit) {
-        runBlocking {
-            function()
-        }
-    }
-
-    override fun onV8Thread(function: () -> Unit) {
-        function()
-    }
 }
 
 fun sessionStoreforIntegrationTests(rule: ActivityTestRule<*>): SessionStore {

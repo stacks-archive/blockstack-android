@@ -1,6 +1,5 @@
 package org.blockstack.android.sdk
 
-import android.content.Context
 import android.util.Log
 import me.uport.sdk.jwt.JWTTools
 import me.uport.sdk.jwt.model.JwtHeader
@@ -56,13 +55,18 @@ class BlockstackSignIn (private val appConfig: BlockstackConfig, private val ses
         return JWTTools().createJWT(payload, issuerDID, KPSigner(transitPrivateKey), algorithm = JwtHeader.ES256K)
     }
 
-    suspend fun redirectToSignIn(context: Context) {
+    suspend fun redirectToSignIn() {
+        val transitPrivateKey = generateAndStoreTransitKey()
+        val authRequest = makeAuthRequest(transitPrivateKey, Date().time + 3600 * 24 * 7, emptyMap())
+        Log.d(TAG, authRequest)
+    }
+
+    fun generateAndStoreTransitKey(): String {
         val keyPair = CryptoAPI.keyPairGenerator.generate()
         val transitPrivateKey = keyPair.privateKey.key.toHexStringNoPrefix()
         sessionStore.sessionData = SessionData(sessionStore.sessionData.json
                 .put("blockstack-transit-private-key", transitPrivateKey))
-        val authRequest = makeAuthRequest(transitPrivateKey, Date().time + 3600 * 24 * 7, emptyMap())
-        Log.d(TAG, authRequest)
+        return transitPrivateKey
     }
 
     companion object {

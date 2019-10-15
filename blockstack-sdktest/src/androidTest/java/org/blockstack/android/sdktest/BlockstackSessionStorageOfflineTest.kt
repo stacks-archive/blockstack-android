@@ -10,6 +10,7 @@ import okhttp3.Request
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.toBlockstackConfig
+import org.blockstack.android.sdktest.j2v8.Executor
 import org.blockstack.android.sdktest.test.TestActivity
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
@@ -19,7 +20,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
-import java.net.URL
 import java.util.concurrent.CountDownLatch
 
 

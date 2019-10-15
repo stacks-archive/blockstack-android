@@ -62,7 +62,7 @@ class EncryptionColendiLibTest {
 
         val encryptedResult = encryption.encryptWithPublicKey(message, publicKey)
 
-        val result = BlockstackSession(rule.activity, "https://openintents.org".toBlockstackConfig(arrayOf()))
+        val result = Blockstack()
                 .decryptContent(CipherObject(encryptedResult.iv, encryptedResult.ephemPublicKey, encryptedResult.ciphertext, encryptedResult.mac, true).json.toString(), false,
                         CryptoOptions(publicKey, privateKey))
         assertThat(result.value as String, `is`(message))
