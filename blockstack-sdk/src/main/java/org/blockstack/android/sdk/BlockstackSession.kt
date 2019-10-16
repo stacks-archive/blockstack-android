@@ -50,7 +50,14 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         val transitKey = sessionStore.getTransitPrivateKey()
         val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "https://core.blockstack.org")
 
-        val tokenTriple = blockstack.decodeToken(authResponse)
+        val tokenTriple = try {
+            blockstack.decodeToken(authResponse)
+        } catch (e:IllegalArgumentException) {
+            signInCallback(Result(null, ResultError(ErrorCode.LoginFailedError, "The authResponse parameter is an invalid base64 encoded token\n" +
+                    "2 dots requires\n" +
+                    "Auth response: $authResponse")))
+            return
+        }
         val tokenPayload = tokenTriple.second
         val isValidToken = blockstack.verifyToken(authResponse)
 
@@ -172,9 +179,11 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
                 ?: throw IllegalStateException("Missing userData")
         val hubConfig = userData.optJSONObject("gaiaHubConfig")
         if (hubConfig != null) {
-            return GaiaHubConfig(hubConfig.getString("url_prefix"), hubConfig.getString("address"),
+            val config = GaiaHubConfig(hubConfig.getString("url_prefix"), hubConfig.getString("address"),
                     hubConfig.getString("token"),
                     hubConfig.getString("server"))
+            gaiaHubConfig = config
+            return config
         }
         return this.setLocalGaiaHubConnection()
     }
@@ -206,7 +215,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         val sessionData = sessionStore.sessionData.json
         sessionData.put("userData", userData)
         sessionStore.sessionData = SessionData(sessionData)
-
+        gaiaHubConfig = gaiaConfig
         return gaiaConfig
     }
 
@@ -272,13 +281,15 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         Log.d(TAG, "getFile: path: ${path} options: ${options}")
 
         val getRequest = buildGetRequest(path, options, gaiaHubConfig!!)
+
         withContext(Dispatchers.IO) {
             try {
                 val response = callFactory.newCall(getRequest).execute()
                 Log.d(TAG, "get2" + response.toString())
 
                 if (!response.isSuccessful) {
-                    throw Error("Error when loading from Gaia hub, status:" + response.code())
+                    callback(Result(null, ResultError(ErrorCode.UnknownError, "Error when loading from Gaia hub, status:" + response.code())))
+                    return@withContext
                 }
                 val contentType = response.header("Content-Type")
 
@@ -332,18 +343,21 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
             throw IllegalArgumentException("putFile content only supports String or ByteArray")
         }
 
+        val contentType: String
         val requestContent = if (options.encrypt) {
             val enc = Encryption()
             val appPrivateKeyPair = PrivateKey(appPrivateKey!!).toECKeyPair()
             val publicKey = appPrivateKeyPair.toHexPublicKey64()
             val result = enc.encryptWithPublicKey(content as String, publicKey)
+            contentType = "application/octet-stream"
             CipherObject(result.iv, result.ephemPublicKey, result.ciphertext, result.mac, content is String)
                     .json.toString()
         } else {
+            contentType = options.contentType ?: "text/plain"
             content as String
         }
 
-        val putRequest = buildPutRequest(path, requestContent, options, gaiaHubConfig!!)
+        val putRequest = buildPutRequest(path, requestContent, options, contentType, gaiaHubConfig!!)
         withContext(Dispatchers.IO) {
             try {
                 val response = callFactory.newCall(putRequest).execute()
@@ -369,10 +383,9 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         }
     }
 
-    private fun buildPutRequest(path: String, content: String, options: PutFileOptions, hubConfig: GaiaHubConfig): Request {
+    private fun buildPutRequest(path: String, content: String, options: PutFileOptions, contentType:String, hubConfig: GaiaHubConfig): Request {
         val url = "${hubConfig.server}/store/${hubConfig.address}/${path}"
 
-        val contentType = options.contentType ?: "application/octet-stream"
         val builder = Request.Builder()
                 .url(url)
         builder.method("POST", RequestBody.create(MediaType.get(contentType), content))
@@ -396,8 +409,12 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
 
         withContext(Dispatchers.IO) {
             try {
-                val result = callFactory.newCall(deleteRequest).execute()
-                callback(Result(null))
+                val response = callFactory.newCall(deleteRequest).execute()
+                if (response.isSuccessful) {
+                    callback(Result(null))
+                } else {
+                    callback(Result(null, ResultError(ErrorCode.UnknownError, "Failed to delete file: ${response.code()}")))
+                }
             } catch (e: Exception) {
                 Log.d(TAG, e.message, e)
                 callback(Result(null, ResultError(ErrorCode.UnknownError, e.message
@@ -531,7 +548,11 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
 
     fun loadUserData(): UserData {
         val userDataJson = sessionStore.sessionData.json.optJSONObject("userData")
-        return UserData(userDataJson)
+        if (userDataJson != null) {
+            return UserData(userDataJson)
+        } else {
+            throw IllegalStateException("No user data found. Did the user sign in?")
+        }
     }
 
     fun signUserOut() {

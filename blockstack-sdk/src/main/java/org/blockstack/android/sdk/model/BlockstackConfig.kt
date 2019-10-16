@@ -11,12 +11,17 @@ import java.net.URI
  * to the url defined in the AndroidManifest
  * @property manifestPath the manifest path relative to appDomain. This page is the same as for progressive web apps.
  * @property scopes the permissions that the app needs from the user
+ * @property coreNode - override the default or user selected core node
+ * @property authenticatorURL - the web-based fall back authenticator
+
  */
 data class BlockstackConfig(
         val appDomain: URI,
         val redirectPath: String,
         val manifestPath: String,
-        val scopes: Array<Scope>
+        val scopes: Array<Scope>,
+        val coreNode: String? = null,
+        val authenticatorUrl: String? = null
 )
 
 

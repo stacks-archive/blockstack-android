@@ -45,6 +45,10 @@ class BlockstackSessionStorageTest {
                 appConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStoreforIntegrationTests(rule),
                 blockstack = blockstack)
+        val gaiaHubConfig = runBlocking {
+                session.getOrSetLocalGaiaHubConnection()
+        }
+        Log.d(BlockstackSessionStorageTest::class.java.simpleName, gaiaHubConfig.toString())
     }
 
 
@@ -165,7 +169,7 @@ class BlockstackSessionStorageTest {
             }
         }
         latch.await()
-        assertThat(result as String, `is`("application/x.foo"))
+        assertThat(result as String, `is`("application/x.foo; charset=utf-8"))
     }
 
     @Test
@@ -453,7 +457,6 @@ class BlockstackSessionStorageTest {
 
     @Test
     fun testGetFileUrlFor404File() {
-        val latch = CountDownLatch(1)
         val urlResult = runBlocking {
             session.getFileUrl("404file.txt", GetFileOptions(false))
         }
@@ -491,8 +494,8 @@ class BlockstackSessionStorageTest {
         }
         latch.await()
         assertThat(result, `is`(notNullValue()))
-        assertThat(result!!.value, `is`(nullValue()))
-        assertThat(result!!.error, `is`(nullValue()))
+        assertThat(result?.value, `is`(nullValue()))
+        assertThat(result?.error?.message, `is`("Error when loading from Gaia hub, status:404"))
     }
 
     private fun getImageBytes(): ByteArray {

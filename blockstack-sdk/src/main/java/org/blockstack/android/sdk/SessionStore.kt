@@ -16,11 +16,11 @@ interface ISessionStore {
     fun deleteSessionData()
 
     fun setTransitPrivateKey(transitPrivateKey: String) {
-        sessionData = SessionData(this.sessionData.json.put("blockstack-private-transit-key", transitPrivateKey))
+        sessionData = SessionData(this.sessionData.json.put("transitKey", transitPrivateKey))
     }
 
     fun getTransitPrivateKey():String {
-        return sessionData.json.getString("blockstack-private-transit-key")
+        return sessionData.json.getString("transitKey")
     }
 }
 

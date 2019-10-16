@@ -419,9 +419,9 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      *@param zoneFileLookupURL The URL to use for zonefile lookup. If false, this will use the blockstack.js's getNameInfo function instead.
      *@result the public read URL of the file or null on error
      */
-    fun getUserAppFileUrl(path: String, username: String, appOrigin: String, zoneFileLookupURL: String?): String? {
+    fun getUserAppFileUrl(path: String, username: String, appOrigin: String, zoneFileLookupURL: String?): String {
         val profile = lookupProfile(username, zoneFileLookupURL)
-        var bucketUrl: String? = null
+        var bucketUrl: String = "NO_URL"
         if (profile.json.has("apps")) {
             val apps = profile.json.getJSONObject("apps")
             if (apps.has(appOrigin)) {

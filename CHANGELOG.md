@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Replaced `Result.error` type String with type `ResultError`
+- `loadUserData` throws an error if user not logged in
 
 ## [0.4.7] - 2019-09-04
 

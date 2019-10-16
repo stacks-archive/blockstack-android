@@ -62,19 +62,24 @@ class BlockstackSessionAuthProfileTest {
         val latch = CountDownLatch(1)
         var error: String? = null
         runBlocking {
-            session.handlePendingSignIn("authResponse") {
+            session.handlePendingSignIn("invalidAuthResponseToken") {
                 latch.countDown()
                 error = it.error?.message
             }
         }
         latch.await()
-        Assert.assertThat(error, Matchers.`is`("The authResponse parameter is an invalid base64 encoded token\n2 dots requires\nAuth response: authResponse"))
+        Assert.assertThat(error, Matchers.`is`("The authResponse parameter is an invalid base64 encoded token\n2 dots requires\nAuth response: invalidAuthResponseToken"))
     }
 
     @Test
-    fun loadUserDataIsNullAfterSignOut() {
+    fun loadUserDataIsInvalidAfterSignOut() {
         session.signUserOut()
-        assertThat(session.loadUserData(), `is`(nullValue()))
+        try {
+            session.loadUserData()
+            throw AssertionError("should have thrown an error that no user data was found")
+        } catch (e:Exception) {
+            assertThat(e.message, `is`("No user data found. Did the user sign in?"))
+        }
     }
 
     @Test
@@ -138,7 +143,7 @@ class BlockstackSessionAuthProfileTest {
 
 fun sessionStoreforIntegrationTests(rule: ActivityTestRule<*>): SessionStore {
     val prefs = PreferenceManager.getDefaultSharedPreferences(rule.activity)
-    prefs.edit().putString("blockstack_session", A_VALID_BLOCKSTACK_SESSION_JSON)
+    prefs.edit().putString(BLOCKSTACK_SESSION, A_VALID_BLOCKSTACK_SESSION_JSON)
             .apply()
     return SessionStore(prefs)
 }
