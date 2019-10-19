@@ -9,6 +9,7 @@ import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.startsWith
+import org.hamcrest.Matchers.nullValue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -108,7 +109,7 @@ class NetworkTest {
             network.getNamesOwned(invalidAddress)
         }
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: Non-base58 character"))
+        assertThat(result.error?.message, `is`("Invalid address"))
     }
 
     @Test
@@ -281,7 +282,7 @@ class NetworkTest {
 
         Log.d("networktest", " " + result.error)
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: Bad response status: 400"))
+        assertThat(result.error?.message, `is`("Bad response status: 400 - Invalid address"))
     }
 
     @Test
@@ -290,7 +291,7 @@ class NetworkTest {
             network.getAccountTokens(stackAddress)
         }
 
-        assertThat(result?.hasValue, `is`(true))
+        assertThat(result.error, `is`(nullValue()))
         assertThat(result.value?.joinToString(), `is`("STACKS"))
     }
 

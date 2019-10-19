@@ -92,7 +92,11 @@ class Network(private val blockstackAPIUrl: String,
         val networkAddress = this.coerceAddress(address)
         val response = fetchPrivate("${this.blockstackAPIUrl}/v1/addresses/bitcoin/${networkAddress}")
         val result = JSONObject(response.body()!!.string())
-        return Result(result.getJSONArray("names").toStringList())
+        if (result.has("error")) {
+            return Result(null, ResultError(ErrorCode.UnknownError, result.getString("error")))
+        } else {
+            return Result(result.getJSONArray("names").toStringList())
+        }
 
     }
 
@@ -280,7 +284,14 @@ class Network(private val blockstackAPIUrl: String,
         val historyList = if (resp.code() == 404) {
             throw  Error("Account not found")
         } else if (resp.code() != 200) {
-            throw  Error("Bad response status: ${resp.code()}")
+            var msg = "Bad response status: ${resp.code()}"
+            if (resp.body() != null) {
+                val errorObject = JSONObject(resp.body()!!.string())
+                if (errorObject.has("error")) {
+                    msg = "$msg - ${errorObject.getString("error")}"
+                }
+            }
+            return Result(null, ResultError(ErrorCode.UnknownError, msg))
         } else {
             val jsonString = resp.body()!!.string()
             if (jsonString.startsWith("{")) {
@@ -312,28 +323,25 @@ class Network(private val blockstackAPIUrl: String,
     suspend fun getAccountTokens(address: String): Result<ArrayList<String>> {
         val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/tokens")
 
-        val tokenList = if (resp.code() == 404) {
-            throw  Error("Account not found")
-        } else if (resp.code() != 200) {
-            throw Error("Bad response status: ${resp.code()}")
+        if (resp.code() == 404) {
+            return Result(null, ResultError(ErrorCode.UnknownError, "Account not found"))
         } else {
-            val jsonString = resp.body()!!.string()
-            if (jsonString.startsWith("{")) {
-                val error = JSONObject(jsonString)
-                val tokenListError = error.optStringOrNull("error")
-                return Result(null, ResultError(ErrorCode.UnknownError, "Unable to get token list: ${tokenListError}"))
-            } else {
-                JSONArray(jsonString)
+            return resp.resumeWithJsonObject { it: kotlin.Result<JSONObject> ->
+                val responseValue = it.getOrNull()
+                if (responseValue?.has("tokens") == true) {
+                    val tokenList = responseValue.getJSONArray("tokens")
+                    val result = arrayListOf<String>()
+                    for (arrayIndex in 0 until tokenList.length()) {
+                        val token = tokenList.getString(arrayIndex)
+                        result.add(token)
+                    }
+                    Result(result)
+                } else {
+                    Result(null, ResultError(ErrorCode.UnknownError, it.exceptionOrNull()?.message
+                            ?: "Invalid token list response"))
+                }
             }
         }
-
-        val result = arrayListOf<String>()
-        for (
-        arrayIndex in 0 until tokenList.length()) {
-            val token = tokenList.getString(arrayIndex)
-            result.add(token)
-        }
-        return Result(result)
     }
 
 
@@ -346,24 +354,16 @@ class Network(private val blockstackAPIUrl: String,
      */
     suspend fun getAccountBalance(address: String, tokenType: String): Result<BigInteger> {
         val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/${tokenType}/balance")
-        val tokenBalance = if (resp.code() == 404) {
-            // talking to an older blockstack core node without the accounts API
-            return Result(BigInteger("0"))
-        } else if (resp.code() != 200) {
-            throw  Error("Bad response status: ${resp.code()}")
-        } else {
-            val jsonString = resp.body()!!.string()
-            if (jsonString.startsWith("{")) {
-                val error = JSONObject(jsonString)
-                val balanceError = error.optStringOrNull("error")
-                return Result(null, ResultError(ErrorCode.UnknownError, "Unable to get account balance: ${balanceError}"))
+        return resp.resumeWithJsonObject { it ->
+            val tokenBalance = it.getOrNull()
+            if (tokenBalance != null) {
+                val balance = tokenBalance.optString("balance") ?: "0"
+                Result(BigInteger(balance))
             } else {
-                JSONObject(jsonString)
+                val error = it.exceptionOrNull()
+                Result(null, ResultError(ErrorCode.UnknownError, error?.message ?: "Invalid request response"))
             }
         }
-
-        val balance = tokenBalance.optString("balance") ?: "0"
-        return Result(BigInteger(balance))
     }
 
 
@@ -388,6 +388,31 @@ class Network(private val blockstackAPIUrl: String,
 
 }
 
+private fun <T> Response.resumeWithJsonArray(handleJsonArray: (kotlin.Result<JSONArray>) -> T): T {
+    val jsonString = this.body()!!.string()
+    if (jsonString.startsWith("{")) {
+        val error = JSONObject(jsonString)
+        val requestError = error.optStringOrNull("error")
+        if (requestError != null) {
+            return handleJsonArray(kotlin.Result.failure(Error("request failed: $requestError")))
+        } else {
+            return handleJsonArray(kotlin.Result.failure(Error("request failed: $jsonString")))
+        }
+    } else {
+        return handleJsonArray(kotlin.Result.success(JSONArray(jsonString)))
+    }
+}
+
+private fun <T> Response.resumeWithJsonObject(handleJsonObject: (kotlin.Result<JSONObject>) -> T): T {
+    val jsonString = this.body()!!.string()
+    val result = JSONObject(jsonString)
+    val requestError = result.optStringOrNull("error")
+    if (requestError != null) {
+        return handleJsonObject(kotlin.Result.failure(Error("request failed: $requestError")))
+    } else {
+        return handleJsonObject(kotlin.Result.success(result))
+    }
+}
 
 private fun Response.json(): JSONObject {
     return this.body()!!.string().let {
