@@ -16,6 +16,7 @@ import me.uport.sdk.jwt.model.ArbitraryMapSerializer
 import me.uport.sdk.jwt.model.JwtHeader
 import me.uport.sdk.signer.KPSigner
 import okhttp3.*
+import okio.ByteString
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -52,7 +53,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
 
         val tokenTriple = try {
             blockstack.decodeToken(authResponse)
-        } catch (e:IllegalArgumentException) {
+        } catch (e: IllegalArgumentException) {
             signInCallback(Result(null, ResultError(ErrorCode.LoginFailedError, "The authResponse parameter is an invalid base64 encoded token\n" +
                     "2 dots requires\n" +
                     "Auth response: $authResponse")))
@@ -213,7 +214,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
 
         userData.json.put("gaiaHubConfig", gaiaConfig)
         val sessionData = sessionStore.sessionData.json
-        sessionData.put("userData", userData)
+        sessionData.put("userData", userData.json)
         sessionStore.sessionData = SessionData(sessionData)
         gaiaHubConfig = gaiaConfig
         return gaiaConfig
@@ -350,11 +351,16 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
             val publicKey = appPrivateKeyPair.toHexPublicKey64()
             val result = enc.encryptWithPublicKey(content as String, publicKey)
             contentType = "application/octet-stream"
-            CipherObject(result.iv, result.ephemPublicKey, result.ciphertext, result.mac, content is String)
+            val jsonString = CipherObject(result.iv, result.ephemPublicKey, result.ciphertext, result.mac, content is String)
                     .json.toString()
+            ByteString.encodeUtf8(jsonString)
         } else {
             contentType = options.contentType ?: "text/plain"
-            content as String
+            if (content is String) {
+                ByteString.encodeUtf8(content)
+            } else {
+                ByteString.of(content as ByteArray, 0, content.size)
+            }
         }
 
         val putRequest = buildPutRequest(path, requestContent, options, contentType, gaiaHubConfig!!)
@@ -383,7 +389,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         }
     }
 
-    private fun buildPutRequest(path: String, content: String, options: PutFileOptions, contentType:String, hubConfig: GaiaHubConfig): Request {
+    private fun buildPutRequest(path: String, content: ByteString, options: PutFileOptions, contentType: String, hubConfig: GaiaHubConfig): Request {
         val url = "${hubConfig.server}/store/${hubConfig.address}/${path}"
 
         val builder = Request.Builder()
@@ -467,7 +473,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
             readUrl = getFullReadUrl(path, gaiaHubConfig)
         }
 
-        if (readUrl != null) {
+        if (readUrl == null) {
             return Result(null, ResultError(ErrorCode.UnknownError, "Missing readURL"))
         } else {
             return Result(readUrl)

@@ -46,7 +46,7 @@ class BlockstackSessionStorageTest {
                 sessionStore = sessionStoreforIntegrationTests(rule),
                 blockstack = blockstack)
         val gaiaHubConfig = runBlocking {
-                session.getOrSetLocalGaiaHubConnection()
+            session.getOrSetLocalGaiaHubConnection()
         }
         Log.d(BlockstackSessionStorageTest::class.java.simpleName, gaiaHubConfig.toString())
     }
@@ -85,7 +85,7 @@ class BlockstackSessionStorageTest {
     @Test
     fun testEncryptDecryptString() {
         assertTrue(session.isUserSignedIn())
-        val options = CryptoOptions()
+        val options = CryptoOptions(publicKey = PUBLIC_KEY, privateKey = PRIVATE_KEY)
         val plainContent = "hello from test"
         val encResult = blockstack.encryptContent(plainContent, options = options)
         assertTrue(encResult.hasValue)
@@ -97,7 +97,7 @@ class BlockstackSessionStorageTest {
     fun testEncryptDecryptBinary() {
         assertTrue(session.isUserSignedIn())
         val binaryContent = getImageBytes()
-        val options = CryptoOptions()
+        val options = CryptoOptions(publicKey = PUBLIC_KEY, privateKey = PRIVATE_KEY)
         val encResult = blockstack.encryptContent(binaryContent, options = options)
         assertTrue(encResult.hasValue)
         val decResult = blockstack.decryptContent(encResult.value!!.json.toString(), true, options)
@@ -122,7 +122,7 @@ class BlockstackSessionStorageTest {
         latch.await()
         assertThat(result, `is`(notNullValue()))
         assertThat(result?.value, `is`(nullValue()))
-        assertThat(result?.error, `is`(nullValue()))
+        assertThat(result?.error?.message, `is`("Error when loading from Gaia hub, status:404"))
     }
 
     @Test
@@ -328,7 +328,6 @@ class BlockstackSessionStorageTest {
     fun testPutGetFileSignedEncrypted() {
         var result: JSONObject? = null
         val latch = CountDownLatch(1)
-
         runBlocking {
 
             if (session.isUserSignedIn()) {
@@ -457,16 +456,20 @@ class BlockstackSessionStorageTest {
 
     @Test
     fun testGetFileUrlFor404File() {
-        val urlResult = runBlocking {
-            session.getFileUrl("404file.txt", GetFileOptions(false))
+        val result = kotlin.runCatching {
+            val urlResult = runBlocking {
+                session.getFileUrl("404file.txt", GetFileOptions(false))
+            }
+
+            assertThat("bad urlResult ${urlResult.error}", urlResult.value, notNullValue())
+            try {
+                URL(urlResult.value).readText()
+                fail("Should throw FileNotFoundException")
+            } catch (e: FileNotFoundException) {
+                // success
+            }
         }
-        assertThat(urlResult.value, notNullValue())
-        try {
-            URL(urlResult.value).readText()
-            fail("Should throw FileNotFoundException")
-        } catch (e: FileNotFoundException) {
-            // success
-        }
+        assertThat(result.exceptionOrNull(), `is`(nullValue()))
     }
 
     @Test
