@@ -49,7 +49,7 @@ class NetworkTest {
 
         assertThat(result.hasValue, `is`(true))
         assertThat(result.value?.amount.toString(), `is`("10240000"))
-        assertThat(result.value?.json.toString(), `is`("{\"units\":\"BTC\",\"amount\":\"9c4000\"}"))
+        assertThat(result.value?.json.toString(), `is`("{\"amount\":\"10240000\",\"satoshis\":10240000,\"units\":\"BTC\"}"))
     }
 
     @Test
@@ -59,7 +59,7 @@ class NetworkTest {
         }
 
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: Failed to query name price for dev_android_sdk.id.blockstack"))
+        assertThat(result.error?.message, `is`("Failed to query name price for dev_android_sdk.id.blockstack"))
     }
 
     @Test
@@ -70,7 +70,7 @@ class NetworkTest {
 
         assertThat(result.hasValue, `is`(true))
         assertThat(result.value?.amount.toString(), `is`("640000000"))
-        assertThat(result.value?.json.toString(), `is`("{\"units\":\"STACKS\",\"amount\":\"2625a000\"}"))
+        assertThat(result.value?.json.toString(), `is`("{\"amount\":\"640000000\",\"units\":\"STACKS\"}"))
     }
 
     @Test
@@ -80,7 +80,7 @@ class NetworkTest {
         }
 
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: Failed to query name price for dev_android_sdk.id.blockstack"))
+        assertThat(result.error?.message, `is`("Failed to query namespace price for dev_android_sdk.id.blockstack"))
     }
 
     @Test
@@ -121,7 +121,7 @@ class NetworkTest {
 
 
         assertThat(result.hasValue, `is`(true))
-        assertThat(result.value, `is`("\"1111111111111111111114oLvT2\""))
+        assertThat(result.value, `is`("1111111111111111111114oLvT2"))
     }
 
     @Test
@@ -132,7 +132,7 @@ class NetworkTest {
         }
 
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: No such namespace 'a_name_that_is_not_valid_and_does_not_exist.id.blockstack'"))
+        assertThat(result.error?.message, `is`("No such namespace 'a_name_that_is_not_valid_and_does_not_exist.id.blockstack'"))
     }
 
     @Test
@@ -152,7 +152,7 @@ class NetworkTest {
         }
 
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: Name not found"))
+        assertThat(result.error?.message, `is`("Name not found"))
     }
 
     @Test
@@ -175,7 +175,7 @@ class NetworkTest {
 
         Log.d("networtest", "info " + result.error)
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: Bad response status: 400"))
+        assertThat(result.error?.message, `is`("request failed: Invalid namespace"))
     }
 
     @Test
@@ -185,7 +185,7 @@ class NetworkTest {
         }
 
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: Namespace not found"))
+        assertThat(result.error?.message, `is`("Namespace not found"))
     }
 
     /* enable test as soon as core.blockstack.org exposes zonefiles.
@@ -218,18 +218,17 @@ class NetworkTest {
         }
 
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: Zone file contents hash to 7825a1f3f844c2936d0e23ef21f17b52ce7565c0, not 3bd68d67eea0a621bf2b789d1ac97271afdfb8e1"))
+        assertThat(result.error?.message, `is`("Zone file contents hash to 7825a1f3f844c2936d0e23ef21f17b52ce7565c0, not 3bd68d67eea0a621bf2b789d1ac97271afdfb8e1"))
     }
 
     @Test
     fun getZonefileReturnsErrorForInvalidHash() {
-        val result: Result<String>? = null
-        runBlocking {
+        val result = runBlocking {
             network.getZonefile("invalid hash")
 
         }
         assertThat(result?.hasValue, `is`(false))
-        assertThat(result?.error?.message, `is`("Error: Bad response status: 404"))
+        assertThat(result?.error?.message, `is`("Bad response status: 404"))
     }
 
     @Test
@@ -250,7 +249,7 @@ class NetworkTest {
         }
 
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: Account not found"))
+        assertThat(result.error?.message, `is`("Account not found"))
     }
 
 
@@ -302,7 +301,7 @@ class NetworkTest {
         }
 
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: Bad response status: 400"))
+        assertThat(result.error?.message, `is`("request failed: Invalid address"))
     }
 
     @Test
@@ -324,7 +323,7 @@ class NetworkTest {
 
         Log.d("networktest", " " + result.error)
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: Bad response status: 400"))
+        assertThat(result.error?.message, `is`("request failed: Invalid address"))
     }
 
     @Test
@@ -334,6 +333,6 @@ class NetworkTest {
         }
 
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("Error: Bad response status: 400"))
+        assertThat(result.error?.message, `is`("request failed: Invalid token type"))
     }
 }

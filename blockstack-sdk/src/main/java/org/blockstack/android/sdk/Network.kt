@@ -44,14 +44,14 @@ class Network(private val blockstackAPIUrl: String,
             }
             return Result(denomination)
         } else {
-            return Result(null, ResultError(ErrorCode.RemoteServiceError, "failed to get name price v2"))
+            return Result(null, ResultError(ErrorCode.RemoteServiceError, "Failed to query name price for $fullyQualifiedName"))
         }
     }
 
 
     /**
      * Get the price to pay for registering a namesapce.
-     * @param fullyQualifiedName can be a name or subdomain name.
+     * @param namespaceID can be a name or subdomain name.
      * @result result object that contains the denomination (units, amount) of the requested price
      * or error if the request failed.
      */
@@ -69,7 +69,7 @@ class Network(private val blockstackAPIUrl: String,
             }
             return Result(denomination)
         } else {
-            return Result(null, ResultError(ErrorCode.RemoteServiceError, "failed to get namespace price v2"))
+            return Result(null, ResultError(ErrorCode.RemoteServiceError, "Failed to query namespace price for $namespaceID"))
         }
     }
 
@@ -81,12 +81,12 @@ class Network(private val blockstackAPIUrl: String,
         return Result(5000)
     }
 
-    private var getNamesOwnedCallback: ((Result<List<String>>) -> Unit)? = null
+    private val utxoProviderUrl: String = "https://blockchain.info"
 
     /**
      * Get the names -- both on-chain and off-chain -- owned by an address.
      * @param address the blockchain address (the hash of the owner public key)
-     * @param callback called with a result object that contains the list of names or error if the request failed.
+     * @result result object that contains the list of names or error if the request failed.
      */
     suspend fun getNamesOwned(address: String): Result<List<String>> {
         val networkAddress = this.coerceAddress(address)
@@ -132,8 +132,10 @@ class Network(private val blockstackAPIUrl: String,
 
     }
 
-    private fun getBlockHeight(): Int {
-        throw NotImplementedError("getBlockHeight")
+    private suspend fun getBlockHeight(): Int {
+        val response = fetchPrivate("${this.utxoProviderUrl}/latestblock?cors=true")
+        val blockHeight = response.json()
+        return blockHeight.getInt("height")
     }
 
     /**
@@ -144,18 +146,23 @@ class Network(private val blockstackAPIUrl: String,
     suspend fun getNameInfo(fullyQualifiedName: String): Result<NameInfo> {
         val response = fetchPrivate("${this.blockstackAPIUrl}/v1/names/${fullyQualifiedName}")
 
-        var nameInfo = if (response.code() == 404) {
-            throw Error("Name not found")
-        } else if (response.code() != 200) {
-            throw Error("Bad response status: ${response.code()}")
+        if (response.code() == 404) {
+            return Result(null, ResultError(ErrorCode.UnknownError, "Name not found"))
         } else {
-            response.json()
+            return response.resumeWithJsonObject {
+                val nameInfo = it.getOrNull()
+                if (nameInfo != null) {
+                    val address = nameInfo.optStringOrNull("address")
+                    if (address != null) {
+                        nameInfo.put("address", coerceAddress(address))
+                    }
+                    Result(NameInfo(nameInfo))
+                } else {
+                    Result(null, ResultError(ErrorCode.UnknownError, it.exceptionOrNull()?.message
+                            ?: "Invalid name info response"))
+                }
+            }
         }
-        val address = nameInfo.optStringOrNull("address")
-        if (address != null) {
-            nameInfo.put("address", coerceAddress(address))
-        }
-        return Result(NameInfo(nameInfo))
     }
 
     /**
@@ -165,26 +172,31 @@ class Network(private val blockstackAPIUrl: String,
      */
     suspend fun getNamespaceInfo(namespaceId: String): Result<NamespaceInfo> {
         val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/namespaces/${namespaceId}")
-        val nameSpaceInfo = if (resp.code() == 404) {
-            throw  Error("Namespace not found")
-        } else if (resp.code() != 200) {
-            throw  Error("Bad response status: ${resp.code()}")
+        if (resp.code() == 404) {
+            return Result(null, ResultError(ErrorCode.UnknownError, "Namespace not found"))
         } else {
-            resp.json()
+            return resp.resumeWithJsonObject {
+                val nameSpaceInfo = it.getOrNull()
+                if (nameSpaceInfo != null) {
+                    val address = nameSpaceInfo.optStringOrNull("address")
+                    val recipientAddress = nameSpaceInfo.optStringOrNull("recipient_address")
+                    if (address != null && recipientAddress != null) {
+                        nameSpaceInfo.put("address", coerceAddress(address))
+                        nameSpaceInfo.put("recipient_address", coerceAddress(recipientAddress))
+                    }
+                    Result(NamespaceInfo(nameSpaceInfo))
+                } else {
+                    Result(null, ResultError(ErrorCode.UnknownError, it.exceptionOrNull()?.message
+                            ?: "Invalid namespace info response"))
+                }
+            }
         }
-        val address = nameSpaceInfo.optStringOrNull("address")
-        val recipientAddress = nameSpaceInfo.optStringOrNull("recipient_address")
-        if (address != null && recipientAddress != null) {
-            nameSpaceInfo.put("address", coerceAddress(address))
-            nameSpaceInfo.put("recipient_address", coerceAddress(recipientAddress))
-        }
-        return Result(NamespaceInfo(nameSpaceInfo))
     }
 
     /**
      * Get a zone file, given its hash.
      * @param zonefileHash the ripemd160(sha256) hash of the zone file.
-     * @param callback called with a result object that contains the zone file's text
+     * @result result object that contains the zone file's text
      * or error if the request failed or the zone file obtained does not match the hash.
      */
     suspend fun getZonefile(zonefileHash: String): Result<String> {
@@ -199,7 +211,7 @@ class Network(private val blockstackAPIUrl: String,
             }
             return Result(body)
         } else {
-            throw Error("Bad response status: ${resp.code()}")
+            return Result(null, ResultError(ErrorCode.UnknownError, "Bad response status: ${resp.code()}"))
         }
 
     }
@@ -207,32 +219,34 @@ class Network(private val blockstackAPIUrl: String,
 
     /**
      * Get the status of an account for a particular token holding. This includes its total number of expenditures and credits, lockup times, last txid, and so on.
-     * @param address  the account's address
+     * @param accountAddress  the account's address
      * @param tokenType the token type to query
-     * @param callback called with a result object that contains the state of the account for this token
+     * @result result object that contains the state of the account for this token
      * or error if the request failed
      */
-    suspend fun getAccountStatus(address: String, tokenType: String): Result<AccountStatus> {
-        val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/${tokenType}/status")
+    suspend fun getAccountStatus(accountAddress: String, tokenType: String): Result<AccountStatus> {
+        val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${accountAddress}/${tokenType}/status")
 
-        val accountStatus = if (resp.code() == 404) {
-            throw  Error("Account not found")
-        } else if (resp.code() != 200) {
-            throw  Error("Bad response status: ${resp.code()}")
+        if (resp.code() == 404) {
+            return Result(null, ResultError(ErrorCode.UnknownError, "Account not found"))
         } else {
-            resp.json()
+            return resp.resumeWithJsonObject {
+                val accountStatus = it.getOrNull()
+                if (accountStatus != null) {
+                    // coerce all addresses, and convert credit/debit to biginteger
+                    val address = coerceAddress(accountStatus.getString("address"))
+                    val debitValue = BigInteger(accountStatus.getString("debit_value"))
+                    val creditValue = BigInteger(accountStatus.getString("credit_value"))
+                    accountStatus.put("address", address)
+                            .put("debit_value", debitValue)
+                            .put("credit_value", creditValue)
+                    Result(AccountStatus(accountStatus))
+                } else {
+                    Result(null, ResultError(ErrorCode.UnknownError, "Invalid account status for $accountAddress"))
+                }
+            }
         }
-        // coerce all addresses, and convert credit/debit to biginteger
-        val address = coerceAddress(accountStatus.getString("address"))
-        val debitValue = BigInteger(accountStatus.getString("debit_value"))
-        val creditValue = BigInteger(accountStatus.getString("credit_value"))
-        accountStatus.put("address", address)
-                .put("debit_value", debitValue)
-                .put("credit_value", creditValue)
-        return Result(AccountStatus(accountStatus))
     }
-
-    private var getAccountHistoryPageCallback: ((Result<List<AccountStatus>>) -> Unit)? = null
 
     /**
      * Get a page of an account's transaction history.
@@ -240,7 +254,7 @@ class Network(private val blockstackAPIUrl: String,
      * @param page the page number. Page 0 contains the most recent transactions
      * @result result object that contains a list of account statuses at various block heights (e.g. prior balances, txids, etc)
      */
-    suspend fun getAccountHistoryPage(address: String, page: Int, callback: (Result<List<AccountStatus>>) -> Unit): Result<List<AccountStatus>> {
+    suspend fun getAccountHistoryPage(address: String, page: Int): Result<List<AccountStatus>> {
         val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/history?page=${page}")
 
         val historyList = if (resp.code() == 404) {
@@ -349,7 +363,7 @@ class Network(private val blockstackAPIUrl: String,
      * Get the number of tokens owned by an account. If the account does not exist or has no tokens of this type, then 0 will be returned.
      * @param address the account's address.
      * @param tokenType the type of token to query.
-     * @param callback called with a result object that contains the number of tokens held by this account in
+     * @result result object that contains the number of tokens held by this account in
      * the smallest denomination.
      */
     suspend fun getAccountBalance(address: String, tokenType: String): Result<BigInteger> {
@@ -361,7 +375,8 @@ class Network(private val blockstackAPIUrl: String,
                 Result(BigInteger(balance))
             } else {
                 val error = it.exceptionOrNull()
-                Result(null, ResultError(ErrorCode.UnknownError, error?.message ?: "Invalid request response"))
+                Result(null, ResultError(ErrorCode.UnknownError, error?.message
+                        ?: "Invalid request response"))
             }
         }
     }
@@ -386,21 +401,6 @@ class Network(private val blockstackAPIUrl: String,
         private val DUST_MINIMUM: BigInteger = BigInteger("5500")
     }
 
-}
-
-private fun <T> Response.resumeWithJsonArray(handleJsonArray: (kotlin.Result<JSONArray>) -> T): T {
-    val jsonString = this.body()!!.string()
-    if (jsonString.startsWith("{")) {
-        val error = JSONObject(jsonString)
-        val requestError = error.optStringOrNull("error")
-        if (requestError != null) {
-            return handleJsonArray(kotlin.Result.failure(Error("request failed: $requestError")))
-        } else {
-            return handleJsonArray(kotlin.Result.failure(Error("request failed: $jsonString")))
-        }
-    } else {
-        return handleJsonArray(kotlin.Result.success(JSONArray(jsonString)))
-    }
 }
 
 private fun <T> Response.resumeWithJsonObject(handleJsonObject: (kotlin.Result<JSONObject>) -> T): T {

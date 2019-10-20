@@ -20,7 +20,7 @@ class Denomination(private val jsonObject: JSONObject) {
      * e.g. if `units` is BTC, `amount` will be in satoshis; if `units` is STACKS, `amount` will be in microStacks.
      */
     val amount: BigInteger?
-        get() = jsonObject.optString("amount")?.let { BigInteger(it, 16) }
+        get() = jsonObject.optString("amount")?.let { BigInteger(it, 10) }
 
     /**
      * The `JSONObject` that backs this object. You use this object to
