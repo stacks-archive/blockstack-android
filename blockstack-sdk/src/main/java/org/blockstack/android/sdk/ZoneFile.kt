@@ -47,11 +47,11 @@ fun parseRRs(text: String): ZoneFile {
         /*
         if (Regex("\s+TXT\s+/").matches(uRR)) {
             ret.getJSONArray("txt").put(parseTXT(rr))
-        } else if (uRR.indexOf("\$ORIGIN") == 0) {
+        } else */ if (uRR.indexOf("\$ORIGIN") == 0) {
             ret.put("\$origin", rr.split(Regex("\\s+"))[1])
         } else if (uRR.indexOf("\$TTL") == 0) {
             ret.put("ttl", parseInt(rr.split(Regex("\\s+"))[1], 10))
-        } else if (Regex("\s+SOA\s+").matches(uRR)) {
+        } else /*if (Regex("\s+SOA\s+").matches(uRR)) {
             ret.put("soa", parseSOA(rr))
         } else if (Regex("\s+NS\s+").matches(uRR)) {
             ret.getJSONArray("ns").put(parseNS(rr))

@@ -157,8 +157,11 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
 
-    fun extractProfile(token: String, address: String): Profile? {
+    fun extractProfile(token: String, publicKeyOrAddress: String?): Profile? {
         val decodedToken = decodeToken(token)
+        if (publicKeyOrAddress != null) {
+            verifyProfileToken(token, publicKeyOrAddress)
+        }
         val payload = decodedToken.second
         if (payload.has("claim")) {
             return Profile(payload.getJSONObject("claim"))
@@ -179,13 +182,14 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     suspend fun verifyToken(token: String): Boolean {
         val tokenTriple = decodeToken(token)
         val issuer = tokenTriple.second.getString("iss")
-        btcAddrResolver.add(DIDs.getAddressFromDID(issuer), tokenTriple.second.getJSONArray("public_keys").getString(0))
+        val issuerAddress = DIDs.getAddressFromDID(issuer)
+        btcAddrResolver.add(issuerAddress, tokenTriple.second.getJSONArray("public_keys").getString(0))
         val result = isExpirationDateValid(tokenTriple.second) &&
                 isIssuanceDateValid(tokenTriple.second) &&
                 doSignaturesMatchPublicKeys(token, tokenTriple.second) &&
                 doPublicKeysMatchIssuer(tokenTriple.second) &&
                 doPublicKeysMatchUsername(tokenTriple.second, null)
-        btcAddrResolver.remove(issuer)
+        btcAddrResolver.remove(issuerAddress)
         return result
     }
 
@@ -291,13 +295,21 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
     private fun isIssuanceDateValid(payload: JSONObject): Boolean {
-        val issuanceDate = Date(payload.getString("iat").toLong() * 1000)
+        val issuanceDate = try {
+            Date(payload.getString("iat").toLong() * 1000)
+        } catch (e: NumberFormatException) {
+            zuluWithMicrosFormatter.parse(payload.getString("iat"))
+        }
         val now = Date()
         return now.after(issuanceDate)
     }
 
     private fun isExpirationDateValid(payload: JSONObject): Boolean {
-        val expirationDate = Date(payload.getString("exp").toLong() * 1000)
+        val expirationDate = try {
+            Date(payload.getString("exp").toLong() * 1000)
+        } catch (e: NumberFormatException) {
+            zuluWithMicrosFormatter.parse(payload.getString("exp"))
+        }
         val now = Date()
         return now.before(expirationDate)
     }
@@ -446,7 +458,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
         val decodedToken = decodeToken(token)
         val token = JSONObject()
                 .put("token", token)
-                .put("decodedToken", decodedToken)
+                .put("decodedToken", tokenTripleToJSON(decodedToken))
 
         return ProfileTokenPair(token)
     }
@@ -459,7 +471,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      * @returns {Object} - the verified, decoded profile token
      * @throws {Error} - throws an error if token verification fails
      */
-    suspend fun verifyProfileToken(token: String, publicKeyOrAddress: String): ProfileToken {
+    fun verifyProfileToken(token: String, publicKeyOrAddress: String): ProfileToken {
         val decodedToken = decodeToken(token)
         val payload = decodedToken.second
 
@@ -487,23 +499,28 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
         }
 
         val issuerPublicKey = payload.getJSONObject("issuer").getString("publicKey")
+        val uncompressedAddress = issuerPublicKey.toBtcAddress()
 
-        val uncompressedAddress = PublicKey(issuerPublicKey).toBtcAddress()
-
-        if (publicKeyOrAddress === issuerPublicKey) {
-            // pass
-        } else if (publicKeyOrAddress === uncompressedAddress) {
+        if (publicKeyOrAddress == issuerPublicKey) {
             // pass
         } else {
-            throw Error("Token issuer public key does not match the verifying value")
+            if (publicKeyOrAddress == uncompressedAddress) {
+                // pass
+            } else {
+                throw Error("Token issuer public key does not match the verifying value")
+            }
         }
 
-        val isValid = verifyToken(token)
-        if (isValid) {
-            return ProfileToken(decodedToken.second)
-        } else {
-            throw InvalidParameterException("invalid token")
-        }
+        return ProfileToken(tokenTripleToJSON(decodedToken))
+
+    }
+
+    private fun tokenTripleToJSON(decodedToken: Triple<JwtHeader, JSONObject, ByteArray>): JSONObject {
+        return JSONObject()
+                .put("header", JSONObject().put("typ", decodedToken.first.typ)
+                        .put("alg", decodedToken.first.alg))
+                .put("payload", decodedToken.second)
+                .put("signature", decodedToken.third.toBase64UrlSafe())
     }
 
     /**
@@ -521,12 +538,12 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
 
 
         val payload = mapOf(
-            "jti" to UUID.randomUUID(),
-            "iat" to issuedAt.toZuluTime(),
-            "exp" to  expiresAt.toZuluTime(),
-            "subject" to subject,
-            "issuer" to issuer,
-            "claim" to profile
+                "jti" to UUID.randomUUID().toString(),
+                "iat" to issuedAt.toZuluTime(),
+                "exp" to expiresAt.toZuluTime(),
+                "subject" to subject.json.toMap(),
+                "issuer" to issuer.json.toMap(),
+                "claim" to profile.json.toMap()
         )
 
         val header = JwtHeader(alg = JwtHeader.ES256K)
@@ -574,6 +591,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
 
 
 private val zuluFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZ", Locale.US)
+private val zuluWithMicrosFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
 private fun Date.toZuluTime(): String {
     return zuluFormatter.format(this)
 }
@@ -641,13 +659,9 @@ fun ECKeyPair.toHexPublicKey64(): String {
 
 fun ECKeyPair.toBtcAddress(): String {
     val publicKey = toHexPublicKey64()
-    val sha256 = publicKey.hexToByteArray().sha256()
-    val hash160 = sha256.ripemd160()
-    val extended = "00${hash160.toNoPrefixHexString()}"
-    val checksum = checksum(extended)
-    val address = (extended + checksum).hexToByteArray().encodeToBase58String()
-    return address
+    return publicKey.toBtcAddress()
 }
+
 
 fun PublicKey.toBtcAddress(): String {
     //add the uncompressed prefix
