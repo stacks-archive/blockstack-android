@@ -8,7 +8,7 @@ import me.uport.sdk.jwt.JWTTools
 import okhttp3.OkHttpClient
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
-import org.blockstack.android.sdk.test.TestActivity
+import org.blockstack.android.sdktest.test.TestActivity
 import org.blockstack.android.sdktest.j2v8.BlockstackSessionJ2V8
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
@@ -51,7 +51,7 @@ class BlockstackSession2AuthTest {
 
     @Before
     fun setup() {
-        sessionStore = org.blockstack.android.sdk.sessionStoreforIntegrationTests(rule)
+        sessionStore = sessionStoreforIntegrationTests(rule)
         val executor = IntegrationTestExecutor(rule)
         val callFactory = OkHttpClient()
         val words = MnemonicWords(SEED_PHRASE)

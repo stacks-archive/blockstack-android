@@ -169,7 +169,7 @@ class BlockstackSessionStorageTest {
             }
         }
         latch.await()
-        assertThat(result as String, `is`("application/x.foo; charset=utf-8"))
+        assertThat(result as String, `is`("application/x.foo"))
     }
 
     @Test
@@ -309,7 +309,7 @@ class BlockstackSessionStorageTest {
                                     }
                                 }
                             } else {
-                                result = "error while deleting signature"
+                                result = "error while deleting signature ${it.error}"
                                 latch.countDown()
                             }
                         }
@@ -321,7 +321,7 @@ class BlockstackSessionStorageTest {
             }
         }
         latch.await()
-        assertThat(result, startsWith("SignatureVerificationError: Failed to verify signature: Failed to obtain signature for file: try.txt"))
+        assertThat(result, startsWith("Failed to verify signature: Failed to obtain signature for file: try.txt"))
     }
 
     @Test
@@ -333,7 +333,7 @@ class BlockstackSessionStorageTest {
             if (session.isUserSignedIn()) {
                 session.putFile("try.txt", "Hello Test", PutFileOptions(true, sign = true)) {
                     runBlocking {
-                        session.getFile("try.txt", GetFileOptions(false)) {
+                        session.getFile("try.txt", GetFileOptions(decrypt = false)) {
                             if (!it.hasErrors) {
                                 result = JSONObject(it.value as String)
                             }
@@ -373,7 +373,7 @@ class BlockstackSessionStorageTest {
             latch.countDown()
         }
         latch.await()
-        assertThat(result, `is`("Error: Signature without r or s"))
+        assertThat(result, `is`("hex-string must have an even number of digits (nibbles)"))
     }
 
 
@@ -424,6 +424,7 @@ class BlockstackSessionStorageTest {
                     runBlocking {
                         urlResult = session.getFileUrl("try.txt", GetFileOptions(true))
                     }
+                    latch.countDown()
                 }
             } else {
                 latch.countDown()
@@ -444,6 +445,7 @@ class BlockstackSessionStorageTest {
                     urlResult = runBlocking {
                         session.getFileUrl("try.txt", GetFileOptions(false))
                     }
+                    latch.countDown()
                 }
             } else {
                 latch.countDown()

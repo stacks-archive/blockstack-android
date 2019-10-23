@@ -20,12 +20,27 @@ import okio.ByteString
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONObject
+import org.kethereum.crypto.CryptoAPI
 import org.kethereum.crypto.SecureRandomUtils
+import org.kethereum.crypto.api.ec.ECDSASignature
+import org.kethereum.crypto.signMessageHash
 import org.kethereum.crypto.toECKeyPair
+import org.kethereum.extensions.hexToBigInteger
+import org.kethereum.hashes.sha256
+import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PrivateKey
+import org.kethereum.model.PublicKey
+import org.kethereum.model.SignatureData
 import org.komputing.khex.extensions.hexToByteArray
 import org.komputing.khex.extensions.toNoPrefixHexString
 import java.lang.Integer.parseInt
+import java.math.BigInteger
+import java.security.InvalidParameterException
+import java.security.SignatureException
+import kotlin.experimental.and
+import kotlin.experimental.or
+import kotlin.math.ln
+import kotlin.math.log10
 
 class BlockstackSession(private val sessionStore: SessionStore, private val appConfig: BlockstackConfig? = null,
                         private val callFactory: Call.Factory = OkHttpClient(), val blockstack: Blockstack) {
@@ -281,7 +296,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
     suspend fun getFile(path: String, options: GetFileOptions, callback: (Result<Any>) -> Unit) {
         Log.d(TAG, "getFile: path: ${path} options: ${options}")
 
-        val getRequest = buildGetRequest(path, options, gaiaHubConfig!!)
+        val getRequest = buildGetRequest(path, gaiaHubConfig!!)
 
         withContext(Dispatchers.IO) {
             try {
@@ -297,17 +312,40 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
                 var result: Any? = null
                 if (options.decrypt) {
                     val responseJSON = JSONObject(response.body()!!.string())
-                    val cipherObject = CipherObject(responseJSON)
 
-                    result = Encryption().decryptWithPrivateKey(EncryptedResultForm(cipherObject.ephemeralPK,
+                    val cipherObject = if (options.verify) {
+                        handleSignedEncryptedContent(responseJSON)
+                    } else {
+                        CipherObject(responseJSON)
+                    }
+
+                    val decryptedContent = Encryption().decryptWithPrivateKey(EncryptedResultForm(cipherObject.ephemeralPK,
                             cipherObject.iv, cipherObject.mac, cipherObject.cipherText, appPrivateKey))
+                    result = if (cipherObject.wasString) {
+                        String(decryptedContent)
+                    } else {
+                        decryptedContent
+                    }
                 } else {
                     result = if (contentType === null
                             || contentType.startsWith("text")
-                            || contentType === "application/json") {
+                            || contentType == "application/json") {
                         response.body()?.string()
                     } else {
                         response.body()?.bytes()
+                    }
+
+                    if (options.verify) {
+                        val signatureRequest = buildGetRequest("$path.sig", gaiaHubConfig!!)
+                        val response = callFactory.newCall(signatureRequest).execute()
+                        if (response.isSuccessful) {
+                            val signature = JSONObject(response.body()!!.string())
+                            // TODO verify signature
+                            Log.d(TAG, signature.toString())
+                        } else {
+                            callback(Result(null, ResultError(ErrorCode.SignatureVerificationError, "Failed to verify signature: Failed to obtain signature for file: $path")))
+                            return@withContext
+                        }
                     }
                 }
 
@@ -346,16 +384,39 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
 
         val contentType: String
         val requestContent = if (options.encrypt) {
+
+            contentType = "application/json"
+
             val enc = Encryption()
             val appPrivateKeyPair = PrivateKey(appPrivateKey!!).toECKeyPair()
             val publicKey = appPrivateKeyPair.toHexPublicKey64()
-            val result = enc.encryptWithPublicKey(content as String, publicKey)
-            contentType = "application/octet-stream"
+            val contentByteArray = if (content is String) {
+                content.toByteArray()
+            } else {
+                content as ByteArray
+            }
+            val result =
+                    enc.encryptWithPublicKey(contentByteArray, publicKey)
             val jsonString = CipherObject(result.iv, result.ephemPublicKey, result.ciphertext, result.mac, content is String)
                     .json.toString()
-            ByteString.encodeUtf8(jsonString)
+
+            if (!options.shouldSign()) {
+                ByteString.encodeUtf8(jsonString)
+            } else {
+                val signatureObject = signContent(jsonString, getSignKey(options))
+                val signedCipherObject = JSONObject()
+                        .put("signature", signatureObject.signature)
+                        .put("publicKey", signatureObject.publicKey)
+                        .put("cipherText", jsonString)
+
+                ByteString.encodeUtf8(signedCipherObject.toString())
+            }
         } else {
-            contentType = options.contentType ?: "text/plain"
+            contentType = options.contentType ?: if (content is String) {
+                "text/plain"
+            } else {
+                "application/octet-stream"
+            }
             if (content is String) {
                 ByteString.encodeUtf8(content)
             } else {
@@ -363,11 +424,11 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
             }
         }
 
-        val putRequest = buildPutRequest(path, requestContent, options, contentType, gaiaHubConfig!!)
+        val putRequest = buildPutRequest(path, requestContent, contentType, gaiaHubConfig!!)
         withContext(Dispatchers.IO) {
             try {
                 val response = callFactory.newCall(putRequest).execute()
-                Log.d(TAG, "put2" + response.toString())
+                Log.d(TAG, "put2 $response")
 
                 if (!response.isSuccessful) {
                     throw Error("Error when uploading to Gaia hub")
@@ -376,6 +437,12 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
                 if (responseText !== null) {
                     val responseJSON = JSONObject(responseText)
 
+                    if (!options.encrypt && options.shouldSign()) {
+                        val signedContent = signContent(requestContent.toByteArray(), getSignKey(options))
+                        val putSignatureRequest = buildPutRequest("$path.sig", signedContent.toJSONString(), "application/json", gaiaHubConfig!!)
+                        val responseSignature = callFactory.newCall(putSignatureRequest).execute()
+                        Log.d(TAG, "put2signature" + responseSignature.toString())
+                    }
                     callback(Result(responseJSON.getString("publicURL")))
                 } else {
                     callback(Result(null, ResultError(ErrorCode.UnknownError, "invalid response from putFile $responseText")))
@@ -389,7 +456,47 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         }
     }
 
-    private fun buildPutRequest(path: String, content: ByteString, options: PutFileOptions, contentType: String, hubConfig: GaiaHubConfig): Request {
+    private fun getSignKey(options: PutFileOptions): String {
+        return if (options.sign is Boolean) {
+            appPrivateKey!!
+        } else {
+            options.sign as String
+        }
+    }
+
+    private fun signContent(content: Any, privateKey: String): SignatureObject {
+        val contentBuffer = if (content is ByteArray) {
+            content
+        } else {
+            (content as String).toByteArray()
+        }
+        val keyPair = PrivateKey(privateKey.hexToBigInteger()).toECKeyPair()
+        val sigData = signMessageHash(contentBuffer.sha256(), keyPair, false)
+
+        val signatureString = sigData.toDER()
+
+        return SignatureObject(signatureString,
+                keyPair.toHexPublicKey64()
+        )
+    }
+
+
+    private fun handleSignedEncryptedContent(responseJSON: JSONObject): CipherObject {
+        val signature = responseJSON.getString("signature")
+        val signerPublicKey = responseJSON.getString("publicKey")
+        val cipherText = responseJSON.getString("cipherText")
+
+        val signerAddress = signerPublicKey.toBtcAddress()
+
+        val contentHash = cipherText.toByteArray().sha256()
+
+        val keyPair = ECKeyPair(PrivateKey(BigInteger.ZERO), PublicKey(signerPublicKey))
+        keyPair.verify(contentHash, signature)
+
+        return CipherObject(JSONObject(cipherText))
+    }
+
+    private fun buildPutRequest(path: String, content: ByteString, contentType: String, hubConfig: GaiaHubConfig): Request {
         val url = "${hubConfig.server}/store/${hubConfig.address}/${path}"
 
         val builder = Request.Builder()
@@ -401,7 +508,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         return builder.build()
     }
 
-    private fun buildGetRequest(path: String, options: GetFileOptions, hubConfig: GaiaHubConfig): Request {
+    private fun buildGetRequest(path: String, hubConfig: GaiaHubConfig): Request {
         val url = "${hubConfig.urlPrefix}${hubConfig.address}/${path}"
         val builder = Request.Builder()
                 .url(url)
@@ -570,6 +677,131 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         val TAG = BlockstackSession::class.java.simpleName
         val CONTENT_TYPE_JSON = "application/json"
     }
+}
+
+private fun ECKeyPair.verify(contentHash: ByteArray, signature: String) {
+    val sig: SignatureData = signature.fromDER()
+    val recId = sig.v.toByteArray().last() - 27
+
+}
+
+data class Position(var place:Int)
+
+fun String.fromDER(): SignatureData {
+    val data = this.hexToByteArray()
+    val p = Position(0)
+    if (data[p.place++] != 0x30.toByte()) {
+        throw InvalidParameterException()
+    }
+    val len = getLength(data, p);
+    if ((len + p.place) != data.size) {
+        throw InvalidParameterException()
+    }
+    if (data[p.place++] != 0x02.toByte()) {
+        throw InvalidParameterException()
+    }
+    val rlen = getLength(data, p);
+    var r = data.sliceArray(p.place until rlen + p.place);
+    p.place += rlen;
+    if (data[p.place++] != 0x02.toByte()) {
+        throw InvalidParameterException()
+    }
+    val slen = getLength(data, p);
+    if (data.size != slen + p.place) {
+        throw InvalidParameterException()
+    }
+    var s = data.sliceArray(p.place until slen + p.place);
+    if (r[0] == ZERO && (r[1] and LENGTH) != ZERO) {
+        r = r.sliceArray(1 until r.size)
+    }
+    if (s[0] == ZERO && (s[1] and LENGTH) != ZERO) {
+        s = s.sliceArray(1 until s.size)
+    }
+
+    return SignatureData(BigInteger(r), BigInteger(s), BigInteger.ZERO)
+}
+
+const val ZERO = 0.toByte()
+const val LENGTH = 0x80.toByte() // 128
+
+
+fun addSize(arr: MutableList<Byte>, len: Int) {
+    if (len < 128) {
+        arr.add(len.toByte())
+        return
+    }
+    val l = (log10(len.toDouble()) / ln(2.toDouble())).toInt() ushr 3
+    var octets = 1 + l
+    arr.add(octets.toByte() or LENGTH)
+    octets -= 1
+    while (octets.toByte() != ZERO) {
+        arr.add(((len ushr (octets shl 3)) and 0xff).toByte())
+    }
+    arr.add(len.toByte())
+}
+
+
+fun getLength(buf:ByteArray, p:Position): Byte {
+    val initial = buf[p.place++]
+    if (initial and LENGTH == ZERO) {
+        return initial;
+    }
+    val octetLen = initial and 0xf.toByte()
+    var value = 0
+    var off = p.place;
+    for (i in 0 until octetLen) {
+        value = value shl 8
+        value = value or buf[off].toInt()
+        off +=1
+    }
+    p.place = off
+    return value.toByte()
+}
+
+fun rmPadding(buf: ByteArray): ByteArray {
+    var i = 0
+    val len = buf.size - 1
+    while (buf[i] == ZERO && (buf[i + 1] and LENGTH) == ZERO && i < len) {
+        i++
+    }
+    if (i == 0) {
+        return buf
+    }
+    return buf.sliceArray(i until buf.size)
+}
+
+fun SignatureData.toDER(): String {
+    var r = this.r.toByteArray()
+    var s = this.s.toByteArray()
+
+    // Pad values
+    if (r[0] and LENGTH != ZERO) {
+        r = byteArrayOf(0) + r
+    }
+    // Pad values
+    if (s[0] and LENGTH != ZERO) {
+        s = byteArrayOf(0) + s
+    }
+
+    r = rmPadding(r)
+    s = rmPadding(s)
+
+    while (s[0] == ZERO && (s[1] and LENGTH) == ZERO) {
+        s = s.sliceArray(1 until s.size)
+    }
+    val arr = mutableListOf<Byte>(0x02)
+    addSize(arr, r.size)
+    arr.addAll(r.toTypedArray())
+
+    arr.add(0x02.toByte())
+    addSize(arr, s.size)
+    arr.addAll(s.toTypedArray())
+
+    var res = mutableListOf<Byte>(0x30)
+    addSize(res, arr.size)
+    res.addAll(arr)
+
+    return res.toNoPrefixHexString()
 }
 
 fun JSONObject.optStringOrNull(name: String): String? {

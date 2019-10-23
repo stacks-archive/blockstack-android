@@ -8,7 +8,7 @@ import org.blockstack.android.sdk.Blockstack
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.model.toBlockstackConfig
-import org.blockstack.android.sdk.test.TestActivity
+import org.blockstack.android.sdktest.test.TestActivity
 import org.blockstack.android.sdktest.j2v8.BlockstackSessionJ2V8
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
@@ -36,7 +36,7 @@ class BlockstackSession2EncryptionTest {
 
     @Before
     fun setup() {
-        val sessionStore = org.blockstack.android.sdk.sessionStoreforIntegrationTests(rule)
+        val sessionStore = sessionStoreforIntegrationTests(rule)
         val executor = IntegrationTestExecutor(rule)
         val callFactory = OkHttpClient()
         sessionJ2V8 = BlockstackSessionJ2V8(rule.activity,

@@ -358,7 +358,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
             plainContent as String
         }
 
-        val result = Encryption().encryptWithPublicKey(contentString, options.publicKey)
+        val result = Encryption().encryptWithPublicKey(contentString.toByteArray(), options.publicKey)
 
         if (result.iv.isNotEmpty()) {
             return Result(CipherObject(result.iv, result.ephemPublicKey, result.ciphertext, result.mac, !isBinary))
@@ -391,9 +391,9 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
         val cipher = CipherObject(JSONObject(cipherObjectString))
         val plainContent = Encryption().decryptWithPrivateKey(EncryptedResultForm(cipher.ephemeralPK, cipher.iv, cipher.mac, cipher.cipherText, options.privateKey))
 
-        if (plainContent != null && !"null".equals(plainContent)) {
+        if (plainContent != null) {
             if (!binary) {
-                return Result(plainContent)
+                return Result(String(plainContent))
             } else {
                 return Result(Base64.decode(plainContent, Base64.DEFAULT))
             }
@@ -637,7 +637,7 @@ private fun JSONArray.toMap(): Array<Any?> {
     return array
 }
 
-private fun String.toBtcAddress(): String {
+fun String.toBtcAddress(): String {
     val sha256 = this.hexToByteArray().sha256()
     val hash160 = sha256.ripemd160()
     val extended = "00${hash160.toNoPrefixHexString()}"

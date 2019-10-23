@@ -10,6 +10,7 @@ import okhttp3.Request
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.toBlockstackConfig
+import org.blockstack.android.sdktest.j2v8.BlockstackSessionJ2V8
 import org.blockstack.android.sdktest.j2v8.Executor
 import org.blockstack.android.sdktest.test.TestActivity
 import org.hamcrest.CoreMatchers.*
@@ -28,7 +29,7 @@ class BlockstackSessionStorageOfflineTest {
     @get:Rule
     val rule = ActivityTestRule(TestActivity::class.java)
 
-    private lateinit var session: BlockstackSession
+    private lateinit var session: BlockstackSessionJ2V8
 
     @Before
     fun setup() {
@@ -38,7 +39,7 @@ class BlockstackSessionStorageOfflineTest {
             }
 
         }
-        session = BlockstackSession(rule.activity,
+        session = BlockstackSessionJ2V8(rule.activity,
                 "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStoreforIntegrationTests(rule),
                 executor = IntegrationTestExecutor(rule),

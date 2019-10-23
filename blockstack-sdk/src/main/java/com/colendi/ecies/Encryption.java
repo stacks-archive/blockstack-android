@@ -42,7 +42,7 @@ public class Encryption {
         curveInit();
     }
 
-    public EncryptedResult encryptWithPublicKey(String plainText, String pubKey) {
+    public EncryptedResult encryptWithPublicKey(byte[] plainText, String pubKey) {
         ECPoint ecPoint = CURVE.getCurve().decodePoint(BigIntegers.asUnsignedByteArray(new BigInteger(pubKey, 16)));
 
         try {
@@ -52,7 +52,7 @@ public class Encryption {
         }
     }
 
-    public String decryptWithPrivateKey(EncryptedResultForm formData) {
+    public byte[] decryptWithPrivateKey(EncryptedResultForm formData) {
         BigInteger privateKey = new BigInteger(formData.getPrivateKey(), 16);
 
         return decrypt(privateKey, formData.getIv(), formData.getEphemPublicKey(), formData.getCiphertext(), formData.getMac());
@@ -70,7 +70,7 @@ public class Encryption {
 
     }
 
-    private EncryptedResult encrypt(ECPoint toPub, String plainText) throws Exception {
+    private EncryptedResult encrypt(ECPoint toPub, byte[] plainText) throws Exception {
         ECKeyPairGenerator eGen = new ECKeyPairGenerator();
         SecureRandom random = new SecureRandom();
         KeyGenerationParameters gParam = new ECKeyGenerationParameters(CURVE, random);
@@ -114,12 +114,12 @@ public class Encryption {
         return agreement.calculateAgreement(pubKeyP);
     }
 
-    static byte[] encryptAES256CBC(String plaintext, String encKey, byte[] IV) throws Exception {
+    static byte[] encryptAES256CBC(byte[] plaintext, String encKey, byte[] IV) throws Exception {
 
         SecretKeySpec secretKeySpec = new SecretKeySpec(Hex.decode(encKey), "AES");
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, new IvParameterSpec(IV));
-        return cipher.doFinal(plaintext.getBytes());
+        return cipher.doFinal(plaintext);
     }
 
 
@@ -147,7 +147,7 @@ public class Encryption {
 
     }
 
-    private static String decrypt(BigInteger privKey, String IV, String ephemPublicKey, String ciphertext, String mac) {
+    private static byte[] decrypt(BigInteger privKey, String IV, String ephemPublicKey, String ciphertext, String mac) {
 
         try {
             ECPoint ecPoint = CURVE.getCurve().decodePoint(BigIntegers.asUnsignedByteArray(new BigInteger(ephemPublicKey, 16)));
@@ -164,20 +164,20 @@ public class Encryption {
             if (MessageDigest.isEqual(HMac, Hex.decode(mac))) {
                 return decryptAES256CBC(Hex.decode(ciphertext), macAesPair.getEncKeyAES(), Hex.decode(IV));
             } else {
-                return "BAD-MAC";
+                return null;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "";
+            return null;
         }
     }
 
-    public static String decryptAES256CBC(byte[] ciphertext, String encKey, byte[] IV) throws Exception {
+    public static byte[] decryptAES256CBC(byte[] ciphertext, String encKey, byte[] IV) throws Exception {
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         SecretKeySpec secretKeySpec = new SecretKeySpec(Hex.decode(encKey), "AES");
         cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, new IvParameterSpec(IV));
-        return new String(cipher.doFinal(ciphertext));
+        return cipher.doFinal(ciphertext);
     }
 
     private static MacAesPair getMacKeyAndAesKey(BigInteger privKey, ECPoint ecPoint) throws Exception {

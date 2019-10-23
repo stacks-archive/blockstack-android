@@ -10,10 +10,12 @@ import me.uport.sdk.jwt.JWTTools
 import okhttp3.OkHttpClient
 import org.blockstack.android.sdk.Blockstack
 import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.Result
+import org.blockstack.android.sdk.ResultError
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
 import org.blockstack.android.sdk.model.toBlockstackConfig
-import org.blockstack.android.sdk.test.TestActivity
+import org.blockstack.android.sdktest.test.TestActivity
 import org.blockstack.android.sdktest.j2v8.BlockstackSessionJ2V8
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
@@ -44,7 +46,7 @@ class BlockstackSession2StorageTest {
 
     @Before
     fun setup() {
-        val sessionStore = org.blockstack.android.sdk.sessionStoreforIntegrationTests(rule)
+        val sessionStore = sessionStoreforIntegrationTests(rule)
         val executor = IntegrationTestExecutor(rule)
         val callFactory = OkHttpClient()
         session = BlockstackSessionJ2V8(rule.activity,
@@ -154,7 +156,7 @@ class BlockstackSession2StorageTest {
 
     @Test
     fun testListFiles() {
-        var fileCount: Int? = null
+        var fileCount: Result<Int>? = null
         val latch = CountDownLatch(1)
         runBlocking {
             session2.putFile("try.text", "Hello Test", PutFileOptions()) {
@@ -168,7 +170,7 @@ class BlockstackSession2StorageTest {
         }
 
         latch.await()
-        assertThat(fileCount, `is`(Matchers.greaterThanOrEqualTo(1)))
+        assertThat(fileCount?.value, `is`(Matchers.greaterThanOrEqualTo(1)))
     }
     companion object {
         val TAG = BlockstackSession2StorageTest::class.java.simpleName

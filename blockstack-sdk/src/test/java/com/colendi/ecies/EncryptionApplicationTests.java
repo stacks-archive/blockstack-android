@@ -17,7 +17,7 @@ public class EncryptionApplicationTests {
 	    String message = "Colendi";
 
 
-	    EncryptedResult encryptedResult = encryption.encryptWithPublicKey(message, publicKey);
+	    EncryptedResult encryptedResult = encryption.encryptWithPublicKey(message.getBytes(), publicKey);
 
 	    EncryptedResultForm formData = new EncryptedResultForm();
 
@@ -27,7 +27,7 @@ public class EncryptionApplicationTests {
 		formData.setIv(encryptedResult.getIv());
 		formData.setMac(encryptedResult.getMac());
 
-	    String result = encryption.decryptWithPrivateKey(formData);
+	    String result = new String(encryption.decryptWithPrivateKey(formData));
         assert(result.equals(message));
 	}
 

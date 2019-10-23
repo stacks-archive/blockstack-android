@@ -37,7 +37,7 @@ class EncryptionColendiLibTest {
         val message = "Colendi"
 
 
-        val encryptedResult = encryption.encryptWithPublicKey(message, publicKey)
+        val encryptedResult = encryption.encryptWithPublicKey(message.toByteArray(), publicKey)
 
         val formData = EncryptedResultForm()
 
@@ -47,7 +47,7 @@ class EncryptionColendiLibTest {
         formData.iv = encryptedResult.iv
         formData.mac = encryptedResult.mac
 
-        val result = encryption.decryptWithPrivateKey(formData)
+        val result = String(encryption.decryptWithPrivateKey(formData))
         assert(result == message)
     }
 
@@ -60,7 +60,7 @@ class EncryptionColendiLibTest {
         val message = "Colendi"
 
 
-        val encryptedResult = encryption.encryptWithPublicKey(message, publicKey)
+        val encryptedResult = encryption.encryptWithPublicKey(message.toByteArray(), publicKey)
 
         val result = Blockstack()
                 .decryptContent(CipherObject(encryptedResult.iv, encryptedResult.ephemPublicKey, encryptedResult.ciphertext, encryptedResult.mac, true).json.toString(), false,
@@ -90,7 +90,7 @@ class EncryptionColendiLibTest {
 
         val result = encryption.decryptWithPrivateKey(EncryptedResultForm(encryptedResult.ephemeralPK, encryptedResult.iv, encryptedResult.mac, encryptedResult.cipherText, privateKey))
 
-        assertThat(result as String, `is`(message))
+        assertThat(String(result), `is`(message))
 
     }
 
@@ -100,7 +100,7 @@ class EncryptionColendiLibTest {
 
         val cipher = "c5a777b2daac1c7f50f2007af02f517d"
         val plainText = Encryption.decryptAES256CBC(cipher.hexToByteArray(), publicKey.slice(0..63), byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6))
-        assertThat(plainText as String, `is`("abc"))
+        assertThat(String(plainText), `is`("abc"))
 
     }
 
