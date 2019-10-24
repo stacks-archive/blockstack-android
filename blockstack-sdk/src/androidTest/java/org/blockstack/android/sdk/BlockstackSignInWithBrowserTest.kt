@@ -43,6 +43,6 @@ class BlockstackSessionLoginWithBrowserTest {
                         hasParamWithName("authRequest")
                 ))))
         InstrumentationRegistry.getInstrumentation().uiAutomation
-                .performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+                .performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
     }
 }
