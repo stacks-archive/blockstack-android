@@ -9,6 +9,7 @@ import androidx.test.espresso.intent.matcher.UriMatchers.hasHost
 import androidx.test.espresso.intent.matcher.UriMatchers.hasParamWithName
 import androidx.test.espresso.intent.rule.IntentsTestRule
 import androidx.test.platform.app.InstrumentationRegistry
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
@@ -36,13 +37,14 @@ class BlockstackSessionLoginWithBrowserTest {
     fun testRedirect() {
         runBlocking {
             signIn.redirectUserToSignIn(rule.activity)
+            delay(500)
+            InstrumentationRegistry.getInstrumentation().uiAutomation
+                    .performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
         }
         intended(allOf(hasAction(Intent.ACTION_VIEW),
                 hasData(allOf(
                         hasHost("browser.blockstack.org"),
                         hasParamWithName("authRequest")
                 ))))
-        InstrumentationRegistry.getInstrumentation().uiAutomation
-                .performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
     }
 }
