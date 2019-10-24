@@ -436,7 +436,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      *@result the public read URL of the file or null on error
      */
     suspend fun getUserAppFileUrl(path: String, username: String, appOrigin: String, zoneFileLookupURL: String?): String {
-        val profile = lookupProfile(username, URL(zoneFileLookupURL))
+        val profile = lookupProfile(username, zoneFileLookupURL?.let { URL(it) })
         var bucketUrl: String = "NO_URL"
         if (profile.json.has("apps")) {
             val apps = profile.json.getJSONObject("apps")

@@ -219,7 +219,7 @@ class BlockstackSignInTest {
                 blockstack.makeAuthResponse(account, authRequest)
                 throw RuntimeException("should have failed")
             } catch (e: InvalidParameterException) {
-                assertThat(e.message, CoreMatchers.`is`("could not fetch name info"))
+                assertThat(e.message, CoreMatchers.`is`("could not fetch name info 404"))
             }
         }
     }
