@@ -3,6 +3,7 @@ package org.blockstack.android.sdk
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
@@ -96,6 +97,7 @@ class NetworkTest {
     fun getNamesOwnedReturnsCorrectNames() {
 
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getNamesOwned("1Akc4hagxfYfDq9suMp1wjjyC5RwxJ7D3H")
         }
 
@@ -106,6 +108,7 @@ class NetworkTest {
     @Test
     fun getNamesOwnedReturnsErrorForIncorrectNames() {
         var result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getNamesOwned(invalidAddress)
         }
         assertThat(result.hasValue, `is`(false))
@@ -116,6 +119,7 @@ class NetworkTest {
     fun getNamespaceBurnAddressReturnsCorrectAddress() {
 
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getNamespaceBurnAddress("id")
         }
 
@@ -128,6 +132,7 @@ class NetworkTest {
     fun getNamespaceBurnAddressReturnsErrorForIncorrectNamespace() {
 
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getNamespaceBurnAddress(invalidUsername)
         }
 
@@ -138,6 +143,7 @@ class NetworkTest {
     @Test
     fun getNameInfoReturnsCorrectInfo() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getNameInfo(username)
         }
 
@@ -148,6 +154,7 @@ class NetworkTest {
     @Test
     fun getNameInfoReturnsNoInfoForBadName() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getNameInfo(invalidUsername)
         }
 
@@ -158,6 +165,7 @@ class NetworkTest {
     @Test
     fun getNamespaceInfoReturnsCorrectInfo() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getNamespaceInfo("blockstack")
         }
 
@@ -170,6 +178,7 @@ class NetworkTest {
     @Test
     fun getNamespaceInfoReturnsErrorForInvalidNamespace() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getNamespaceInfo("id.blockstack")
         }
 
@@ -181,6 +190,7 @@ class NetworkTest {
     @Test
     fun getNamespaceInfoReturnsNoInfoForBadNamespace() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getNamespaceInfo(invalidUsername)
         }
 
@@ -214,6 +224,7 @@ class NetworkTest {
         val opReturn = "69642b65cb791d68bbafab0fffea7f8a32499c3bd68d67eea0a621bf2b789d1ac97271afdfb8e1" // from https://www.blocktrail.com/BTC/tx/e2029990fa75e9fc642f149dad196ac6b64b9c4a6db254f23a580b7508fc34d7
         val hash = opReturn.substring(19 * 2)
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getZonefile(hash)
         }
 
@@ -224,6 +235,7 @@ class NetworkTest {
     @Test
     fun getZonefileReturnsErrorForInvalidHash() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getZonefile("invalid hash")
 
         }
@@ -234,6 +246,7 @@ class NetworkTest {
     @Test
     fun getAccountStatusReturnsCorrectStatus() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getAccountStatus(stackAddress, STACKS_TYPE)
         }
 
@@ -245,6 +258,7 @@ class NetworkTest {
     @Test
     fun getAccountStatusReturnsErrorForInvalidAccount() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getAccountStatus(userAddress, STACKS_TYPE)
         }
 
@@ -256,6 +270,7 @@ class NetworkTest {
     @Test
     fun getAccountAtReturnsCorrectState() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getAccountAt(stackAddress, 493493)
         }
 
@@ -266,6 +281,7 @@ class NetworkTest {
     @Test
     fun getAccountAtReturnsEmptyStateForBadAddress() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getAccountAt(userAddress, 488115)
         }
 
@@ -276,6 +292,7 @@ class NetworkTest {
     @Test
     fun getAccountAtReturnsErrorForInvalidAddress() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getAccountAt(invalidAddress, 488115)
         }
 
@@ -287,6 +304,7 @@ class NetworkTest {
     @Test
     fun getAccountTokensReturnsAllTokens() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getAccountTokens(stackAddress)
         }
 
@@ -297,6 +315,7 @@ class NetworkTest {
     @Test
     fun getAccountTokensReturnsErrorForInvalidAddress() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getAccountTokens(invalidAddress)
         }
 
@@ -307,6 +326,7 @@ class NetworkTest {
     @Test
     fun getAccountBalanceReturnsCorrectBalance() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
         network.getAccountBalance(userAddress, STACKS_TYPE)
         }
 
@@ -318,6 +338,7 @@ class NetworkTest {
     @Test
     fun getAccountBalanceReturnsErrorForInvalidAddress() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getAccountBalance(invalidAddress, STACKS_TYPE)
         }
 
@@ -329,10 +350,15 @@ class NetworkTest {
     @Test
     fun getAccountBalanceReturnsErrorForInvalidTokenType() {
         val result = runBlocking {
+            letCoreNodeAPIrecover()
             network.getAccountBalance(userAddress, "BTC")
         }
 
         assertThat(result.hasValue, `is`(false))
         assertThat(result.error?.message, `is`("request failed: Invalid token type"))
+    }
+
+    private suspend fun letCoreNodeAPIrecover() {
+        delay(500)
     }
 }
