@@ -1,5 +1,6 @@
 package org.blockstack.android.sdk
 
+import android.accessibilityservice.AccessibilityService
 import android.content.Intent
 import androidx.test.espresso.intent.Intents.intended
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
@@ -7,6 +8,7 @@ import androidx.test.espresso.intent.matcher.IntentMatchers.hasData
 import androidx.test.espresso.intent.matcher.UriMatchers.hasHost
 import androidx.test.espresso.intent.matcher.UriMatchers.hasParamWithName
 import androidx.test.espresso.intent.rule.IntentsTestRule
+import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
 import org.blockstack.android.sdk.model.BlockstackConfig
 import org.blockstack.android.sdk.model.toBlockstackConfig
@@ -41,5 +43,7 @@ class BlockstackSessionLoginWithBrowserTest {
                         hasHost("browser.blockstack.org"),
                         hasParamWithName("authRequest")
                 ))))
+        InstrumentationRegistry.getInstrumentation().uiAutomation
+                .performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
     }
 }

@@ -20,8 +20,6 @@ import org.junit.runner.RunWith
 
 private val PRIVATE_KEY = "a5c61c6ca7b3e7e55edee68566aeab22e4da26baa285c7bd10e8d2218aa3b229"
 private val PUBLIC_KEY = "027d28f9951ce46538951e3697c62588a87f1f1f295de4a14fdd4c780fc52cfe69"
-private val DECENTRALIZED_ID = "did:btc-addr:1NZNxhoxobqwsNvTb16pdeiqvFvce3Yg8U"
-private val BITCOIN_ADDRESS = "1NZNxhoxobqwsNvTb16pdeiqvFvce3Yg8U"
 
 
 @RunWith(AndroidJUnit4::class)
@@ -60,7 +58,7 @@ class BlockstackSession2EncryptionTest {
     }
 
     @Test
-    fun testEncryptDecrypt2() {
+    fun testEncryptJ2V8ThenDecrypt() {
         val message = "Hello Test"
         val result = sessionJ2V8.encryptContent(message, CryptoOptions(publicKey = PUBLIC_KEY))
         val plainText = blockstack.decryptContent(result.value!!.json.toString(), false, CryptoOptions(privateKey = PRIVATE_KEY))
@@ -68,17 +66,9 @@ class BlockstackSession2EncryptionTest {
     }
 
 
-    @Test
-    fun testEncrypt2Decrypt2() {
-        val message = "Hello Test"
-        val result = blockstack.encryptContent(message, CryptoOptions(publicKey = PUBLIC_KEY))
-        val plainText = blockstack.decryptContent(result.value!!.json.toString(), false, CryptoOptions(privateKey = PRIVATE_KEY))
-        assertThat(plainText.value as String, `is`(message))
-    }
-
 
     @Test
-    fun testEncrypt2Decrypt() {
+    fun testEncryptThenDecryptJ2V8() {
         val message = "Hello Test"
         val result = blockstack.encryptContent(message, CryptoOptions(publicKey = PUBLIC_KEY))
         val plainText = sessionJ2V8.decryptContent(result.value!!.json.toString(), false, CryptoOptions(privateKey = PRIVATE_KEY))

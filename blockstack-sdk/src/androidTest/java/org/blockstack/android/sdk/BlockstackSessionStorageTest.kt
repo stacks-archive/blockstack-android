@@ -10,6 +10,7 @@ import org.blockstack.android.sdk.model.*
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers
 import org.json.JSONObject
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -391,6 +392,33 @@ class BlockstackSessionStorageTest {
 
         assertThat(url, `is`("https://gaia.blockstack.org/hub/1NZNxhoxobqwsNvTb16pdeiqvFvce3Yg8U/"))
     }
+
+    @Test
+    fun getGaiaAddressReturnsCorrectAddress() {
+        val address = session.getGaiaAddress("https://www.stealthy.im", "muneeb.id")
+        assertThat(address, `is`("1KJmwBRzF4A8CaMbAh2EjUwG3BhHiSfTAM"))
+    }
+
+
+    @Test
+    fun testListFilesWithAtLeastOneFile() {
+        var fileCount: Result<Int>? = null
+        val latch = CountDownLatch(1)
+        runBlocking {
+            session.putFile("try.text", "Hello Test", PutFileOptions()) {
+                fileCount = runBlocking {
+                    session.listFiles {
+                        true
+                    }
+                }
+                latch.countDown()
+            }
+        }
+
+        latch.await()
+        assertThat(fileCount?.value, `is`(Matchers.greaterThanOrEqualTo(1)))
+    }
+
 
     @Test
     fun listFilesReturnsCorrectNumberOfFiles() {
