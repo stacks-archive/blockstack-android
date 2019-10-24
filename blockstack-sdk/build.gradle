@@ -43,6 +43,10 @@ android {
     packagingOptions {
         exclude 'META-INF/*'
     }
+
+    lintOptions {
+        disable 'InvalidPackage'
+    }
 }
 
 dokka {
