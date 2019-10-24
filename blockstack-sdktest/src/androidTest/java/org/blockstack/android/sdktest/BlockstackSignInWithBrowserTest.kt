@@ -1,4 +1,4 @@
-package org.blockstack.android.sdk
+package org.blockstack.android.sdktest
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
@@ -11,8 +11,10 @@ import androidx.test.espresso.intent.rule.IntentsTestRule
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.blockstack.android.sdk.BlockstackSignIn
+import org.blockstack.android.sdk.SessionStore
 import org.blockstack.android.sdk.model.toBlockstackConfig
-import org.blockstack.android.sdk.test.TestActivity
+import org.blockstack.android.sdktest.test.TestActivity
 import org.hamcrest.Matchers.allOf
 import org.junit.Before
 import org.junit.Rule
