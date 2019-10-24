@@ -3,9 +3,7 @@ package org.blockstack.android.sdk
 import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
@@ -34,11 +32,12 @@ import org.komputing.khex.extensions.toNoPrefixHexString
 import java.lang.Integer.parseInt
 import java.math.BigInteger
 import java.security.InvalidParameterException
+import java.util.*
 
 const val SIGNATURE_FILE_EXTENSION = ".sig"
 
 class BlockstackSession(private val sessionStore: SessionStore, private val appConfig: BlockstackConfig? = null,
-                        private val callFactory: Call.Factory = OkHttpClient(), val blockstack: Blockstack) {
+                        private val callFactory: Call.Factory = OkHttpClient(), val blockstack: Blockstack = Blockstack()) {
 
     private var appPrivateKey: String?
     var gaiaHubConfig: GaiaHubConfig? = null
@@ -82,7 +81,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         val userData = authResponseToUserData(tokenPayload, nameLookupUrl, appPrivateKey, coreSessionToken, authResponse)
 
         this.appPrivateKey = appPrivateKey
-        sessionStore.sessionData.json.put("userData", userData.json)
+        sessionStore.updateUserData(userData)
 
         signInCallback(Result(userData))
     }
@@ -130,7 +129,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
     private suspend fun extractProfile(tokenPayload: JSONObject, nameLookupUrl: String): JSONObject {
         val profileUrl = tokenPayload.optStringOrNull("profile_url")
         if (profileUrl != null && profileUrl.isNotBlank()) {
-            val fetchProfileJson = CoroutineScope(Dispatchers.IO).async {
+            return withContext(Dispatchers.IO) {
                 val request = Request.Builder().url(profileUrl)
                         .build()
                 val response = callFactory.newCall(request).execute()
@@ -146,7 +145,6 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
                     JSONObject()
                 }
             }
-            return fetchProfileJson.await()
         }
         return tokenPayload.getJSONObject("profile")
     }
@@ -196,6 +194,11 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
             gaiaHubConfig = config
             return config
         }
+        val config = userData.opt("gaiaHubConfig")
+        if (config is GaiaHubConfig) {
+            this.gaiaHubConfig = config
+            return config
+        }
         return this.setLocalGaiaHubConnection()
     }
 
@@ -241,7 +244,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
                                     associationToken: String?): String {
 
         val challengeText = hubInfo.getString("challenge_text")
-        val handlesV1Auth = hubInfo.optString("latest_auth_version")?.substring(1)?.let {
+        val handlesV1Auth = hubInfo.optString("latest_auth_version").substring(1)?.let {
             parseInt(it, 10) >= 1
         } ?: false
 
@@ -285,9 +288,9 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
      * UI thread so you should execute any UI interactions in a `runOnUIThread` block
      */
     suspend fun getFile(path: String, options: GetFileOptions, callback: (Result<Any>) -> Unit) {
-        Log.d(TAG, "getFile: path: ${path} options: ${options}")
-
-        val getRequest = buildGetRequest(path, gaiaHubConfig!!)
+        Log.d(TAG, "getFile: path: $path options: $options")
+        val gaiaHubConfiguration = getOrSetLocalGaiaHubConnection()
+        val getRequest = buildGetRequest(path, gaiaHubConfiguration)
 
         withContext(Dispatchers.IO) {
             val exception = kotlin.runCatching {
@@ -373,7 +376,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         }
     }
 
-    fun getGaiaAddress(appDomain: String, username: String): String {
+    suspend fun getGaiaAddress(appDomain: String, username: String): String {
         val fileUrl = blockstack.getUserAppFileUrl("/", username, appDomain, null)
         val address = Regex("([13][a-km-zA-HJ-NP-Z0-9]{26,35})").find(fileUrl)?.value
         if (address != null) {
@@ -397,6 +400,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
      */
     suspend fun putFile(path: String, content: Any, options: PutFileOptions, callback: (Result<String>) -> Unit) {
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
+        val gaiaHubConfiguration = getOrSetLocalGaiaHubConnection()
         val valid = content is String || content is ByteArray
         if (!valid) {
             throw IllegalArgumentException("putFile content only supports String or ByteArray")
@@ -439,7 +443,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
             }
         }
 
-        val putRequest = buildPutRequest(path, requestContent, contentType, gaiaHubConfig!!)
+        val putRequest = buildPutRequest(path, requestContent, contentType, gaiaHubConfiguration)
         withContext(Dispatchers.IO) {
             try {
                 val response = callFactory.newCall(putRequest).execute()
@@ -557,7 +561,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
      * returns `true` to continue the listing operation or `false` to end it
      * @return {Promise} that resolves to the number of files listed
      */
-    suspend fun listFiles(callback: (String) -> Boolean): Result<Int> {
+    suspend fun listFiles(callback: (Result<String>) -> Boolean): Result<Int> {
         try {
             val fileCount = listFilesLoop(callback, null, 0, 0)
             return Result(fileCount)
@@ -596,7 +600,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         return "${hubConfig.urlPrefix}${hubConfig.address}/${filename}"
     }
 
-    private suspend fun listFilesLoop(callback: (String) -> Boolean, page: String?, callCount: Int, fileCount: Int): Int {
+    private suspend fun listFilesLoop(callback: (Result<String>) -> Boolean, page: String?, callCount: Int, fileCount: Int): Int {
         if (callCount > 65536) {
             throw RuntimeException("Too many entries to list")
         }
@@ -628,7 +632,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
             }
 
             for (index in 0 until fileEntries.length()) {
-                val shouldContinue = callback(fileEntries.getString(index))
+                val shouldContinue = callback(Result(fileEntries.getString(index)))
                 if (!shouldContinue) {
                     return fileCount + index
                 }
@@ -661,7 +665,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
     }
 
     fun isUserSignedIn(): Boolean {
-        return appPrivateKey != null
+        return sessionStore.sessionData.json.optJSONObject("userData")?.optString("appPrivateKey") != null
     }
 
     fun loadUserData(): UserData {
@@ -674,8 +678,35 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
     }
 
     fun signUserOut() {
-        sessionStore.sessionData.json.remove("userData")
+        sessionStore.deleteSessionData()
         appPrivateKey = null
+    }
+
+    fun validateProofs(profile: Profile, ownerAddress: String, optString: String?): Result<ArrayList<Proof>> {
+        TODO("not implemented")
+        return Result(null, ResultError(ErrorCode.UnknownError, "Not implemented"))
+    }
+
+    fun encryptContent(content: Any, options: CryptoOptions): Result<CipherObject> {
+        val updatedOptions =
+                if (options.publicKey == null) {
+                    val appPrivateKeyPair = PrivateKey(appPrivateKey!!).toECKeyPair()
+                    val publicKey = appPrivateKeyPair.toHexPublicKey64()
+                    CryptoOptions(publicKey = publicKey)
+                } else {
+                    options
+                }
+        return blockstack.encryptContent(content, updatedOptions)
+    }
+
+    fun decryptContent(cipherObject: String, binary: Boolean, options: CryptoOptions): Result<Any> {
+        val updatedOptions =
+                if (options.privateKey == null) {
+                    CryptoOptions(privateKey = appPrivateKey)
+                } else {
+                    options
+                }
+        return blockstack.decryptContent(cipherObject, binary, updatedOptions)
     }
 
     companion object {

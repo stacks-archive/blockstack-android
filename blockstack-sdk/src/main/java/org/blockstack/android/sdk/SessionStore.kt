@@ -3,6 +3,7 @@ package org.blockstack.android.sdk
 import android.content.SharedPreferences
 import android.util.Log
 import org.blockstack.android.sdk.model.SessionData
+import org.blockstack.android.sdk.model.UserData
 import org.json.JSONObject
 
 val BLOCKSTACK_SESSION = "blockstack_session"
@@ -40,6 +41,11 @@ class SessionStore(private val prefs: SharedPreferences) : ISessionStore {
     override fun deleteSessionData() {
         prefs.edit().putString(BLOCKSTACK_SESSION, EMPTY_DATA).apply()
         sessionDataObject = SessionData(JSONObject())
+    }
+
+    fun updateUserData(userData: UserData) {
+        sessionDataObject.json.put("userData", userData.json)
+        prefs.edit().putString(BLOCKSTACK_SESSION, sessionDataObject.json.toString()).apply()
     }
 
 }

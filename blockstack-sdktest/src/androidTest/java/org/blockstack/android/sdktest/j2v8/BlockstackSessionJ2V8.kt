@@ -227,7 +227,7 @@ class BlockstackSessionJ2V8(context: Context? = null, private val config: Blocks
      * sign in by passing it to the redirectToSignInWithAuthRequest method.
      *
      * Note: This method should only be used if you want to roll your own authentication flow.
-     * Typically you'd use redirectToSignIn which takes care of this under the hood.
+     * Typically you'd use redirectUserToSignIn which takes care of this under the hood.
      *
      * @param transitPrivateKey hex encoded transit private key
      * @param expiresAt the time at which this request is no longer valid
@@ -305,7 +305,7 @@ class BlockstackSessionJ2V8(context: Context? = null, private val config: Blocks
     fun redirectUserToSignIn(errorCallback: (Result<Unit>) -> Unit) {
         try {
             val v8params = V8Array(v8)
-            v8userSession.executeVoidFunction("redirectToSignIn", v8params)
+            v8userSession.executeVoidFunction("redirectUserToSignIn", v8params)
             v8params.release()
         } catch (e: Exception) {
             errorCallback(Result(null, ResultError(ErrorCode.RedirectFailed, e.toString())))

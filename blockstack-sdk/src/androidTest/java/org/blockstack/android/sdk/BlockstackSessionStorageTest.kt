@@ -380,8 +380,11 @@ class BlockstackSessionStorageTest {
 
     @Test
     fun getUserAppFileUrlReturns_NO_URL_forNonPublicFile() {
-        val url = blockstack.getUserAppFileUrl("non_public_file.txt", "friedger.id", "https://blockstack-todos.appartisan.com/", null)
+        val url = runBlocking {
+            blockstack.getUserAppFileUrl("non_public_file.txt", "friedger.id", "https://blockstack-todos.appartisan.com/", null)
+        }
         assertThat(url, `is`("NO_URL"))
+
     }
 
     @Test
@@ -395,7 +398,9 @@ class BlockstackSessionStorageTest {
 
     @Test
     fun getGaiaAddressReturnsCorrectAddress() {
-        val address = session.getGaiaAddress("https://www.stealthy.im", "muneeb.id")
+        val address = runBlocking {
+            session.getGaiaAddress("https://www.stealthy.im", "muneeb.id")
+        }
         assertThat(address, `is`("1KJmwBRzF4A8CaMbAh2EjUwG3BhHiSfTAM"))
     }
 
@@ -435,7 +440,7 @@ class BlockstackSessionStorageTest {
     @Test
     fun listFilesCanHandleErrorInCallback() {
         val countResult = runBlocking {
-            session.listFiles { _ ->
+            session.listFiles {
                 throw RuntimeException("I want to make the API crash!")
             }
         }

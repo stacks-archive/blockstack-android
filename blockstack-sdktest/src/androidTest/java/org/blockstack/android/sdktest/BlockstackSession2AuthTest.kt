@@ -23,7 +23,6 @@ import org.kethereum.bip39.model.MnemonicWords
 import org.kethereum.bip39.toSeed
 import org.kethereum.bip44.BIP44Element
 import org.kethereum.extensions.toHexStringNoPrefix
-import java.security.InvalidParameterException
 import java.util.*
 import java.util.concurrent.CountDownLatch
 
@@ -84,7 +83,7 @@ class BlockstackSession2AuthTest {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequestJ2V8 = sessionJ2V8.makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         val authRequest = runBlocking {
-            BlockstackSignIn(appConfig, sessionStore).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
         val token = JWTTools().decodeRaw(authRequestJ2V8)
         val token2 = JWTTools().decodeRaw(authRequest)
@@ -96,7 +95,7 @@ class BlockstackSession2AuthTest {
     fun testMakeAuthResponseThenHandlePendingLoginJ2V8() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(appConfig, sessionStore).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)

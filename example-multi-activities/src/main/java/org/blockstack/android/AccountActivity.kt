@@ -9,12 +9,19 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NavUtils
+import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_account.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.BlockstackSignIn
+import org.blockstack.android.sdk.SessionStore
 
 
 class AccountActivity : AppCompatActivity() {
+    private lateinit var blockstackSignIn: BlockstackSignIn
     private val TAG = AccountActivity::class.java.simpleName
 
     private var _blockstackSession: BlockstackSession? = null
@@ -28,14 +35,17 @@ class AccountActivity : AppCompatActivity() {
         signInButton.isEnabled = false
         signOutButton.isEnabled = false
 
-        _blockstackSession = BlockstackSession(this, defaultConfig)
+        val sessionStore = SessionStoreProvider.getInstance(this)
+        blockstackSignIn = BlockstackSignIn(sessionStore, defaultConfig)
+        _blockstackSession = BlockstackSession(sessionStore, defaultConfig)
+
         if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
         }
         onLoaded()
-        signInButton.setOnClickListener { _ ->
-            blockstackSession().redirectUserToSignIn { _ ->
-                Log.d(TAG, "signed in error!")
+        signInButton.setOnClickListener {
+            lifecycleScope.launch(Dispatchers.IO) {
+                blockstackSignIn.redirectUserToSignIn(this@AccountActivity)
             }
         }
 
@@ -84,16 +94,20 @@ class AccountActivity : AppCompatActivity() {
             if (authResponseTokens.size > 1) {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: ${authResponse}")
-                blockstackSession().handlePendingSignIn(authResponse, {
-                    if (it.hasErrors) {
-                        Toast.makeText(this, "error: ${it.error}", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Log.d(TAG, "signed in!")
-                        runOnUiThread {
-                            onSignIn()
+                lifecycleScope.launch(Dispatchers.IO) {
+                    blockstackSession().handlePendingSignIn(authResponse) {
+                        if (it.hasErrors) {
+                            runOnUiThread {
+                                Toast.makeText(this@AccountActivity, "error: ${it.error}", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            Log.d(TAG, "signed in!")
+                            runOnUiThread {
+                                onSignIn()
+                            }
                         }
                     }
-                })
+                }
             }
         }
     }

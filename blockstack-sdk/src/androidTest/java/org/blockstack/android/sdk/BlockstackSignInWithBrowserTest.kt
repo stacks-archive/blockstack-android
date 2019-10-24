@@ -10,7 +10,6 @@ import androidx.test.espresso.intent.matcher.UriMatchers.hasParamWithName
 import androidx.test.espresso.intent.rule.IntentsTestRule
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
-import org.blockstack.android.sdk.model.BlockstackConfig
 import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.Matchers.allOf
@@ -30,13 +29,13 @@ class BlockstackSessionLoginWithBrowserTest {
     @Before
     fun setup() {
         sessionStore = sessionStoreforIntegrationTests(rule)
-        signIn = BlockstackSignIn("https://example.com".toBlockstackConfig(emptyArray()), sessionStore)
+        signIn = BlockstackSignIn(sessionStore, "https://example.com".toBlockstackConfig(emptyArray()))
     }
 
     @Test
     fun testRedirect() {
         runBlocking {
-            signIn.redirectToSignIn(rule.activity)
+            signIn.redirectUserToSignIn(rule.activity)
         }
         intended(allOf(hasAction(Intent.ACTION_VIEW),
                 hasData(allOf(

@@ -20,7 +20,7 @@ import org.kethereum.extensions.toHexStringNoPrefix
 import org.kethereum.model.PrivateKey
 import java.util.*
 
-class BlockstackSignIn(private val appConfig: BlockstackConfig, private val sessionStore: ISessionStore) {
+class BlockstackSignIn(private val sessionStore: ISessionStore, private val appConfig: BlockstackConfig) {
 
 
     /**
@@ -29,7 +29,7 @@ class BlockstackSignIn(private val appConfig: BlockstackConfig, private val sess
      * sign in by passing it to the redirectToSignInWithAuthRequest method.
      *
      * Note: This method should only be used if you want to roll your own authentication flow.
-     * Typically you'd use redirectToSignIn which takes care of this under the hood.
+     * Typically you'd use redirectUserToSignIn which takes care of this under the hood.
      *
      * @param transitPrivateKey hex encoded transit private key
      * @param expiresAt the time at which this request is no longer valid
@@ -64,7 +64,7 @@ class BlockstackSignIn(private val appConfig: BlockstackConfig, private val sess
         return JWTTools().createJWT(payload, issuerDID, KPSigner(transitPrivateKey), algorithm = JwtHeader.ES256K)
     }
 
-    suspend fun redirectToSignIn(context: Context) {
+    suspend fun redirectUserToSignIn(context: Context) {
         val transitPrivateKey = generateAndStoreTransitKey()
         val authRequest = makeAuthRequest(transitPrivateKey)
         redirectToSignInWithAuthRequest(context, authRequest, this.appConfig.authenticatorUrl)

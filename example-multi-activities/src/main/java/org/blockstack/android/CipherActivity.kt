@@ -9,9 +9,15 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_cipher.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.blockstack.android.sdk.Blockstack
 import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.SessionStore
 import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
@@ -21,6 +27,7 @@ val TAG = CipherActivity::class.java.simpleName
 
 class CipherActivity : AppCompatActivity() {
 
+    private lateinit var blockstack: Blockstack
     private var _blockstackSession: BlockstackSession? = null
 
 
@@ -30,17 +37,17 @@ class CipherActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        _blockstackSession = BlockstackSession(this, defaultConfig)
+        val sessionStore = SessionStoreProvider.getInstance(this)
+        blockstack = Blockstack()
+        _blockstackSession = BlockstackSession(sessionStore, defaultConfig, blockstack = blockstack)
     }
 
     override fun onResume() {
         super.onResume()
-        if (_blockstackSession?.loaded == true) {
-            checkLogin()
-        }
+        checkLogin()
     }
 
-    fun checkLogin() {
+    private fun checkLogin() {
         if (blockstackSession().isUserSignedIn()) {
             encryptDecryptString()
             encryptDecryptImage()
@@ -53,11 +60,15 @@ class CipherActivity : AppCompatActivity() {
 
     private fun putFileGetFile() {
         // works
-        blockstackSession().putFile("try.txt", "Hello from Blockstack2", PutFileOptions(encrypt = true)) {
-            Log.d(TAG, "result: " + it.value)
-            // does not yet work
-            blockstackSession().getFile("try.txt", GetFileOptions(true)) {
-                Log.d(TAG, "content " + it.value)
+        lifecycleScope.launch(Dispatchers.IO) {
+            blockstackSession().putFile("try.txt", "Hello from Blockstack2", PutFileOptions(encrypt = true)) {
+                Log.d(TAG, "result: " + it.value)
+                // does not yet work
+                lifecycleScope.launch(Dispatchers.IO) {
+                    blockstackSession().getFile("try.txt", GetFileOptions(true)) {
+                        Log.d(TAG, "content " + it.value)
+                    }
+                }
             }
         }
     }
@@ -65,22 +76,27 @@ class CipherActivity : AppCompatActivity() {
     private fun putFileGetFileImage() {
         val drawable: BitmapDrawable = ContextCompat.getDrawable(this, R.drawable.default_avatar) as BitmapDrawable
 
-        val bitmap = drawable.getBitmap()
+        val bitmap = drawable.bitmap
         val stream = ByteArrayOutputStream()
 
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
         val bitMapData = stream.toByteArray()
 
         // works
-        blockstackSession().putFile("try.txt", bitMapData, PutFileOptions(encrypt = true)) {
-            Log.d(TAG, "result: " + it.value)
-            // does not yet work
-            blockstackSession().getFile("try.txt", GetFileOptions(true)) {
-                val plainContent: ByteArray = it.value as ByteArray
-                val imageByteArray = plainContent
-                val receivedBitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
-                runOnUiThread {
-                    imageView.setImageBitmap(receivedBitmap)
+        lifecycleScope.launch(Dispatchers.IO) {
+            blockstackSession().putFile("try.txt", bitMapData, PutFileOptions(encrypt = true)) {
+                Log.d(TAG, "result: " + it.value)
+                // does not yet work
+                lifecycleScope.launch(Dispatchers.IO) {
+
+                    blockstackSession().getFile("try.txt", GetFileOptions(true)) {
+                        val plainContent: ByteArray = it.value as ByteArray
+                        val imageByteArray = plainContent
+                        val receivedBitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+                        runOnUiThread {
+                            imageView.setImageBitmap(receivedBitmap)
+                        }
+                    }
                 }
             }
         }
@@ -99,7 +115,7 @@ class CipherActivity : AppCompatActivity() {
             if (plainContentResult.hasValue) {
                 val plainContent: String = plainContentResult.value as String
                 runOnUiThread {
-                    textView.setText(plainContent)
+                    textView.text = plainContent
                 }
             } else {
                 Toast.makeText(this, "error: ${plainContentResult.error}", Toast.LENGTH_SHORT).show()
@@ -113,7 +129,7 @@ class CipherActivity : AppCompatActivity() {
 
         val drawable: BitmapDrawable = ContextCompat.getDrawable(this, R.drawable.default_avatar) as BitmapDrawable
 
-        val bitmap = drawable.getBitmap()
+        val bitmap = drawable.bitmap
         val stream = ByteArrayOutputStream()
 
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)

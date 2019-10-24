@@ -11,16 +11,19 @@ import android.os.HandlerThread
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.preference.PreferenceManager
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdktest.j2v8.Executor
+import org.blockstack.android.sdk.SessionStore
 import org.blockstack.android.sdk.model.PutFileOptions
 
 
 class BlockstackService : IntentService("BlockstackExample") {
 
+    private lateinit var sessionStore: SessionStore
     private val TAG: String = "BlockstackService"
     private val CHANNEL_ID = "progress"
     private lateinit var _blockstackSession: BlockstackSession
@@ -32,36 +35,15 @@ class BlockstackService : IntentService("BlockstackExample") {
         handlerThread = HandlerThread("BlockstackService")
         handlerThread.start()
         handler = Handler(handlerThread.looper)
+        sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(this))
 
     }
 
     override fun onHandleIntent(intent: Intent?) {
-        runOnV8Thread {
-            _blockstackSession = BlockstackSession(this, defaultConfig, executor = object : org.blockstack.android.sdktest.j2v8.Executor {
-                override fun onMainThread(function: (Context) -> Unit) {
-                    GlobalScope.launch(Dispatchers.Main) {
-                        function.invoke(applicationContext)
-                    }
-                }
-
-                override fun onV8Thread(function: () -> Unit) {
-                    runOnV8Thread {
-                        function.invoke()
-                    }
-                }
-
-                override fun onNetworkThread(function: suspend () -> Unit) {
-                    GlobalScope.launch(Dispatchers.IO) {
-                        function.invoke()
-                    }
-                }
-            })
+        _blockstackSession = BlockstackSession(sessionStore, defaultConfig)
+        CoroutineScope(Dispatchers.IO).launch {
             putFileFromService()
         }
-    }
-
-    fun runOnV8Thread(runnable: () -> Unit) {
-        handler.post(runnable)
     }
 
     fun initNotifChannel() {
@@ -76,7 +58,7 @@ class BlockstackService : IntentService("BlockstackExample") {
         notificationManager.createNotificationChannel(channel)
     }
 
-    private fun putFileFromService() {
+    private suspend fun putFileFromService() {
         initNotifChannel()
         val signedIn = _blockstackSession.isUserSignedIn()
         if (signedIn) {
@@ -103,6 +85,7 @@ class BlockstackService : IntentService("BlockstackExample") {
         } else {
             val notif = NotificationCompat.Builder(this, CHANNEL_ID)
                     .setContentTitle("Not logged In")
+                    .setSmallIcon(R.drawable.org_blockstack_logo)
                     .build()
             NotificationManagerCompat.from(this).notify(0, notif)
         }

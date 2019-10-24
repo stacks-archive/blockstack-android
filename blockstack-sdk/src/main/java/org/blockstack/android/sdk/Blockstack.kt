@@ -38,6 +38,7 @@ import org.kethereum.model.PublicKey
 import org.komputing.khex.extensions.hexToByteArray
 import org.komputing.khex.extensions.toNoPrefixHexString
 import java.net.URI
+import java.net.URL
 import java.security.InvalidParameterException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -116,9 +117,12 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      * blockstack.js [[getNameInfo]] function.
      * @returns {Promise} that resolves to a profile object
      */
-    fun lookupProfile(username: String, zoneFileLookupUrl: String?): Profile {
-        val request = buildLookupNameInfoRequest(username, zoneFileLookupUrl)
-        val response = callFactory.newCall(request).execute()
+    suspend fun lookupProfile(username: String, zoneFileLookupURL: URL?): Profile {
+
+        val request = buildLookupNameInfoRequest(username, zoneFileLookupURL?.toString())
+        val response = withContext(Dispatchers.IO) {
+            callFactory.newCall(request).execute()
+        }
         if (response.isSuccessful) {
             val nameInfo = JSONObject(response.body()!!.string())
             if (nameInfo.has("address") && nameInfo.has("zonefile")) {
@@ -128,7 +132,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                 throw InvalidParameterException("name info does not contain address or zonefile property")
             }
         } else {
-            throw InvalidParameterException("could not fetch name info")
+            throw InvalidParameterException("could not fetch name info ${response.code()}")
         }
     }
 
@@ -171,9 +175,9 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
     private fun buildLookupNameInfoRequest(username: String, zoneFileLookupUrl: String?): Request {
-        val url = zoneFileLookupUrl ?: "$DEFAULT_CORE_API_ENDPOINT/v1/names/$username"
+        val url = zoneFileLookupUrl ?: "$DEFAULT_CORE_API_ENDPOINT/v1/names"
         val builder = Request.Builder()
-                .url(url)
+                .url("$url/$username")
         builder.addHeader("Referrer-Policy", "no-referrer")
         return builder.build()
 
@@ -431,8 +435,8 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      *@param zoneFileLookupURL The URL to use for zonefile lookup. If false, this will use the blockstack.js's getNameInfo function instead.
      *@result the public read URL of the file or null on error
      */
-    fun getUserAppFileUrl(path: String, username: String, appOrigin: String, zoneFileLookupURL: String?): String {
-        val profile = lookupProfile(username, zoneFileLookupURL)
+    suspend fun getUserAppFileUrl(path: String, username: String, appOrigin: String, zoneFileLookupURL: String?): String {
+        val profile = lookupProfile(username, URL(zoneFileLookupURL))
         var bucketUrl: String = "NO_URL"
         if (profile.json.has("apps")) {
             val apps = profile.json.getJSONObject("apps")
