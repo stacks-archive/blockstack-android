@@ -3,7 +3,9 @@ package org.blockstack.android.sdk
 import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
@@ -33,10 +35,11 @@ import java.lang.Integer.parseInt
 import java.math.BigInteger
 import java.security.InvalidParameterException
 import java.util.*
+import kotlin.coroutines.suspendCoroutine
 
 const val SIGNATURE_FILE_EXTENSION = ".sig"
 
-class BlockstackSession(private val sessionStore: SessionStore, private val appConfig: BlockstackConfig? = null,
+class BlockstackSession(private val sessionStore: ISessionStore, private val appConfig: BlockstackConfig? = null,
                         private val callFactory: Call.Factory = OkHttpClient(), val blockstack: Blockstack = Blockstack()) {
 
     private var appPrivateKey: String?
@@ -244,9 +247,9 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
                                     associationToken: String?): String {
 
         val challengeText = hubInfo.getString("challenge_text")
-        val handlesV1Auth = hubInfo.optString("latest_auth_version").substring(1)?.let {
+        val handlesV1Auth = hubInfo.optString("latest_auth_version").substring(1).let {
             parseInt(it, 10) >= 1
-        } ?: false
+        }
 
         val iss = PrivateKey(signerKeyHex).toECKeyPair().toHexPublicKey64()
 
@@ -289,10 +292,12 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
      */
     suspend fun getFile(path: String, options: GetFileOptions, callback: (Result<Any>) -> Unit) {
         Log.d(TAG, "getFile: path: $path options: $options")
-        val gaiaHubConfiguration = getOrSetLocalGaiaHubConnection()
-        val getRequest = buildGetRequest(path, gaiaHubConfiguration)
+        val gaiaHubConfiguration = options.gaiaHubConfig ?: getOrSetLocalGaiaHubConnection()
 
         withContext(Dispatchers.IO) {
+            val urlResult = getFileUrl(path, options)
+            val getRequest = buildGetRequest(urlResult.value!!)
+
             val exception = kotlin.runCatching {
                 val response = callFactory.newCall(getRequest).execute()
 
@@ -335,7 +340,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
                     }
 
                     if (options.verify) {
-                        val signatureRequest = buildGetRequest("$path$SIGNATURE_FILE_EXTENSION", gaiaHubConfig!!)
+                        val signatureRequest = buildGetRequest(getFullReadUrl("$path$SIGNATURE_FILE_EXTENSION", gaiaHubConfig!!))
                         val response = callFactory.newCall(signatureRequest).execute()
                         if (response.isSuccessful) {
                             val signatureObject = SignatureObject.fromJSONString(response.body()!!.string())
@@ -400,20 +405,19 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
      */
     suspend fun putFile(path: String, content: Any, options: PutFileOptions, callback: (Result<String>) -> Unit) {
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
-        val gaiaHubConfiguration = getOrSetLocalGaiaHubConnection()
+        val gaiaHubConfiguration = options.gaiaHubConfig ?: getOrSetLocalGaiaHubConnection()
         val valid = content is String || content is ByteArray
         if (!valid) {
             throw IllegalArgumentException("putFile content only supports String or ByteArray")
         }
 
         val contentType: String
-        val requestContent = if (options.encrypt) {
+        val requestContent = if (options.encrypt || options.encryptionKey != null) {
 
             contentType = "application/json"
 
             val enc = Encryption()
-            val appPrivateKeyPair = PrivateKey(appPrivateKey!!).toECKeyPair()
-            val publicKey = appPrivateKeyPair.toHexPublicKey64()
+            val publicKey = options.encryptionKey ?: PrivateKey(appPrivateKey!!).toECKeyPair().toHexPublicKey64()
             val contentByteArray = if (content is String) {
                 content.toByteArray()
             } else {
@@ -454,7 +458,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
                 }
                 val responseText = response.body()?.string()
                 if (responseText !== null) {
-                    if (!options.encrypt && options.shouldSign()) {
+                    if (!options.shouldEncrypt() && options.shouldSign()) {
                         val signedContent = signContent(requestContent.toByteArray(), getSignKey(options))
                         val putSignatureRequest = buildPutRequest("$path$SIGNATURE_FILE_EXTENSION", signedContent.toJSONByteString(), "application/json", gaiaHubConfig!!)
                         val signatureResponse = callFactory.newCall(putSignatureRequest).execute()
@@ -517,8 +521,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         return builder.build()
     }
 
-    private fun buildGetRequest(path: String, hubConfig: GaiaHubConfig): Request {
-        val url = "${hubConfig.urlPrefix}${hubConfig.address}/${path}"
+    private fun buildGetRequest(url: String): Request {
         val builder = Request.Builder()
                 .url(url)
         builder.addHeader("Referrer-Policy", "no-referrer")
@@ -527,7 +530,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
 
 
     suspend fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions(), callback: (Result<Unit>) -> Unit) {
-        val deleteRequest = buildDeleteRequest(path, gaiaHubConfig!!)
+        val deleteRequest = buildDeleteRequest(path, options.gaiaHubConfig ?: gaiaHubConfig!!)
 
         withContext(Dispatchers.IO) {
             try {
@@ -563,7 +566,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
      */
     suspend fun listFiles(callback: (Result<String>) -> Boolean): Result<Int> {
         try {
-            val fileCount = listFilesLoop(callback, null, 0, 0)
+            val fileCount = listFilesLoop(null, callback, null, 0, 0)
             return Result(fileCount)
         } catch (e: Exception) {
             return Result(null, ResultError(ErrorCode.UnknownError, e.message ?: e.toString()))
@@ -585,7 +588,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
                     options.app ?: appConfig?.appDomain.toString(),
                     options.zoneFileLookupURL?.toString())
         } else {
-            val gaiaHubConfig = getOrSetLocalGaiaHubConnection()
+            val gaiaHubConfig = options.gaiaHubConfig ?: getOrSetLocalGaiaHubConnection()
             readUrl = getFullReadUrl(path, gaiaHubConfig)
         }
 
@@ -596,16 +599,16 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
         }
     }
 
-    private fun getFullReadUrl(filename: String, hubConfig: GaiaHubConfig): String? {
+    private fun getFullReadUrl(filename: String, hubConfig: GaiaHubConfig): String {
         return "${hubConfig.urlPrefix}${hubConfig.address}/${filename}"
     }
 
-    private suspend fun listFilesLoop(callback: (Result<String>) -> Boolean, page: String?, callCount: Int, fileCount: Int): Int {
+    suspend fun listFilesLoop(gaiaHubConfig: GaiaHubConfig? = null, callback: (Result<String>) -> Boolean, page: String?, callCount: Int, fileCount: Int): Int {
         if (callCount > 65536) {
             throw RuntimeException("Too many entries to list")
         }
 
-        val request = buildListFilesRequest(page, getHubConfig())
+        val request = buildListFilesRequest(page, gaiaHubConfig ?: getHubConfig())
         val response = withContext(Dispatchers.IO) {
             callFactory.newCall(request).execute()
         }
@@ -638,7 +641,7 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
                 }
             }
             if (nextPage != null && nextPage.isNotEmpty() && fileEntries.length() > 0) {
-                return listFilesLoop(callback, nextPage, callCount + 1, fileCount + fileEntries.length())
+                return listFilesLoop(gaiaHubConfig, callback, nextPage, callCount + 1, fileCount + fileEntries.length())
             } else {
                 return fileCount + fileEntries.length()
             }
@@ -662,6 +665,37 @@ class BlockstackSession(private val sessionStore: SessionStore, private val appC
 
                 .method("POST", RequestBody.create(MediaType.get(CONTENT_TYPE_JSON), pageRequest))
                 .build()
+    }
+
+    suspend fun getCollectionConfig(collectionName: String): CollectionConfig? {
+        val userData = loadUserData()
+        return userData.collectionConfigs?.get(collectionName)
+                ?: loadCollectionConfig(userData, collectionName)
+    }
+
+    private suspend fun loadCollectionConfig(userData: UserData, collectionName: String): CollectionConfig {
+        return suspendCoroutine { continuation ->
+            CoroutineScope(Dispatchers.IO).launch {
+                getFile(COLLECTION_KEY_FILENAME, GetFileOptions()) { result ->
+                    if (result.value is String) {
+                        val collectionKeys = JSONObject(result.value)
+                        if (collectionKeys.has(collectionName)) {
+                            val collectionKey = collectionKeys.getJSONObject(collectionName)
+
+                            // update user data
+                            userData.addCollectionKey(collectionName, collectionKey)
+                            sessionStore.updateUserData(userData)
+
+                            continuation.resumeWith(kotlin.Result.success(CollectionConfig(collectionKey)))
+                        } else {
+                            continuation.resumeWith(kotlin.Result.failure(RuntimeException("No key for collection $collectionName")))
+                        }
+                    } else {
+                        continuation.resumeWith(kotlin.Result.failure(RuntimeException("Invalid collection key file")))
+                    }
+                }
+            }
+        }
     }
 
     fun isUserSignedIn(): Boolean {

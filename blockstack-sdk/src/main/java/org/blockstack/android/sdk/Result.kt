@@ -11,13 +11,13 @@ class Result<T>(val value: T?, val error: ResultError? = null) {
     /**
      * returns true if the method call returned a value successfully
      */
-    val hasValue: Boolean
+    inline val hasValue: Boolean
         get() = value != null
 
     /**
      * returns true if the method did not return a value, but an error
      */
-    val hasErrors: Boolean
+    inline val hasErrors: Boolean
         get() = value == null && error != null
 
 }

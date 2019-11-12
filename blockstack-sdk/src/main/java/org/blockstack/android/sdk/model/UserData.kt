@@ -11,6 +11,17 @@ import org.json.JSONObject
  */
 class UserData(private val jsonObject: JSONObject) {
 
+    fun addCollectionKey(collectionName: String, collectionKey: JSONObject) {
+        val collectionConfigs = jsonObject.optJSONObject("collectionConfigs") ?: JSONObject()
+        collectionConfigs.put(collectionName, collectionKey)
+    }
+
+
+    val collectionConfigs: CollectionConfigs? = if (jsonObject.has("collectionConfigs")) {
+        CollectionConfigs(jsonObject.getJSONObject("collectionProfile"))
+    } else {
+        null
+    }
 
     /**
      * The profile of the user or null if not defined
