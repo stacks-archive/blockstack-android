@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
+import org.blockstack.collection.Contact
 import java.io.ByteArrayOutputStream
 import java.net.URL
 import java.util.*
@@ -47,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         val config = "https://flamboyant-darwin-d11c17.netlify.com"
-                .toBlockstackConfig(kotlin.arrayOf(org.blockstack.android.sdk.Scope.StoreWrite))
+                .toBlockstackConfig(arrayOf(BaseScope.StoreWrite.scope, Contact.scope))
 
 
         val sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(this))
@@ -225,10 +226,10 @@ class MainActivity : AppCompatActivity() {
 
         getAppBucketUrlButton.setOnClickListener {
             getAppBucketUrlText.text = "Getting url ..."
-            val it = blockstackSession().loadUserData()
+            val userData = blockstackSession().loadUserData()
             lifecycleScope.launch(Dispatchers.Main) {
                 getAppBucketUrlText.text =
-                        blockstack.getAppBucketUrl(it.hubUrl, it.appPrivateKey) ?: "error"
+                        blockstack.getAppBucketUrl(userData.hubUrl, userData.appPrivateKey) ?: "error"
             }
         }
 
@@ -283,16 +284,34 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        getContactsButton.setOnClickListener { _ ->
+            getContactsText.text = "Getting contacts ..."
+            val contacts = StringBuffer()
+            lifecycleScope.launch(Dispatchers.IO) {
+                val count = Contact.list({ id ->
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        Contact.get(id, blockstackSession())
+                        contacts.append()
+                        getContactsText.text = contacts.toString()
+                    }
+                    true
+                }, blockstackSession())
+                Log.d(TAG, "count $count")
+            }
+        }
+
         if (intent?.action == Intent.ACTION_VIEW) {
             lifecycleScope.launch(Dispatchers.Main) {
                 handleAuthResponse(intent)
             }
         }
 
+        /*
         if (blockstackSession().isUserSignedIn()) {
             val userData = blockstackSession().loadUserData()
             onSignIn(userData)
         }
+         */
     }
 
     private fun onSignIn(userData: UserData) {

@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.Scope
 import org.blockstack.android.sdk.model.DeleteFileOptions
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
@@ -38,8 +39,8 @@ interface Attrs {
 }
 
 interface CollectionAPI<T : Attrs> {
-    val scope: String
-        get() = "${COLLECTION_SCOPE_PREFIX}${collectionName}"
+    val scope: Scope
+        get() = Scope("${COLLECTION_SCOPE_PREFIX}${collectionName}")
 
     val collectionName: String
     val fromData: (String) -> T
