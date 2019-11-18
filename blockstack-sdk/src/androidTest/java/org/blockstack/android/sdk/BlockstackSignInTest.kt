@@ -125,18 +125,12 @@ class BlockstackSignInTest {
             blockstack.makeAuthResponse(account, authRequest, emptyArray() )
         }
 
-        val latch = CountDownLatch(1)
         var result: UserData? = null
         runBlocking {
             sessionStore.setTransitPrivateKey(TRANSIT_PRIVATE_KEY)
 
-            session.handlePendingSignIn(authResponse) {
-                result = it.value
-                latch.countDown()
-            }
+            result = session.handlePendingSignIn(authResponse).value
         }
-
-        latch.await()
 
         assertThat(result?.json?.getString("decentralizedID"), CoreMatchers.`is`("did:btc-addr:1JeTQ5cQjsD57YGcsVFhwT7iuQUXJR6BSk"))
         assertThat(result?.json?.getString("appPrivateKey"), CoreMatchers.`is`("a8025a881da1074b012995beef7e7ccb42fea2ec66e62367c8d73734033ee33b"))

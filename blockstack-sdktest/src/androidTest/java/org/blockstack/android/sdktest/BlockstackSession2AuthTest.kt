@@ -6,11 +6,14 @@ import androidx.test.rule.ActivityTestRule
 import kotlinx.coroutines.runBlocking
 import me.uport.sdk.jwt.JWTTools
 import okhttp3.OkHttpClient
-import org.blockstack.android.sdk.*
+import org.blockstack.android.sdk.Blockstack
+import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.BlockstackSignIn
+import org.blockstack.android.sdk.SessionStore
 import org.blockstack.android.sdk.model.*
-import org.blockstack.android.sdktest.test.TestActivity
 import org.blockstack.android.sdktest.j2v8.BlockstackSessionJ2V8
-import org.hamcrest.CoreMatchers.*
+import org.blockstack.android.sdktest.test.TestActivity
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -121,18 +124,14 @@ class BlockstackSession2AuthTest {
     @Test
     fun makeAuthResponseJ2V8ThenHandleAuthResponse() {
         val authResponseJ2V8 = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJqdGkiOiIyMzQ5YWE3YS01ZDZiLTQwYzctYjM3Zi0wMzM5YTI4MmJhMjAiLCJpYXQiOjE1Njk5NDQ2NjUsImV4cCI6MTU3MjYyNjY2NCwiaXNzIjoiZGlkOmJ0Yy1hZGRyOjFKZVRRNWNRanNENTdZR2NzVkZod1Q3aXVRVVhKUjZCU2siLCJwcml2YXRlX2tleSI6IjdiMjI2OTc2MjIzYTIyNjU2MjY0MzkzMDMyMzYzMjY0Mzk2MzM2MzY2MTM4MzQ2MjM0MzYzNDM5MzAzMDM1MzUzNDY1MzY2MTMyMzA2NDIyMmMyMjY1NzA2ODY1NmQ2NTcyNjE2YzUwNGIyMjNhMjIzMDMyNjQzMjM2MzM2MTMyMzI2MjM2MzYzMzM3MzA2NTY1MzkzMTY1NjQzMDM1MzU2MjMyMzYzNzMwNjQ2MTY2MzMzMDMwNjQ2MzY0NjEzMjMyMzg2MTM0MzMzNjMwNjYzNTYxMzk2MTMyMzEzMTY2NjQ2MTYyMzI2NDMwNjE2NDMxNjEyMjJjMjI2MzY5NzA2ODY1NzI1NDY1Nzg3NDIyM2EyMjMxMzEzNTMwNjMzMTM4MzYzMTMyMzgzMzM3NjM2MjY1MzkzNjMyMzg2NDYzMzc2MjYyMzUzMjM4MzYzNDYyMzYzNjY2Mzk2NDY0MzYzOTMxMzkzMzMzMzUzNDY2NjU2MjYzMzAzNjMwMzA2NTM3NjE2NjMyNjE2MTM5Mzc2NjY0MzAzOTM1MzAzNTY0Mzg2MjM4NjMzMTM4NjY2MTM4Mzk2MjMwNjQzNjY2NjIzMTMzMzY2NjY0NjI2NDMyNjMzMDM3NjY2MTYxNjY2MzMwNjEzMTM4Mzc2MTYyMzEzMDMxNjQ2NTYzMzUzNjYyNjEzOTYxNjIzMzM4MzQ2NjYyNjI2NDY2NjQzMDMzMzU2MzY0NjE2MjYzMzEzNzY2MzA2NjMwMzM2MzMwMzUzNzY1MzMzMjM5MzQzODY2Mzg2MTM5MjIyYzIyNmQ2MTYzMjIzYTIyMzI2NTY0NjE2NDM4NjM2NTY1NjE2MzMxMzg2NDYzMzkzMTM4Mzk2MzM0MzMzOTYyNjQ2MjYyMzgzMDM2NjEzMTMzMzk2NjMzMzIzMDMzNjEzOTY2NjYzMjM4NjQ2MzM5NjUzNDMwNjM2MzMzNjMzNzYxNjMzNjY2NjMzODYzNjEyMjJjMjI3NzYxNzM1Mzc0NzI2OTZlNjcyMjNhNzQ3Mjc1NjU3ZCIsInB1YmxpY19rZXlzIjpbIjAzZTkzYWU2NWQ2Njc1MDYxYTE2N2MzNGI4MzIxYmVmODc1OTQ0NjhlOWIyZGQxOWMwNWE2N2E3YjRjYWVmYTAxNyJdLCJwcm9maWxlIjpudWxsLCJ1c2VybmFtZSI6InB1YmxpY19wcm9maWxlX2Zvcl90ZXN0aW5nLmlkLmJsb2Nrc3RhY2siLCJjb3JlX3Rva2VuIjpudWxsLCJlbWFpbCI6bnVsbCwicHJvZmlsZV91cmwiOiJodHRwczovL2dhaWEuYmxvY2tzdGFjay5vcmcvaHViLzFKZVRRNWNRanNENTdZR2NzVkZod1Q3aXVRVVhKUjZCU2svcHJvZmlsZS5qc29uIiwiaHViVXJsIjoiaHR0cHM6Ly9odWIuYmxvY2tzdGFjay5vcmciLCJibG9ja3N0YWNrQVBJVXJsIjpudWxsLCJhc3NvY2lhdGlvblRva2VuIjpudWxsLCJ2ZXJzaW9uIjoiMS4zLjEifQ.lozp1p_UyPhoRLP89MUnQ9IlCp5rchWvvB4r_-XZCoLcgPIhq5A2sFwf1MZPN4FOOLuIT23JX2WHQp0Relib8w"
-        val latch = CountDownLatch(1)
         var result: UserData? = null
         runBlocking {
             sessionStore.setTransitPrivateKey("602f0c6d2ea9a6318063c5dcaa1add5686a78a641efa9875b32c62b0716d7a63")
-            session.handlePendingSignIn(authResponseJ2V8) {
-                Log.d(TAG, it.error?.toString() + " " + it.value)
-                result = it.value
-                latch.countDown()
-            }
-        }
+            val it = session.handlePendingSignIn(authResponseJ2V8)
+            Log.d(TAG, it.error?.toString() + " " + it.value)
+            result = it.value
 
-        latch.await()
+        }
 
         assertThat(result?.json?.getString("decentralizedID"), `is`("did:btc-addr:1JeTQ5cQjsD57YGcsVFhwT7iuQUXJR6BSk"))
         assertThat(result?.json?.getString("appPrivateKey"), `is`("a8025a881da1074b012995beef7e7ccb42fea2ec66e62367c8d73734033ee33b"))

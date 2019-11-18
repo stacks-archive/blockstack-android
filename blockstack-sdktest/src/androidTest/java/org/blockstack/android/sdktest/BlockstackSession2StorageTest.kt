@@ -73,24 +73,19 @@ class BlockstackSession2StorageTest {
     @Test
     fun testPutJ2V8ThenGetEncryptedStringFile() {
         var result: String? = null
-        val latch = CountDownLatch(1)
 
         if (sessionJ2V8.isUserSignedIn()) {
 
             sessionJ2V8.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
                 runBlocking {
-                    session.getFile("try.txt", GetFileOptions(true)) {
-                        if (it.value is String) {
-                            result = it.value as String
-                        }
-                        latch.countDown()
+                    val it = session.getFile("try.txt", GetFileOptions(true))
+                    if (it.value is String) {
+                        result = it.value as String
                     }
+
                 }
             }
-        } else {
-            latch.countDown()
         }
-        latch.await()
         assertThat(result, `is`("Hello Test"))
     }
 
@@ -101,8 +96,7 @@ class BlockstackSession2StorageTest {
 
         if (sessionJ2V8.isUserSignedIn()) {
             runBlocking {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
-                }
+                session.putFile("try.txt", "Hello Test", PutFileOptions(true))
             }
             sessionJ2V8.getFile("try.txt", GetFileOptions(true)) {
                 if (it.value is String) {
@@ -124,9 +118,7 @@ class BlockstackSession2StorageTest {
 
         if (sessionJ2V8.isUserSignedIn()) {
             runBlocking {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(true, sign = true)) {
-
-                }
+                session.putFile("try.txt", "Hello Test", PutFileOptions(true, sign = true))
             }
             sessionJ2V8.getFile("try.txt", GetFileOptions(true, verify = true)) {
                 if (it.value is String) {
@@ -170,9 +162,7 @@ class BlockstackSession2StorageTest {
 
         if (sessionJ2V8.isUserSignedIn()) {
             runBlocking {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false, sign = true)) {
-
-                }
+                session.putFile("try.txt", "Hello Test", PutFileOptions(false, sign = true))
             }
             sessionJ2V8.getFile("try.txt", GetFileOptions(false, verify = true)) {
                 if (it.value is String) {
@@ -194,20 +184,19 @@ class BlockstackSession2StorageTest {
         val latch = CountDownLatch(1)
 
         if (sessionJ2V8.isUserSignedIn()) {
-            sessionJ2V8.putFile("try.txt", "Hello Test", PutFileOptions(false, sign = true)) {
+            sessionJ2V8.putFile("try.txt", "all work and no play makes jack a dull boy", PutFileOptions(false, sign = true)) {
                 latch.countDown()
             }
             latch.await()
             runBlocking {
-                sessionJ2V8.getFile("try.txt", GetFileOptions(false, verify = true)) {
-                    if (it.value is String) {
-                        result = it.value as String
-                    }
+                val it = session.getFile("try.txt", GetFileOptions(false, verify = true))
+                if (it.value is String) {
+                    result = it.value as String
                 }
             }
 
         }
-        assertThat(result, `is`("Hello Test"))
+        assertThat(result, `is`("all work and no play makes jack a dull boy"))
     }
 
     companion object {

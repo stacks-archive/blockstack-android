@@ -1,6 +1,7 @@
 package org.blockstack.android.sdk
 
 import org.blockstack.android.sdk.ecies.fromDER
+import org.blockstack.android.sdk.ecies.signContent
 import org.blockstack.android.sdk.ecies.toDER
 import org.blockstack.android.sdk.ecies.verify
 import org.hamcrest.CoreMatchers.`is`
@@ -9,6 +10,7 @@ import org.junit.Test
 import org.kethereum.crypto.signMessageHash
 import org.kethereum.crypto.toECKeyPair
 import org.kethereum.extensions.hexToBigInteger
+import org.kethereum.extensions.toHexStringNoPrefix
 import org.kethereum.hashes.sha256
 import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PrivateKey
@@ -51,7 +53,6 @@ class SignatureTest {
         assertThat(sigData.v, `is`(BigInteger("0")))
     }
 
-
     @Test
     fun testVerifyWorks() {
         val signature = signMessageHash(contentHash, keyPair, false).toDER()
@@ -65,5 +66,24 @@ class SignatureTest {
         val keyPair2 = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey("02413d7c51118104cfe1b41e540b6c2acaaf91f1e2e22316df7448fb6070d582ec"))
         val isValid = keyPair2.verify(contentHash, signature)
         assertThat(isValid, `is`(false))
+    }
+
+    @Test
+    fun testSignContent() {
+        val signedContent = signContent(msg, PRIVATE_KEY)
+        assertThat(signedContent.signature, `is`("3044022023b742aff15d1b2ee47b7bb5ff8b1c9e4627201c627f6ae7995f5e00b82e2b380220715a14dc988c549e72cf06660c850c623aa56b9a35e0bb452a8b6410e39137fe"))
+
+        val isValid = keyPair.verify(contentHash, signedContent.signature)
+        assertThat(isValid, `is`(true))
+    }
+
+    @Test
+    fun testSignShortContent() {
+        val privateKey = "89f92476f13f5b173e53926ad7d6e22baf78c6b1dcdf200c38dc73d2bf47d43b"
+        val message = "all work and no play makes jack a dull boy" // TODO use "Hello Test"
+        val signedContent = signContent(message, privateKey)
+        val keyPair = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey(signedContent.publicKey))
+        val isValid = keyPair.verify(message.toByteArray().sha256(), signedContent.signature)
+        assertThat(isValid, `is`(true))
     }
 }
