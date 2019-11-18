@@ -53,14 +53,15 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
 
-    suspend fun makeAuthResponseUnencrypted(account: BlockstackAccount, domainName: String): String {
+    suspend fun makeAuthResponseUnencrypted(account: BlockstackAccount, domainName: String,
+                                            scopes: Array<Scope>): String {
         val appPrivateKey = account.getAppsNode().getAppNode(domainName)
-
         val privateKeyPayload = appPrivateKey.keyPair.privateKey.key.toHexStringNoPrefix()
-        return makeAuthResponseToken(account, privateKeyPayload)
+
+        return makeAuthResponseToken(account, privateKeyPayload, scopes)
     }
 
-    suspend fun makeAuthResponse(account: BlockstackAccount, authRequest: String): String {
+    suspend fun makeAuthResponse(account: BlockstackAccount, authRequest: String, scopes: Array<Scope>): String {
         val authRequestTriple = decodeToken(authRequest)
         val transitPublicKey = authRequestTriple.second.getJSONArray("public_keys").getString(0)
         val appPrivateKey = account.getAppsNode().getAppNode(authRequestTriple.second.getString("domain_name"))
@@ -70,10 +71,10 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                 CryptoOptions(publicKey = transitPublicKey)
         ).value?.json?.toString()?.toByteArray()?.toNoPrefixHexString()
 
-        return makeAuthResponseToken(account, privateKeyPayload)
+        return makeAuthResponseToken(account, privateKeyPayload, scopes)
     }
 
-    private suspend fun makeAuthResponseToken(account: BlockstackAccount, privateKeyPayload: String?): String {
+    private suspend fun makeAuthResponseToken(account: BlockstackAccount, privateKeyPayload: String?, scopes: Array<Scope>): String {
         val username = account.username
         val profile = if (username != null) {
             lookupProfile(username, null)
@@ -90,7 +91,11 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                 "public_keys" to arrayOf(account.keys.keyPair.toHexPublicKey64()),
                 "profile" to profile.json.toMap(),
                 "username" to (account.username ?: ""),
-                "email" to "",
+                "email" to if (scopes.contains(BaseScope.Email.scope)) {
+                    (account.metaData.email ?: "")
+                } else {
+                    ""
+                },
                 "profile_url" to null,
                 "hubUrl" to "https://hub.blockstack.org",
                 "blockstackAPIUrl" to "https://core.blockstack.org",

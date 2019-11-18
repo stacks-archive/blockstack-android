@@ -99,7 +99,7 @@ class BlockstackSession2AuthTest {
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
-            blockstack.makeAuthResponse(account, authRequest)
+            blockstack.makeAuthResponse(account, authRequest, emptyArray())
         }
 
 
