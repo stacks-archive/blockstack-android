@@ -215,7 +215,7 @@ class BlockstackSessionStorageTest {
         var result: String? = null
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test something else", PutFileOptions(false, sign = true))
+                session.putFile("try.txt", "all work and no play makes jack a dull boy", PutFileOptions(false, sign = true))
 
                 val it = session.getFile("try.txt", GetFileOptions(false, verify = true))
                 if (!it.hasErrors) {
@@ -227,7 +227,7 @@ class BlockstackSessionStorageTest {
             }
         }
 
-        assertThat(result, `is`("Hello Test something else"))
+        assertThat(result, `is`("all work and no play makes jack a dull boy"))
     }
 
     @Test
