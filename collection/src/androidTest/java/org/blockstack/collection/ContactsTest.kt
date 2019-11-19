@@ -5,43 +5,66 @@ import androidx.preference.PreferenceManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.JSON
 import org.blockstack.android.sdk.BLOCKSTACK_SESSION
 import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.COLLECTION_KEY_FILENAME
 import org.blockstack.android.sdk.SessionStore
+import org.blockstack.android.sdk.model.PutFileOptions
 import org.blockstack.collection.test.TestActivity
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.*
+import org.json.JSONObject
+import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Instrumented test, which will execute on an Android device.
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
 @RunWith(AndroidJUnit4::class)
 class ContactsTest {
 
     @get:Rule
     val rule = ActivityTestRule(TestActivity::class.java)
 
-
     @Test
     fun testContactScope() {
-        assertThat(Contact.scope,`is`("collection.Contact"))
+        assertThat(Contact.scope.name,`is`("collection.Contact"))
     }
 
     @Test
     fun testContacts() {
         runBlocking {
-            val id = ""
+            val session = JSONObject(A_VALID_BLOCKSTACK_SESSION_JSON)
+            val userData = session.getJSONObject("userData")
+            val encryptionKey = userData.getString("appPrivateKey")
+            val hubUrl = userData.getString("hubUrl")
+
             val sessionStore = sessionStoreforIntegrationTests(rule)
             val userSession = BlockstackSession(sessionStore)
-            val contact = Contact.get(id, userSession) as Contact
-            Log.d("Contact", contact.toString())
+
+            val collectionHubConfig = userSession.connectToGaia(hubUrl, encryptionKey, null)
+            val keys = JSONObject().put("Contact", JSONObject()
+                    .put("encryptionKey", encryptionKey)
+                    .put("hubConfig", JSONObject()
+                            .put("address", collectionHubConfig.address)
+                            .put("token", collectionHubConfig.token)
+                            .put("server", collectionHubConfig.server)
+                            .put("url_prefix", collectionHubConfig.urlPrefix))
+            )
+            userSession.putFile(COLLECTION_KEY_FILENAME, keys.toString() , PutFileOptions())
+
+            var contact = Contact(ContactAttr("1.0", "BlockStack", "Block", "Stack",
+                    "blockstack.id", null, null, null, null, null, null, null, null, null))
+
+            var result = contact.save(userSession)
+            assertThat(result.error, nullValue())
+
+            contact = Contact.get(contact.attrs.identifier, userSession) as Contact
+            assertThat(contact.attrs.toString(), `is`("ContactAttr(schemaVersion=1.0, identifier=BlockStack, firstName=Block, lastName=Stack, blockstackID=blockstack.id, email=null, website=null, address=null, telephone=null, organization=null, createdAt=0, updatedAt=0, signingKeyId=null, _id=null)"))
+
             val contact2 = Contact(ContactAttr("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 11, 12, "13", "14"))
-            contact2.delete(userSession)
+            result = contact2.delete(userSession)
+            assertThat(result.error!!.message, `is`("Failed to delete file: 404"))
         }
     }
 }

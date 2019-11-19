@@ -7,6 +7,8 @@ import org.blockstack.android.sdk.model.DeleteFileOptions
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
 import org.json.JSONObject
+import org.kethereum.crypto.toECKeyPair
+import org.kethereum.model.PrivateKey
 
 val COLLECTION_SCOPE_PREFIX = "collection."
 val COLLECTION_GAIA_PREFIX = "collection"
@@ -104,18 +106,18 @@ abstract class Collection<T : Attrs>(val attrs: T) {
         }
     }
 
-    suspend fun <T : Attrs> save(userSession: BlockstackSession): Result<out Unit> {
+    suspend fun save(userSession: BlockstackSession): Result<out Unit> {
 
         val collectionConfig = userSession.getCollectionConfig(collectionName)
         if (collectionConfig != null) {
-            val normalizedIdentifier = "$COLLECTION_GAIA_PREFIX/$attrs.identifier"
+            val normalizedIdentifier = "$COLLECTION_GAIA_PREFIX/${attrs.identifier}"
             val gaiaHubConfig = collectionConfig.hubConfig
             val encryptionKey = collectionConfig.encryptionKey
             val content = serialize()
             return withContext(Dispatchers.IO) {
                 val it = userSession.putFile(normalizedIdentifier,
                         content,
-                        PutFileOptions(gaiaHubConfig = gaiaHubConfig, encryptionKey = encryptionKey)
+                        PutFileOptions(gaiaHubConfig = gaiaHubConfig, encryptionKey = PrivateKey(encryptionKey).toECKeyPair().toHexPublicKey64())
                 )
                 if (it.hasErrors) {
                     Result(null, ResultError(ErrorCode.UnknownError, it.error!!.message))

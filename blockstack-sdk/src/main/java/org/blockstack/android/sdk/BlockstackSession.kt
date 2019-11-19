@@ -3,9 +3,7 @@ package org.blockstack.android.sdk
 import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
@@ -35,7 +33,6 @@ import java.lang.Integer.parseInt
 import java.math.BigInteger
 import java.security.InvalidParameterException
 import java.util.*
-import kotlin.coroutines.suspendCoroutine
 
 const val SIGNATURE_FILE_EXTENSION = ".sig"
 
@@ -59,7 +56,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      * @return result object with the user data after sign-in or with an error
      *
      */
-    suspend fun handlePendingSignIn(authResponse: String):Result<UserData> {
+    suspend fun handlePendingSignIn(authResponse: String): Result<UserData> {
         val transitKey = sessionStore.getTransitPrivateKey()
         val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "https://core.blockstack.org")
 
@@ -74,7 +71,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         val isValidToken = blockstack.verifyToken(authResponse)
 
         if (!isValidToken) {
-            return Result (null, ResultError(ErrorCode.LoginFailedError, "invalid auth response"))
+            return Result(null, ResultError(ErrorCode.LoginFailedError, "invalid auth response"))
         }
         val appPrivateKey = decrypt(tokenPayload.getString("private_key"), transitKey)
         val coreSessionToken = decrypt(tokenPayload.optString("core_token"), transitKey)
@@ -262,7 +259,8 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         val payload = mapOf("gaiaChallenge" to challengeText,
                 "hubUrl" to hubUrl,
                 "iss" to iss,
-                "salt" to salt)
+                "salt" to salt,
+                "associationToken" to associationToken)
 
         val header = JwtHeader(alg = JwtHeader.ES256K)
         val serializedPayload = Json(JsonConfiguration.Stable)
@@ -527,7 +525,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     }
 
 
-    suspend fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions()):Result<out Unit> {
+    suspend fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions()): Result<out Unit> {
         val deleteRequest = buildDeleteRequest(path, options.gaiaHubConfig ?: gaiaHubConfig!!)
 
         return withContext(Dispatchers.IO) {
@@ -671,25 +669,23 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     }
 
     private suspend fun loadCollectionConfig(userData: UserData, collectionName: String): CollectionConfig {
-        return suspendCoroutine { continuation ->
-            CoroutineScope(Dispatchers.IO).launch {
-                val result = getFile(COLLECTION_KEY_FILENAME, GetFileOptions())
-                if (result.value is String) {
-                    val collectionKeys = JSONObject(result.value)
-                    if (collectionKeys.has(collectionName)) {
-                        val collectionKey = collectionKeys.getJSONObject(collectionName)
+        return withContext(Dispatchers.IO) {
+            val result = getFile(COLLECTION_KEY_FILENAME, GetFileOptions())
+            if (result.value is String) {
+                val collectionKeys = JSONObject(result.value)
+                if (collectionKeys.has(collectionName)) {
+                    val collectionKey = collectionKeys.getJSONObject(collectionName)
 
-                        // update user data
-                        userData.addCollectionKey(collectionName, collectionKey)
-                        sessionStore.updateUserData(userData)
+                    // update user data
+                    userData.addCollectionKey(collectionName, collectionKey)
+                    sessionStore.updateUserData(userData)
 
-                        continuation.resumeWith(kotlin.Result.success(CollectionConfig(collectionKey)))
-                    } else {
-                        continuation.resumeWith(kotlin.Result.failure(RuntimeException("No key for collection $collectionName")))
-                    }
+                    return@withContext CollectionConfig(collectionKey)
                 } else {
-                    continuation.resumeWith(kotlin.Result.failure(RuntimeException("Invalid collection key file")))
+                    throw RuntimeException("No key for collection $collectionName")
                 }
+            } else {
+                throw RuntimeException("Invalid collection key file: ${result.error}")
             }
         }
     }
