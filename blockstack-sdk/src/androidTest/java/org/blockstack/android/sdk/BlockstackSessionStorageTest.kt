@@ -120,7 +120,7 @@ class BlockstackSessionStorageTest {
         runBlocking {
             if (session.isUserSignedIn()) {
                 val urlResult = session.putFile("testPutGetStringFile.txt", "Hello Test", PutFileOptions(false))
-                assertThat(urlResult.value, `is`("https://gaia.blockstack.org/hub/19Usb4TCn8mWhjvLxmC2eEiXC9xJfwRkAy/try.txt"))
+                assertThat(urlResult.value, `is`("https://gaia.blockstack.org/hub/19Usb4TCn8mWhjvLxmC2eEiXC9xJfwRkAy/testPutGetStringFile.txt"))
                 val it = session.getFile("testPutGetStringFile.txt", GetFileOptions(false))
                 if (it.value is String) {
                     result = it.value as String
@@ -255,7 +255,7 @@ class BlockstackSessionStorageTest {
         }
 
 
-        assertThat(result, startsWith("Failed to verify signature: Failed to obtain signature for file: try.txt"))
+        assertThat(result, startsWith("Failed to verify signature: Failed to obtain signature for file: testPutGetFileMissingSignature.txt"))
     }
 
     @Test
