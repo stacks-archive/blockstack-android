@@ -24,7 +24,6 @@ import org.kethereum.bip44.BIP44Element
 import org.kethereum.extensions.toHexStringNoPrefix
 import java.security.InvalidParameterException
 import java.util.*
-import java.util.concurrent.CountDownLatch
 
 private val SEED_PHRASE = "sound idle panel often situate develop unit text design antenna vendor screen opinion balcony share trigger accuse scatter visa uniform brass update opinion media"
 private val TRANSIT_PRIVATE_KEY = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
@@ -61,7 +60,6 @@ class BlockstackSignInTest {
         blockstack = Blockstack()
         session = BlockstackSession(sessionStore, callFactory = callFactory, appConfig = appConfig, blockstack = blockstack)
     }
-
 
 
     @Test
@@ -122,7 +120,7 @@ class BlockstackSignInTest {
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
-            blockstack.makeAuthResponse(account, authRequest, emptyArray() )
+            blockstack.makeAuthResponse(account, authRequest, emptyArray())
         }
 
         var result: UserData? = null
@@ -159,7 +157,7 @@ class BlockstackSignInTest {
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
-            blockstack.makeAuthResponse(account, authRequest, emptyArray() )
+            blockstack.makeAuthResponse(account, authRequest, emptyArray())
         }
         val isValid = runBlocking {
             blockstack.verifyToken(authResponse)
@@ -176,7 +174,7 @@ class BlockstackSignInTest {
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount("public_profile_for_testing.id.blockstack", keys, identity.salt)
-            blockstack.makeAuthResponse(account, authRequest, emptyArray() )
+            blockstack.makeAuthResponse(account, authRequest, emptyArray())
         }
         val isValid = runBlocking {
             blockstack.verifyToken(authResponse)
@@ -192,7 +190,7 @@ class BlockstackSignInTest {
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount("friedger.id", keys, identity.salt)
-            blockstack.makeAuthResponse(account, authRequest, emptyArray() )
+            blockstack.makeAuthResponse(account, authRequest, emptyArray())
         }
         val isValid = runBlocking {
             blockstack.verifyToken(authResponse)
@@ -210,7 +208,7 @@ class BlockstackSignInTest {
         runBlocking {
             val account = BlockstackAccount("invalid$$.id.blockstack", keys, identity.salt)
             try {
-                blockstack.makeAuthResponse(account, authRequest, emptyArray() )
+                blockstack.makeAuthResponse(account, authRequest, emptyArray())
                 throw RuntimeException("should have failed")
             } catch (e: InvalidParameterException) {
                 assertThat(e.message, CoreMatchers.`is`("could not fetch name info 404"))

@@ -373,18 +373,19 @@ class MainActivity : AppCompatActivity() {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: ${authResponse}")
                 withContext(Dispatchers.IO) {
-                val userDataResult = blockstackSession().handlePendingSignIn(authResponse)
-                if (userDataResult.hasValue) {
-                    val userData = userDataResult.value!!
-                    Log.d(TAG, "signed in!")
-                    runOnUiThread {
-                        onSignIn(userData)
-                            }
-                } else {
-                    runOnUiThread {
-                        Toast.makeText(this@MainActivity, "error: ${userDataResult.error}", Toast.LENGTH_SHORT).show()
+                    val userDataResult = blockstackSession().handlePendingSignIn(authResponse)
+                    if (userDataResult.hasValue) {
+                        val userData = userDataResult.value!!
+                        Log.d(TAG, "signed in!")
+                        runOnUiThread {
+                            onSignIn(userData)
+                        }
+                    } else {
+                        runOnUiThread {
+                            Toast.makeText(this@MainActivity, "error: ${userDataResult.error}", Toast.LENGTH_SHORT).show()
+                        }
                     }
-               }
+                }
             }
         }
     }
