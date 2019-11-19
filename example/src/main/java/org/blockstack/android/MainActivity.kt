@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         val config = "https://flamboyant-darwin-d11c17.netlify.com"
-                .toBlockstackConfig(kotlin.arrayOf(org.blockstack.android.sdk.Scope.StoreWrite))
+                .toBlockstackConfig(arrayOf(Scope.Email))
 
 
         val sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(this))
@@ -355,15 +355,19 @@ class MainActivity : AppCompatActivity() {
             if (authResponseTokens.size > 1) {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: ${authResponse}")
-                blockstackSession().handlePendingSignIn(authResponse) { userDataResult: Result<UserData> ->
-                    if (userDataResult.hasValue) {
-                        val userData = userDataResult.value!!
-                        Log.d(TAG, "signed in!")
-                        runOnUiThread {
-                            onSignIn(userData)
+                withContext(Dispatchers.IO) {
+                    blockstackSession().handlePendingSignIn(authResponse) { userDataResult: Result<UserData> ->
+                        if (userDataResult.hasValue) {
+                            val userData = userDataResult.value!!
+                            Log.d(TAG, "signed in!")
+                            runOnUiThread {
+                                onSignIn(userData)
+                            }
+                        } else {
+                            runOnUiThread {
+                                Toast.makeText(this@MainActivity, "error: ${userDataResult.error}", Toast.LENGTH_SHORT).show()
+                            }
                         }
-                    } else {
-                        Toast.makeText(this, "error: ${userDataResult.error}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
