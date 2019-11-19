@@ -11,7 +11,6 @@ import kotlinx.coroutines.withContext
 import me.uport.sdk.jwt.JWTTools
 import me.uport.sdk.jwt.model.JwtHeader
 import me.uport.sdk.signer.KPSigner
-import org.blockstack.android.sdk.Scope.Companion.scopesArrayToJSONString
 import org.blockstack.android.sdk.model.BlockstackConfig
 import org.blockstack.android.sdk.model.SessionData
 import org.kethereum.crypto.CryptoAPI
@@ -56,7 +55,7 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
                 "version" to "1.3.1",
                 "do_not_include_profile" to true,
                 "supports_hub_url" to true,
-                "scopes" to scopesArrayToJSONString(appConfig.scopes)
+                "scopes" to appConfig.scopes.map { it.scope }
         )
         if (extraParams != null) {
             payload.putAll(extraParams)
