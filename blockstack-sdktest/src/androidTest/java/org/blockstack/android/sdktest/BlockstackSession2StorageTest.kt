@@ -184,7 +184,7 @@ class BlockstackSession2StorageTest {
         val latch = CountDownLatch(1)
 
         if (sessionJ2V8.isUserSignedIn()) {
-            sessionJ2V8.putFile("try.txt", "all work and no play makes jack a dull boy", PutFileOptions(false, sign = true)) {
+            sessionJ2V8.putFile("try.txt", "Hello Test", PutFileOptions(false, sign = true)) {
                 latch.countDown()
             }
             latch.await()
@@ -196,7 +196,7 @@ class BlockstackSession2StorageTest {
             }
 
         }
-        assertThat(result, `is`("all work and no play makes jack a dull boy"))
+        assertThat(result, `is`("Hello Test"))
     }
 
     companion object {

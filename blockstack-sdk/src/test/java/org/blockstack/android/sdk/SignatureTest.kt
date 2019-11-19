@@ -45,11 +45,31 @@ class SignatureTest {
     }
 
     @Test
+    fun testSignatureToDERReturnsCorrectValue2() {
+        val sigData = signMessageHash("Hello Test".toByteArray().sha256(), keyPair, false)
+
+        assertThat(sigData.s, `is`(BigInteger("6754924017129163776738433061993873191950449928299939428784430114989120616095")))
+        assertThat(sigData.r, `is`(BigInteger("77923476902356546482911623739836115160229997616352056612885051298255270503112")))
+        assertThat(sigData.v, `is`(BigInteger("27")))
+
+        assertThat(sigData.toDER(), `is`("3045022100ac471ffe1779ba32f463f0dba3f51d63187c549db99cd05e7eecbe3de632e2c802200eef26c91e1c224436d60e44105d2f3b6db5eaf011d57c18855ea3a11bdaf69f"))
+    }
+
+    @Test
     fun testSignatureFromDERReturnsCorrectValues() {
 
         val sigData = signMessageHash(contentHash, keyPair, false).toDER().fromDER()
         assertThat(sigData.s, `is`(BigInteger("51270512107919556030784457855866735147191587478042333754425793328616058206206")))
         assertThat(sigData.r, `is`(BigInteger("16154742971936886808708269743413573628406694544833939252852419405686873402168")))
+        assertThat(sigData.v, `is`(BigInteger("0")))
+    }
+
+    @Test
+    fun testSignatureFromDERReturnsCorrectValues2() {
+
+        val sigData = "3045022100ac471ffe1779ba32f463f0dba3f51d63187c549db99cd05e7eecbe3de632e2c802200eef26c91e1c224436d60e44105d2f3b6db5eaf011d57c18855ea3a11bdaf69f".fromDER()
+        assertThat(sigData.s, `is`(BigInteger("6754924017129163776738433061993873191950449928299939428784430114989120616095")))
+        assertThat(sigData.r, `is`(BigInteger("77923476902356546482911623739836115160229997616352056612885051298255270503112")))
         assertThat(sigData.v, `is`(BigInteger("0")))
     }
 
@@ -80,7 +100,7 @@ class SignatureTest {
     @Test
     fun testSignShortContent() {
         val privateKey = "89f92476f13f5b173e53926ad7d6e22baf78c6b1dcdf200c38dc73d2bf47d43b"
-        val message = "all work and no play makes jack a dull boy" // TODO use "Hello Test"
+        val message = "Hello Test"
         val signedContent = signContent(message, privateKey)
         val keyPair = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey(signedContent.publicKey))
         val isValid = keyPair.verify(message.toByteArray().sha256(), signedContent.signature)
