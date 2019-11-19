@@ -59,12 +59,12 @@ class BlockstackSessionStorageTest {
         runBlocking {
 
             if (session.isUserSignedIn()) {
-                var it = session.putFile("try.txt", "Hello Test", PutFileOptions(false))
+                var it = session.putFile("testPutStringFileTwice.txt", "Hello Test", PutFileOptions(false))
                 if (it.value is String) {
                     result1 = it.value as String
                 }
 
-                it = session.putFile("try.txt", "Hello Test2", PutFileOptions(false))
+                it = session.putFile("testPutStringFileTwice.txt", "Hello Test2", PutFileOptions(false))
                 if (it.value != null) {
                     result2 = it.value as String
                 }
@@ -119,8 +119,9 @@ class BlockstackSessionStorageTest {
 
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false))
-                val it = session.getFile("try.txt", GetFileOptions(false))
+                val urlResult = session.putFile("testPutGetStringFile.txt", "Hello Test", PutFileOptions(false))
+                assertThat(urlResult.value, `is`("https://gaia.blockstack.org/hub/19Usb4TCn8mWhjvLxmC2eEiXC9xJfwRkAy/try.txt"))
+                val it = session.getFile("testPutGetStringFile.txt", GetFileOptions(false))
                 if (it.value is String) {
                     result = it.value as String
                 }
@@ -136,7 +137,7 @@ class BlockstackSessionStorageTest {
 
         runBlocking {
             if (session.isUserSignedIn()) {
-                val it = session.putFile("try.txt", "Hello Test", PutFileOptions(false, contentType = "application/x.foo"))
+                val it = session.putFile("testPutGetStringFileWithContentType.txt", "Hello Test", PutFileOptions(false, contentType = "application/x.foo"))
                 val u = URL(it.value).openConnection()
                 u.connect()
                 result = u.contentType
@@ -152,10 +153,10 @@ class BlockstackSessionStorageTest {
         runBlocking {
 
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(true))
+                session.putFile("testPutGetEncryptedStringFile.txt", "Hello Test", PutFileOptions(true))
 
 
-                val it = session.getFile("try.txt", GetFileOptions(true))
+                val it = session.getFile("testPutGetEncryptedStringFile.txt", GetFileOptions(true))
                 if (it.value is String) {
                     result = it.value as String
                 }
@@ -178,9 +179,9 @@ class BlockstackSessionStorageTest {
         runBlocking {
 
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", bitMapData, PutFileOptions(false))
+                session.putFile("testPutGetBinaryFile.txt", bitMapData, PutFileOptions(false))
 
-                val it = session.getFile("try.txt", GetFileOptions(false))
+                val it = session.getFile("testPutGetBinaryFile.txt", GetFileOptions(false))
                 if (it.value is ByteArray) {
                     result = it.value as ByteArray
                 }
@@ -198,9 +199,9 @@ class BlockstackSessionStorageTest {
         runBlocking {
 
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", bitMapData, PutFileOptions(true))
+                session.putFile("testPutGetEncryptedBinaryFile.txt", bitMapData, PutFileOptions(true))
 
-                val it = session.getFile("try.txt", GetFileOptions(true))
+                val it = session.getFile("testPutGetEncryptedBinaryFile.txt", GetFileOptions(true))
                 if (it.value is ByteArray) {
                     result = it.value as ByteArray
                 }
@@ -215,9 +216,9 @@ class BlockstackSessionStorageTest {
         var result: String? = null
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "all work and no play makes jack a dull boy", PutFileOptions(false, sign = true))
+                session.putFile("testPutGetFileSigned.txt", "all work and no play makes jack a dull boy", PutFileOptions(false, sign = true))
 
-                val it = session.getFile("try.txt", GetFileOptions(false, verify = true))
+                val it = session.getFile("testPutGetFileSigned.txt", GetFileOptions(false, verify = true))
                 if (!it.hasErrors) {
                     Log.d("blockstack test", it.value as String)
                     result = it.value as String
@@ -236,11 +237,11 @@ class BlockstackSessionStorageTest {
 
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false, sign = true))
-                val it = session.deleteFile("try.txt.sig", DeleteFileOptions())
+                session.putFile("testPutGetFileMissingSignature.txt", "Hello Test", PutFileOptions(false, sign = true))
+                val it = session.deleteFile("testPutGetFileMissingSignature.txt.sig", DeleteFileOptions())
                 if (!it.hasErrors) {
 
-                    val it2 = session.getFile("try.txt", GetFileOptions(false, verify = true))
+                    val it2 = session.getFile("testPutGetFileMissingSignature.txt", GetFileOptions(false, verify = true))
 
                     if (!it2.hasErrors) {
                         result = it2.value as String
@@ -262,8 +263,8 @@ class BlockstackSessionStorageTest {
         var result: JSONObject? = null
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(true, sign = true))
-                val it = session.getFile("try.txt", GetFileOptions(decrypt = false))
+                session.putFile("testPutGetFileSignedEncrypted.txt", "Hello Test", PutFileOptions(true, sign = true))
+                val it = session.getFile("testPutGetFileSignedEncrypted.txt", GetFileOptions(decrypt = false))
                 if (!it.hasErrors) {
                     result = JSONObject(it.value as String)
                 }
@@ -281,8 +282,8 @@ class BlockstackSessionStorageTest {
         val invalidSignedEncryptedText = "{\"signature\":\"INVALID_SIGNATURE\",\"publicKey\":\"024634ee1d4ff57f2e0ec7a847e1705ec562949f84a83d1f5fdb5956220a9775e0\",\"cipherText\":\"{\\\"iv\\\":\\\"329acaeffe36e8ae58365b56b31af640\\\",\\\"ephemeralPK\\\":\\\"0333fde58c40196efa696dde93fb615e8e960bf52d78ab883d67fb56d4b9a10c5a\\\",\\\"cipherText\\\":\\\"143df68fd1542b29febe2b0843e723af\\\",\\\"mac\\\":\\\"68c3e439c26a2be400aeb278ed7061a8802b0366bf79a1d64a7a6e10e4710047\\\",\\\"wasString\\\":true}\"}"
         if (session.isUserSignedIn()) {
             runBlocking {
-                session.putFile("try.txt", invalidSignedEncryptedText, PutFileOptions(false))
-                val it = session.getFile("try.txt", GetFileOptions(true, verify = true))
+                session.putFile("testPutGetFileInvalidSigned.txt", invalidSignedEncryptedText, PutFileOptions(false))
+                val it = session.getFile("testPutGetFileInvalidSigned.txt", GetFileOptions(true, verify = true))
                 if (it.hasErrors) {
                     result = it.error!!.message
                 }
@@ -323,7 +324,7 @@ class BlockstackSessionStorageTest {
     fun testListFilesWithAtLeastOneFile() {
         var fileCount: Result<Int>? = null
         runBlocking {
-            session.putFile("try.text", "Hello Test", PutFileOptions())
+            session.putFile("testListFilesWithAtLeastOneFile.text", "Hello Test", PutFileOptions())
             fileCount =
                     session.listFiles {
                         true
@@ -362,8 +363,8 @@ class BlockstackSessionStorageTest {
         var urlResult: Result<String>? = null
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(true))
-                urlResult = session.getFileUrl("try.txt", GetFileOptions(true))
+                session.putFile("testGetFileUrlForEncryptedFile.txt", "Hello Test", PutFileOptions(true))
+                urlResult = session.getFileUrl("testGetFileUrlForEncryptedFile.txt", GetFileOptions(true))
 
             }
         }
@@ -377,8 +378,8 @@ class BlockstackSessionStorageTest {
         var urlResult: Result<String>? = null
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false))
-                urlResult = session.getFileUrl("try.txt", GetFileOptions(false))
+                session.putFile("testGetFileUrlForUnencryptedFile.txt", "Hello Test", PutFileOptions(false))
+                urlResult = session.getFileUrl("testGetFileUrlForUnencryptedFile.txt", GetFileOptions(false))
 
             }
         }
@@ -410,10 +411,10 @@ class BlockstackSessionStorageTest {
 
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false))
-                session.deleteFile("try.txt")
+                session.putFile("testDeleteFile.txt", "Hello Test", PutFileOptions(false))
+                session.deleteFile("testDeleteFile.txt")
 
-                result = session.getFile("try.txt", GetFileOptions(false))
+                result = session.getFile("testDeleteFile.txt", GetFileOptions(false))
             }
         }
 
