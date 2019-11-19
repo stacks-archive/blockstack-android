@@ -19,17 +19,19 @@ data class Scope(val name: String) {
         }
 
         /**
-         * Creates `Scope` from its @property scope, i.e. the javascript name.
+         * Creates `BaseScope` from its @property scope, i.e. the javascript name.
          * Throws IllegalArgumentException if scope name is not defined.
+         *
+         * Use just `Scope` for collection scopes
          *
          * @param scopeJSName name of scope as defined in blockstack.js
          *
          */
         @JvmStatic
         fun fromJSName(scopeJSName: String): BaseScope {
-            for (scope in BaseScope.values()) {
-                if (scopeJSName === scope.name) {
-                    return scope
+            for (baseScope in BaseScope.values()) {
+                if (scopeJSName == baseScope.scope.name) {
+                    return baseScope
                 }
             }
             throw IllegalArgumentException("scope '$scopeJSName' not defined, available scopes: ${BaseScope.values().joinToString()}")
