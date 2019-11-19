@@ -1,17 +1,12 @@
 package org.blockstack.collection
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.Scope
+import kotlinx.coroutines.withContext
+import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.DeleteFileOptions
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
 import org.json.JSONObject
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 val COLLECTION_SCOPE_PREFIX = "collection."
 val COLLECTION_GAIA_PREFIX = "collection"
@@ -20,7 +15,7 @@ interface Attrs {
     fun toJSON(): JSONObject {
         return JSONObject()
                 .put("identifier", identifier)
-                .put("createdAt", createdAt )
+                .put("createdAt", createdAt)
                 .put("updatedAt", updatedAt)
                 .put("signingKeyId", signingKeyId)
                 .put("_id", _id)
@@ -52,16 +47,13 @@ interface CollectionAPI<T : Attrs> {
         val normalizedIdentifier = "$COLLECTION_GAIA_PREFIX/$id"
         val options = GetFileOptions(gaiaHubConfig = collectionConfig!!.hubConfig)
 
-        return suspendCoroutine { continuation ->
-            CoroutineScope(Dispatchers.IO).launch {
-                userSession.getFile(normalizedIdentifier, options) {
-                    if (it.hasErrors) {
-                        continuation.resumeWithException(RuntimeException(it.error!!.message))
-                    } else {
-                        val item = fromData(it.value as String)
-                        continuation.resume(fromAttrs(item))
-                    }
-                }
+        return withContext(Dispatchers.IO) {
+            val it = userSession.getFile(normalizedIdentifier, options)
+            if (it.hasErrors) {
+                throw RuntimeException(it.error!!.message)
+            } else {
+                val item = fromData(it.value as String)
+                fromAttrs(item)
             }
         }
     }
@@ -86,18 +78,14 @@ interface CollectionAPI<T : Attrs> {
                 })
     }
 
-    suspend fun <T : Attrs> delete(identifier: String, userSession: BlockstackSession) {
+    suspend fun <T : Attrs> delete(identifier: String, userSession: BlockstackSession): Result<out Unit> {
 
         val collectionConfig = userSession.getCollectionConfig(collectionName)
         val normalizedIdentifier = "$COLLECTION_GAIA_PREFIX/$identifier"
         val gaiaHubConfig = collectionConfig!!.hubConfig
 
-        return suspendCoroutine { continuation ->
-            CoroutineScope(Dispatchers.IO).launch {
-                userSession.deleteFile(normalizedIdentifier, DeleteFileOptions(gaiaHubConfig = gaiaHubConfig)) {
-                    continuation.resume(Unit)
-                }
-            }
+        return withContext(Dispatchers.IO) {
+            userSession.deleteFile(normalizedIdentifier, DeleteFileOptions(gaiaHubConfig = gaiaHubConfig))
         }
     }
 }
@@ -105,22 +93,18 @@ interface CollectionAPI<T : Attrs> {
 abstract class Collection<T : Attrs>(val attrs: T) {
     abstract val collectionName: String
 
-    suspend fun delete(userSession: BlockstackSession) {
+    suspend fun delete(userSession: BlockstackSession): Result<out Unit> {
 
         val collectionConfig = userSession.getCollectionConfig(collectionName)
         val normalizedIdentifier = "$COLLECTION_GAIA_PREFIX/$attrs.identifier"
         val gaiaHubConfig = collectionConfig!!.hubConfig
 
-        return suspendCoroutine { continuation ->
-            CoroutineScope(Dispatchers.IO).launch {
-                userSession.deleteFile(normalizedIdentifier, DeleteFileOptions(gaiaHubConfig = gaiaHubConfig)) {
-                    continuation.resume(Unit)
-                }
-            }
+        return withContext(Dispatchers.IO) {
+            userSession.deleteFile(normalizedIdentifier, DeleteFileOptions(gaiaHubConfig = gaiaHubConfig))
         }
     }
 
-    suspend fun <T : Attrs> save(userSession: BlockstackSession) {
+    suspend fun <T : Attrs> save(userSession: BlockstackSession): Result<out Unit> {
 
         val collectionConfig = userSession.getCollectionConfig(collectionName)
         if (collectionConfig != null) {
@@ -128,20 +112,21 @@ abstract class Collection<T : Attrs>(val attrs: T) {
             val gaiaHubConfig = collectionConfig.hubConfig
             val encryptionKey = collectionConfig.encryptionKey
             val content = serialize()
-            return suspendCoroutine { continuation ->
-                CoroutineScope(Dispatchers.IO).launch {
-                    userSession.putFile(normalizedIdentifier,
-                            content,
-                            PutFileOptions(gaiaHubConfig = gaiaHubConfig, encryptionKey = encryptionKey)
-                    ) {
-                        if (it.hasErrors) {
-                            continuation.resumeWithException(RuntimeException(it.error!!.message))
-                        } else {
-                            continuation.resume(Unit)
-                        }
-                    }
+            return withContext(Dispatchers.IO) {
+                val it = userSession.putFile(normalizedIdentifier,
+                        content,
+                        PutFileOptions(gaiaHubConfig = gaiaHubConfig, encryptionKey = encryptionKey)
+                )
+                if (it.hasErrors) {
+                    Result(null, ResultError(ErrorCode.UnknownError, it.error!!.message))
+                } else {
+                    Result(Unit)
                 }
+
+
             }
+        } else {
+            return Result(null, ResultError(ErrorCode.UnknownError, "No collection config found"))
         }
     }
 

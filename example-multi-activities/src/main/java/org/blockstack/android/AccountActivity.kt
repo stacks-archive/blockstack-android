@@ -95,7 +95,7 @@ class AccountActivity : AppCompatActivity() {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: ${authResponse}")
                 lifecycleScope.launch(Dispatchers.IO) {
-                    blockstackSession().handlePendingSignIn(authResponse) {
+                    val it = blockstackSession().handlePendingSignIn(authResponse)
                         if (it.hasErrors) {
                             runOnUiThread {
                                 Toast.makeText(this@AccountActivity, "error: ${it.error}", Toast.LENGTH_SHORT).show()
@@ -105,7 +105,6 @@ class AccountActivity : AppCompatActivity() {
                             runOnUiThread {
                                 onSignIn()
                             }
-                        }
                     }
                 }
             }
