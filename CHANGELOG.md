@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Replaced `Result.error` type String with type `ResultError`
+- `loadUserData` throws an error if user not logged in
+- `Network` methods return results, no callback used anymore
+- `Network.getNamePrice` is using v2 API (expecting amounts in decimals, not hex format)
 
 ## [0.4.7] - 2019-09-04
 

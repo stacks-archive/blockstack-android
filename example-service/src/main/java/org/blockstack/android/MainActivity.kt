@@ -8,12 +8,19 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.BlockstackSignIn
+import org.blockstack.android.sdk.SessionStore
 
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var blockstackSignIn: BlockstackSignIn
     private val TAG = MainActivity::class.java.simpleName
 
     private var _blockstackSession: BlockstackSession? = null
@@ -29,7 +36,9 @@ class MainActivity : AppCompatActivity() {
         startServiceButton.isEnabled = false
         signOutButton.isEnabled = false
 
-        _blockstackSession = BlockstackSession(this, defaultConfig)
+        val sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(this))
+        blockstackSignIn = BlockstackSignIn(sessionStore, defaultConfig)
+        _blockstackSession = BlockstackSession(sessionStore, defaultConfig)
 
         val signedIn = _blockstackSession?.isUserSignedIn()
         if (signedIn!!) {
@@ -43,8 +52,8 @@ class MainActivity : AppCompatActivity() {
 
 
         signInButton.setOnClickListener {
-            blockstackSession().redirectUserToSignIn {
-                Log.e(TAG, "sign in failed: ${it.error?.message}")
+            lifecycleScope.launch(Dispatchers.Main) {
+                blockstackSignIn.redirectUserToSignIn(this@MainActivity)
             }
         }
 
@@ -101,7 +110,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleAuthResponse(intent: Intent) {
-        val response = intent.data.query
+        val response = intent.data?.query
         Log.d(TAG, "response $response")
         if (response != null) {
             val authResponseTokens = response.split('=')
@@ -109,11 +118,14 @@ class MainActivity : AppCompatActivity() {
             if (authResponseTokens.size > 1) {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: $authResponse")
-                blockstackSession().handlePendingSignIn(authResponse) { result ->
-                    Log.d(TAG, "signed in?" + result.hasValue)
-                    if (result.hasValue) {
-                        runOnUiThread {
-                            onSignIn()
+                lifecycleScope.launch(Dispatchers.IO) {
+                    blockstackSession().handlePendingSignIn(authResponse) { result ->
+                        Log.d(TAG, "signed in?" + result.hasValue)
+                        if (result.hasValue) {
+                            runOnUiThread {
+                                onSignIn()
+
+                            }
                         }
                     }
                 }
@@ -129,5 +141,4 @@ class MainActivity : AppCompatActivity() {
             throw IllegalStateException("No session.")
         }
     }
-
 }
