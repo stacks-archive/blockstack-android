@@ -119,13 +119,12 @@ class MainActivity : AppCompatActivity() {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: $authResponse")
                 lifecycleScope.launch(Dispatchers.IO) {
-                    blockstackSession().handlePendingSignIn(authResponse) { result ->
-                        Log.d(TAG, "signed in?" + result.hasValue)
-                        if (result.hasValue) {
-                            runOnUiThread {
-                                onSignIn()
+                    val result = blockstackSession().handlePendingSignIn(authResponse)
+                    Log.d(TAG, "signed in?" + result.hasValue)
+                    if (result.hasValue) {
+                        runOnUiThread {
+                            onSignIn()
 
-                            }
                         }
                     }
                 }

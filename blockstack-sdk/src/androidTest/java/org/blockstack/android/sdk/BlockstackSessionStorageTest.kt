@@ -22,7 +22,6 @@ import java.io.ByteArrayOutputStream
 import java.io.FileNotFoundException
 import java.net.URL
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 
 private val PRIVATE_KEY = "a5c61c6ca7b3e7e55edee68566aeab22e4da26baa285c7bd10e8d2218aa3b229"
@@ -57,28 +56,22 @@ class BlockstackSessionStorageTest {
     fun testPutStringFileTwice() {
         var result1: String? = null
         var result2: String? = null
-        val latch = CountDownLatch(2)
         runBlocking {
 
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false)) {
-                    if (it.value is String) {
-                        result1 = it.value as String
-                    }
-                    latch.countDown()
+                var it = session.putFile("testPutStringFileTwice.txt", "Hello Test", PutFileOptions(false))
+                if (it.value is String) {
+                    result1 = it.value as String
                 }
-                session.putFile("try.txt", "Hello Test2", PutFileOptions(false)) {
-                    if (it.value != null) {
-                        result2 = it.value as String
-                    }
-                    latch.countDown()
+
+                it = session.putFile("testPutStringFileTwice.txt", "Hello Test2", PutFileOptions(false))
+                if (it.value != null) {
+                    result2 = it.value as String
                 }
-            } else {
-                latch.countDown()
-                latch.countDown()
+
+
             }
         }
-        latch.await()
         assertThat(result1, `is`(notNullValue()))
         assertThat(result2, `is`(notNullValue()))
     }
@@ -107,20 +100,14 @@ class BlockstackSessionStorageTest {
 
     @Test
     fun testGetFileFor404File() {
-        var result: Result<Any>? = null
+        var result: Result<out Any>? = null
         val latch = CountDownLatch(1)
 
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.getFile("404file.txt", GetFileOptions(false)) {
-                    result = it
-                    latch.countDown()
-                }
-            } else {
-                latch.countDown()
+                result = session.getFile("404file.txt", GetFileOptions(false))
             }
         }
-        latch.await()
         assertThat(result, `is`(notNullValue()))
         assertThat(result?.value, `is`(nullValue()))
         assertThat(result?.error?.message, `is`("Error when loading from Gaia hub, status:404"))
@@ -129,74 +116,55 @@ class BlockstackSessionStorageTest {
     @Test
     fun testPutGetStringFile() {
         var result: String? = null
-        val latch = CountDownLatch(1)
 
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false)) {
-                    runBlocking {
-                        session.getFile("try.txt", GetFileOptions(false)) {
-                            if (it.value is String) {
-                                result = it.value as String
-                            }
-                            latch.countDown()
-                        }
-                    }
+                val urlResult = session.putFile("testPutGetStringFile.txt", "Hello Test", PutFileOptions(false))
+                assertThat(urlResult.value, `is`("https://gaia.blockstack.org/hub/19Usb4TCn8mWhjvLxmC2eEiXC9xJfwRkAy/testPutGetStringFile.txt"))
+                val it = session.getFile("testPutGetStringFile.txt", GetFileOptions(false))
+                if (it.value is String) {
+                    result = it.value as String
                 }
-            } else {
-                latch.countDown()
             }
+
         }
-        latch.await()
         assertThat(result, `is`("Hello Test"))
     }
 
     @Test
     fun testPutGetStringFileWithContentType() {
         var result: Any? = null
-        val latch = CountDownLatch(1)
 
         runBlocking {
-
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false, "application/x.foo")) {
-                    val u = URL(it.value).openConnection()
-                    u.connect()
-                    result = u.contentType
-                    latch.countDown()
-                }
-            } else {
-                latch.countDown()
+                val it = session.putFile("testPutGetStringFileWithContentType.txt", "Hello Test", PutFileOptions(false, contentType = "application/x.foo"))
+                val u = URL(it.value).openConnection()
+                u.connect()
+                result = u.contentType
             }
         }
-        latch.await()
         assertThat(result as String, `is`("application/x.foo"))
     }
 
     @Test
     fun testPutGetEncryptedStringFile() {
         var result: String? = null
-        val latch = CountDownLatch(1)
 
         runBlocking {
 
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
-                    runBlocking {
+                session.putFile("testPutGetEncryptedStringFile.txt", "Hello Test", PutFileOptions(true))
 
-                        session.getFile("try.txt", GetFileOptions(true)) {
-                            if (it.value is String) {
-                                result = it.value as String
-                            }
-                            latch.countDown()
-                        }
-                    }
+
+                val it = session.getFile("testPutGetEncryptedStringFile.txt", GetFileOptions(true))
+                if (it.value is String) {
+                    result = it.value as String
                 }
-            } else {
-                latch.countDown()
             }
+
         }
-        latch.await()
+
+
         assertThat(result, `is`("Hello Test"))
     }
 
@@ -211,22 +179,14 @@ class BlockstackSessionStorageTest {
         runBlocking {
 
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", bitMapData, PutFileOptions(false)) {
-                    runBlocking {
+                session.putFile("testPutGetBinaryFile.txt", bitMapData, PutFileOptions(false))
 
-                        session.getFile("try.txt", GetFileOptions(false)) {
-                            if (it.value is ByteArray) {
-                                result = it.value as ByteArray
-                            }
-                            latch.countDown()
-                        }
-                    }
+                val it = session.getFile("testPutGetBinaryFile.txt", GetFileOptions(false))
+                if (it.value is ByteArray) {
+                    result = it.value as ByteArray
                 }
-            } else {
-                latch.countDown()
             }
         }
-        latch.await()
         assertThat(result?.size, `is`(bitMapData.size))
     }
 
@@ -236,117 +196,81 @@ class BlockstackSessionStorageTest {
 
         var result: ByteArray? = null
 
-        val latch = CountDownLatch(1)
-
         runBlocking {
 
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", bitMapData, PutFileOptions(true)) {
-                    runBlocking {
+                session.putFile("testPutGetEncryptedBinaryFile.txt", bitMapData, PutFileOptions(true))
 
-                        session.getFile("try.txt", GetFileOptions(true)) {
-                            if (it.value is ByteArray) {
-                                result = it.value as ByteArray
-                            }
-                            latch.countDown()
-                        }
-                    }
+                val it = session.getFile("testPutGetEncryptedBinaryFile.txt", GetFileOptions(true))
+                if (it.value is ByteArray) {
+                    result = it.value as ByteArray
                 }
-            } else {
-                latch.countDown()
             }
         }
-        latch.await()
+
         assertThat(result?.size, `is`(bitMapData.size))
     }
 
     @Test
     fun testPutGetFileSigned() {
         var result: String? = null
-        val latch = CountDownLatch(1)
         runBlocking {
-
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false, sign = true)) {
-                    runBlocking {
+                session.putFile("testPutGetFileSigned.txt", "all work and no play makes jack a dull boy", PutFileOptions(false, sign = true))
 
-                        session.getFile("try.txt", GetFileOptions(false, verify = true)) {
-                            if (!it.hasErrors) {
-                                Log.d("blockstack test", it.value as String)
-                                result = it.value as String
-                            }
-                            latch.countDown()
-                        }
-                    }
+                val it = session.getFile("testPutGetFileSigned.txt", GetFileOptions(false, verify = true))
+                if (!it.hasErrors) {
+                    Log.d("blockstack test", it.value as String)
+                    result = it.value as String
+                } else {
+                    result = it.error!!.message
                 }
-            } else {
-                latch.countDown()
             }
         }
-        latch.await()
-        assertThat(result, `is`("Hello Test"))
+
+        assertThat(result, `is`("all work and no play makes jack a dull boy"))
     }
 
     @Test
     fun testPutGetFileMissingSignature() {
         var result: String? = null
-        val latch = CountDownLatch(1)
 
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false, sign = true)) {
-                    runBlocking {
-                        session.deleteFile("try.txt.sig", DeleteFileOptions()) {
-                            if (!it.hasErrors) {
-                                runBlocking {
-                                    session.getFile("try.txt", GetFileOptions(false, verify = true)) {
+                session.putFile("testPutGetFileMissingSignature.txt", "Hello Test", PutFileOptions(false, sign = true))
+                val it = session.deleteFile("testPutGetFileMissingSignature.txt.sig", DeleteFileOptions())
+                if (!it.hasErrors) {
 
-                                        if (!it.hasErrors) {
-                                            result = it.value as String
-                                        } else {
-                                            result = it.error?.message
-                                        }
-                                        latch.countDown()
-                                    }
-                                }
-                            } else {
-                                result = "error while deleting signature ${it.error}"
-                                latch.countDown()
-                            }
-                        }
+                    val it2 = session.getFile("testPutGetFileMissingSignature.txt", GetFileOptions(false, verify = true))
+
+                    if (!it2.hasErrors) {
+                        result = it2.value as String
+                    } else {
+                        result = it2.error!!.message
                     }
-
+                } else {
+                    result = "error while deleting signature ${it.error}"
                 }
-            } else {
-                latch.countDown()
             }
         }
-        latch.await()
-        assertThat(result, startsWith("Failed to verify signature: Failed to obtain signature for file: try.txt"))
+
+
+        assertThat(result, startsWith("Failed to verify signature: Failed to obtain signature for file: testPutGetFileMissingSignature.txt"))
     }
 
     @Test
     fun testPutGetFileSignedEncrypted() {
         var result: JSONObject? = null
-        val latch = CountDownLatch(1)
         runBlocking {
-
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(true, sign = true)) {
-                    runBlocking {
-                        session.getFile("try.txt", GetFileOptions(decrypt = false)) {
-                            if (!it.hasErrors) {
-                                result = JSONObject(it.value as String)
-                            }
-                            latch.countDown()
-                        }
-                    }
+                session.putFile("testPutGetFileSignedEncrypted.txt", "Hello Test", PutFileOptions(true, sign = true))
+                val it = session.getFile("testPutGetFileSignedEncrypted.txt", GetFileOptions(decrypt = false))
+                if (!it.hasErrors) {
+                    result = JSONObject(it.value as String)
                 }
-            } else {
-                latch.countDown()
             }
         }
-        latch.await()
+
         assertThat(result, `is`(notNullValue()))
         assertThat(result!!.getString("signature"), `is`(notNullValue()))
     }
@@ -354,26 +278,17 @@ class BlockstackSessionStorageTest {
     @Test
     fun testPutGetFileInvalidSigned() {
         var result: String? = null
-        val latch = CountDownLatch(1)
 
         val invalidSignedEncryptedText = "{\"signature\":\"INVALID_SIGNATURE\",\"publicKey\":\"024634ee1d4ff57f2e0ec7a847e1705ec562949f84a83d1f5fdb5956220a9775e0\",\"cipherText\":\"{\\\"iv\\\":\\\"329acaeffe36e8ae58365b56b31af640\\\",\\\"ephemeralPK\\\":\\\"0333fde58c40196efa696dde93fb615e8e960bf52d78ab883d67fb56d4b9a10c5a\\\",\\\"cipherText\\\":\\\"143df68fd1542b29febe2b0843e723af\\\",\\\"mac\\\":\\\"68c3e439c26a2be400aeb278ed7061a8802b0366bf79a1d64a7a6e10e4710047\\\",\\\"wasString\\\":true}\"}"
         if (session.isUserSignedIn()) {
             runBlocking {
-                session.putFile("try.txt", invalidSignedEncryptedText, PutFileOptions(false)) {
-                    runBlocking {
-                        session.getFile("try.txt", GetFileOptions(true, verify = true)) {
-                            if (it.hasErrors) {
-                                result = it.error?.message
-                            }
-                            latch.countDown()
-                        }
-                    }
+                session.putFile("testPutGetFileInvalidSigned.txt", invalidSignedEncryptedText, PutFileOptions(false))
+                val it = session.getFile("testPutGetFileInvalidSigned.txt", GetFileOptions(true, verify = true))
+                if (it.hasErrors) {
+                    result = it.error!!.message
                 }
             }
-        } else {
-            latch.countDown()
         }
-        latch.await()
         assertThat(result, `is`("hex-string must have an even number of digits (nibbles)"))
     }
 
@@ -408,19 +323,15 @@ class BlockstackSessionStorageTest {
     @Test
     fun testListFilesWithAtLeastOneFile() {
         var fileCount: Result<Int>? = null
-        val latch = CountDownLatch(1)
         runBlocking {
-            session.putFile("try.text", "Hello Test", PutFileOptions()) {
-                fileCount = runBlocking {
+            session.putFile("testListFilesWithAtLeastOneFile.text", "Hello Test", PutFileOptions())
+            fileCount =
                     session.listFiles {
                         true
                     }
-                }
-                latch.countDown()
-            }
+
         }
 
-        latch.await()
         assertThat(fileCount?.value, `is`(Matchers.greaterThanOrEqualTo(1)))
     }
 
@@ -449,42 +360,29 @@ class BlockstackSessionStorageTest {
 
     @Test
     fun testGetFileUrlForEncryptedFile() {
-        val latch = CountDownLatch(1)
         var urlResult: Result<String>? = null
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
-                    runBlocking {
-                        urlResult = session.getFileUrl("try.txt", GetFileOptions(true))
-                    }
-                    latch.countDown()
-                }
-            } else {
-                latch.countDown()
+                session.putFile("testGetFileUrlForEncryptedFile.txt", "Hello Test", PutFileOptions(true))
+                urlResult = session.getFileUrl("testGetFileUrlForEncryptedFile.txt", GetFileOptions(true))
+
             }
         }
-        latch.await(1, TimeUnit.MINUTES)
+
         assertThat(urlResult?.value, notNullValue())
         assertThat(URL(urlResult!!.value).readText(), startsWith("{\"iv\":"))
     }
 
     @Test
     fun testGetFileUrlForUnencryptedFile() {
-        val latch = CountDownLatch(1)
         var urlResult: Result<String>? = null
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false)) {
-                    urlResult = runBlocking {
-                        session.getFileUrl("try.txt", GetFileOptions(false))
-                    }
-                    latch.countDown()
-                }
-            } else {
-                latch.countDown()
+                session.putFile("testGetFileUrlForUnencryptedFile.txt", "Hello Test", PutFileOptions(false))
+                urlResult = session.getFileUrl("testGetFileUrlForUnencryptedFile.txt", GetFileOptions(false))
+
             }
         }
-        latch.await(1, TimeUnit.MINUTES)
         assertThat(urlResult?.value, notNullValue())
         assertThat(URL(urlResult!!.value).readText(), `is`("Hello Test"))
     }
@@ -509,28 +407,18 @@ class BlockstackSessionStorageTest {
 
     @Test
     fun testDeleteFile() {
-        var result: Result<Any>? = null
-        val latch = CountDownLatch(1)
+        var result: Result<out Any>? = null
 
         runBlocking {
             if (session.isUserSignedIn()) {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false)) {
-                    runBlocking {
-                        session.deleteFile("try.txt") {
-                            runBlocking {
-                                session.getFile("try.txt", GetFileOptions(false)) {
-                                    result = it
-                                    latch.countDown()
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                latch.countDown()
+                session.putFile("testDeleteFile.txt", "Hello Test", PutFileOptions(false))
+                session.deleteFile("testDeleteFile.txt")
+
+                result = session.getFile("testDeleteFile.txt", GetFileOptions(false))
             }
         }
-        latch.await()
+
+
         assertThat(result, `is`(notNullValue()))
         assertThat(result?.value, `is`(nullValue()))
         assertThat(result?.error?.message, `is`("Error when loading from Gaia hub, status:404"))

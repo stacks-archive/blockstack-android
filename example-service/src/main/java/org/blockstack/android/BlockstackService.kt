@@ -14,7 +14,6 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.SessionStore
@@ -71,17 +70,17 @@ class BlockstackService : IntentService("BlockstackExample") {
             NotificationManagerCompat.from(this).notify(0, notif)
             // make it take looong
             Thread.sleep(10000)
-            _blockstackSession.putFile("fromService.txt", "Hello Android from Service", PutFileOptions()) { result ->
-                Log.d(TAG, "File stored at: ${result.value}")
-                val notif2 = NotificationCompat.Builder(this, CHANNEL_ID)
-                        .setSmallIcon(org.blockstack.android.sdk.R.drawable.org_blockstack_logo)
-                        .setContentTitle("Blockstack Service")
-                        .setContentText("File stored at: ${result.value}")
-                        .build()
+            val result = _blockstackSession.putFile("fromService.txt", "Hello Android from Service", PutFileOptions())
+            Log.d(TAG, "File stored at: ${result.value}")
+            val notif2 = NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(org.blockstack.android.sdk.R.drawable.org_blockstack_logo)
+                    .setContentTitle("Blockstack Service")
+                    .setContentText("File stored at: ${result.value}")
+                    .build()
 
-                NotificationManagerCompat.from(this).notify(0, notif2)
-                androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(ACTION_DONE))
-            }
+            NotificationManagerCompat.from(this).notify(0, notif2)
+            androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(ACTION_DONE))
+
         } else {
             val notif = NotificationCompat.Builder(this, CHANNEL_ID)
                     .setContentTitle("Not logged In")

@@ -9,7 +9,7 @@ import org.kethereum.bip44.BIP44Element
 import org.kethereum.hashes.Sha256
 import org.komputing.khex.extensions.toNoPrefixHexString
 
-data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val salt: String) {
+data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val salt: String, val metaData:MetaData = MetaData()) {
 
     fun getAppsNode(): AppsNode {
         return AppsNode(keys.generateChildKey(BIP44Element(true, APPS_NODE_INDEX)), salt)
@@ -21,7 +21,7 @@ data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val s
     companion object {
         val APPS_NODE_INDEX = 0
 
-        data class MetaData(
+        data class MetaData (
                 var permissions: List<String> = emptyList(),
                 var email: String? = null,
                 var profileUrl: String? = null
