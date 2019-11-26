@@ -447,7 +447,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
             val apps = profile.json.getJSONObject("apps")
             if (apps.has(appOrigin)) {
                 val url = apps.getString(appOrigin)
-                val bucket = url.replace(Regex("/?(\\?|#|$)"), "/$1")
+                val bucket = url.replace(Regex("/+(\\?|#|$)"), "/$1")
                 bucketUrl = "${bucket}${path}"
             }
         }

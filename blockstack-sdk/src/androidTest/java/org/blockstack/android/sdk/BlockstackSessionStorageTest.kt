@@ -294,6 +294,15 @@ class BlockstackSessionStorageTest {
 
 
     @Test
+    fun getUserAppFileUrlReturnsCorrectUrl() {
+        val url = runBlocking {
+            blockstack.getUserAppFileUrl("message.txt", "dev_android_sdk.id.blockstack", "https://flamboyant-darwin-d11c17.netlify.com", null)
+        }
+        assertThat(url, `is`("https://gaia.blockstack.org/hub/1CroEcMCtJUuvCLyjeqNToRURB8DjH2Uo2/message.txt"))
+
+    }
+
+    @Test
     fun getUserAppFileUrlReturns_NO_URL_forNonPublicFile() {
         val url = runBlocking {
             blockstack.getUserAppFileUrl("non_public_file.txt", "friedger.id", "https://blockstack-todos.appartisan.com/", null)

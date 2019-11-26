@@ -288,8 +288,6 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun getFile(path: String, options: GetFileOptions): Result<out Any> {
         Log.d(TAG, "getFile: path: $path options: $options")
-        val gaiaHubConfiguration = getOrSetLocalGaiaHubConnection()
-
         return withContext(Dispatchers.IO) {
             val urlResult = getFileUrl(path, options)
             val getRequest = buildGetRequest(urlResult.value!!)
