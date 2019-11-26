@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
-import org.blockstack.collection.Contact
 import java.io.ByteArrayOutputStream
 import java.net.URL
 import java.util.*
@@ -48,7 +47,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         val config = "https://flamboyant-darwin-d11c17.netlify.com"
-                .toBlockstackConfig(arrayOf(BaseScope.StoreWrite.scope, Contact.scope))
+                .toBlockstackConfig(arrayOf(BaseScope.StoreWrite.scope))
 
         val sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(this))
         blockstack = Blockstack()
@@ -116,10 +115,10 @@ class MainActivity : AppCompatActivity() {
         deleteStringFileButton.setOnClickListener {
             deleteFileMessageTextView.text = "Deleting..."
             lifecycleScope.launch(Dispatchers.Main) {
-                val it = blockstackSession().deleteFile(textFileName, DeleteFileOptions())
-                if (it.hasErrors) {
+                val deleteResult = blockstackSession().deleteFile(textFileName, DeleteFileOptions())
+                if (deleteResult.hasErrors) {
                     runOnUiThread {
-                        Toast.makeText(this@MainActivity, "error " + it.error, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity, "error " + deleteResult.error, Toast.LENGTH_SHORT).show()
                     }
                 } else {
                     runOnUiThread {
@@ -279,22 +278,6 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     it.error?.message
                 }
-            }
-        }
-
-        getContactsButton.setOnClickListener { _ ->
-            getContactsText.text = "Getting contacts ..."
-            val contacts = StringBuffer()
-            lifecycleScope.launch(Dispatchers.IO) {
-                val count = Contact.list({ id ->
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        Contact.get(id, blockstackSession())
-                        contacts.append()
-                        getContactsText.text = contacts.toString()
-                    }
-                    true
-                }, blockstackSession())
-                Log.d(TAG, "count $count")
             }
         }
 

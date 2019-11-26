@@ -21,9 +21,7 @@ data class Scope(val name: String) {
         /**
          * Creates `BaseScope` from its @property scope, i.e. the javascript name.
          * Throws IllegalArgumentException if scope name is not defined.
-         *
-         * Use just `Scope` for collection scopes
-         *
+         **
          * @param scopeJSName name of scope as defined in blockstack.js
          *
          */

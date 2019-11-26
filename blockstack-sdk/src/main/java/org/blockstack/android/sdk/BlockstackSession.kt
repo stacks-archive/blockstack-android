@@ -288,7 +288,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun getFile(path: String, options: GetFileOptions): Result<out Any> {
         Log.d(TAG, "getFile: path: $path options: $options")
-        val gaiaHubConfiguration = options.gaiaHubConfig ?: getOrSetLocalGaiaHubConnection()
+        val gaiaHubConfiguration = getOrSetLocalGaiaHubConnection()
 
         return withContext(Dispatchers.IO) {
             val urlResult = getFileUrl(path, options)
@@ -400,7 +400,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun putFile(path: String, content: Any, options: PutFileOptions): Result<out String> {
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
-        val gaiaHubConfiguration = options.gaiaHubConfig ?: getOrSetLocalGaiaHubConnection()
+        val gaiaHubConfiguration = getOrSetLocalGaiaHubConnection()
         val valid = content is String || content is ByteArray
         if (!valid) {
             throw IllegalArgumentException("putFile content only supports String or ByteArray")
@@ -583,7 +583,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                     options.app ?: appConfig?.appDomain.toString(),
                     options.zoneFileLookupURL?.toString())
         } else {
-            val gaiaHubConfig = options.gaiaHubConfig ?: getOrSetLocalGaiaHubConnection()
+            val gaiaHubConfig = getOrSetLocalGaiaHubConnection()
             readUrl = getFullReadUrl(path, gaiaHubConfig)
         }
 
@@ -660,34 +660,6 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
 
                 .method("POST", RequestBody.create(MediaType.get(CONTENT_TYPE_JSON), pageRequest))
                 .build()
-    }
-
-    suspend fun getCollectionConfig(collectionName: String): CollectionConfig? {
-        val userData = loadUserData()
-        return userData.collectionConfigs?.get(collectionName)
-                ?: loadCollectionConfig(userData, collectionName)
-    }
-
-    private suspend fun loadCollectionConfig(userData: UserData, collectionName: String): CollectionConfig {
-        return withContext(Dispatchers.IO) {
-            val result = getFile(COLLECTION_KEY_FILENAME, GetFileOptions())
-            if (result.value is String) {
-                val collectionKeys = JSONObject(result.value)
-                if (collectionKeys.has(collectionName)) {
-                    val collectionKey = collectionKeys.getJSONObject(collectionName)
-
-                    // update user data
-                    userData.addCollectionKey(collectionName, collectionKey)
-                    sessionStore.updateUserData(userData)
-
-                    return@withContext CollectionConfig(collectionKey)
-                } else {
-                    throw RuntimeException("No key for collection $collectionName")
-                }
-            } else {
-                throw RuntimeException("Invalid collection key file: ${result.error}")
-            }
-        }
     }
 
     fun isUserSignedIn(): Boolean {

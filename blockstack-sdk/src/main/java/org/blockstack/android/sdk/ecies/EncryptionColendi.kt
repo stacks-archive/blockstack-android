@@ -40,9 +40,9 @@ class EncryptionColendi {
     }
 
     fun decryptWithPrivateKey(formData: EncryptedResult, privateKey: String): String {
-        val privateKey = BigInteger(privateKey, 16)
+        val privKey = BigInteger(privateKey, 16)
 
-        return decrypt(privateKey, formData.ivString, formData.ephemPubString, formData.encryptedText, formData.macString)
+        return decrypt(privKey, formData.ivString, formData.ephemPubString, formData.encryptedText, formData.macString)
     }
 
     @Throws(Exception::class)

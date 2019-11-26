@@ -2,8 +2,6 @@ package org.blockstack.android.sdk.model
 
 import org.json.JSONObject
 
-private val COLLECTION_CONFIGS = "collectionConfigs"
-
 private val PROFILE = "profile"
 
 /**
@@ -14,19 +12,6 @@ private val PROFILE = "profile"
  * functionality to this class.
  */
 class UserData(private val jsonObject: JSONObject) {
-
-    fun addCollectionKey(collectionName: String, collectionKey: JSONObject) {
-        val collectionConfigs = jsonObject.optJSONObject(COLLECTION_CONFIGS) ?: JSONObject()
-        collectionConfigs.put(collectionName, collectionKey)
-        jsonObject.put(COLLECTION_CONFIGS, collectionConfigs)
-    }
-
-
-    val collectionConfigs: CollectionConfigs? = if (jsonObject.has(COLLECTION_CONFIGS)) {
-        CollectionConfigs(jsonObject.getJSONObject(COLLECTION_CONFIGS))
-    } else {
-        null
-    }
 
     /**
      * The profile of the user or null if not defined

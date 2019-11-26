@@ -98,11 +98,8 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onNewIntent")
 
         if (intent?.action == Intent.ACTION_MAIN) {
-            val userData = blockstackSession().loadUserData()
             runOnUiThread {
-                if (userData != null) {
-                    onSignIn()
-                }
+                onSignIn()
             }
         } else if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)

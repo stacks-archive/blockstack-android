@@ -18,8 +18,7 @@ public class GetFileOptions(val decrypt: Boolean = true,
                             val verify: Boolean = false,
                             val username: String? = null,
                             val app: String? = null,
-                            val zoneFileLookupURL: URL? = null,
-                            val gaiaHubConfig: GaiaHubConfig? = null) {
+                            val zoneFileLookupURL: URL? = null) {
 
     /**
      * json representation of these options as used by blockstack.js
