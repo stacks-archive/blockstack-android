@@ -23,6 +23,7 @@ import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
 import java.io.ByteArrayOutputStream
+import java.net.URI
 import java.net.URL
 import java.util.*
 
@@ -46,8 +47,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        val config = "https://flamboyant-darwin-d11c17.netlify.com"
-                .toBlockstackConfig(arrayOf(BaseScope.StoreWrite.scope))
+        val config = BlockstackConfig(
+                URI("https://flamboyant-darwin-d11c17.netlify.com"),
+                "/",
+                "/manifest.json",
+                arrayOf(BaseScope.StoreWrite.scope))
 
         val sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(this))
         blockstack = Blockstack()

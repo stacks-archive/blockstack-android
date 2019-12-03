@@ -63,8 +63,12 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
 
     suspend fun makeAuthResponse(account: BlockstackAccount, authRequest: String, scopes: Array<Scope>): String {
         val authRequestTriple = decodeToken(authRequest)
-        val transitPublicKey = authRequestTriple.second.getJSONArray("public_keys").getString(0)
-        val appPrivateKey = account.getAppsNode().getAppNode(authRequestTriple.second.getString("domain_name"))
+        return makeAuthResponse(authRequestTriple.second, account, scopes)
+    }
+
+    suspend fun makeAuthResponse(payload: JSONObject, account: BlockstackAccount, scopes: Array<Scope>): String {
+        val transitPublicKey = payload.getJSONArray("public_keys").getString(0)
+        val appPrivateKey = account.getAppsNode().getAppNode(payload.getString("domain_name"))
 
         val privateKeyPayload = encryptContent(
                 appPrivateKey.keyPair.privateKey.key.toHexStringNoPrefix(),
