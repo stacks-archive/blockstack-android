@@ -6,13 +6,6 @@ import com.colendi.ecies.Encryption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
-import me.uport.sdk.core.toBase64UrlSafe
-import me.uport.sdk.jwt.JWTSignerAlgorithm
-import me.uport.sdk.jwt.model.ArbitraryMapSerializer
-import me.uport.sdk.jwt.model.JwtHeader
-import me.uport.sdk.signer.KPSigner
 import okhttp3.*
 import okio.ByteString
 import org.blockstack.android.sdk.ecies.signContent
@@ -21,15 +14,12 @@ import org.blockstack.android.sdk.ecies.verify
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONObject
-import org.kethereum.crypto.SecureRandomUtils
 import org.kethereum.crypto.toECKeyPair
 import org.kethereum.hashes.sha256
 import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PrivateKey
 import org.kethereum.model.PublicKey
 import org.komputing.khex.extensions.hexToByteArray
-import org.komputing.khex.extensions.toNoPrefixHexString
-import java.lang.Integer.parseInt
 import java.math.BigInteger
 import java.security.InvalidParameterException
 import java.util.*
@@ -37,7 +27,9 @@ import java.util.*
 const val SIGNATURE_FILE_EXTENSION = ".sig"
 
 class BlockstackSession(private val sessionStore: ISessionStore, private val appConfig: BlockstackConfig? = null,
-                        private val callFactory: Call.Factory = OkHttpClient(), val blockstack: Blockstack = Blockstack()) {
+                        private val callFactory: Call.Factory = OkHttpClient(),
+                        val blockstack: Blockstack = Blockstack(),
+                        val hub: Hub = Hub(callFactory)) {
 
     private var appPrivateKey: String?
     var gaiaHubConfig: GaiaHubConfig? = null
@@ -156,27 +148,6 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         ).value as String
     }
 
-    suspend fun connectToGaia(gaiaHubUrl: String,
-                              challengeSignerHex: String,
-                              associationToken: String?): GaiaHubConfig {
-
-        val builder = Request.Builder()
-                .url("${gaiaHubUrl}/hub_info")
-        builder.addHeader("Referrer-Policy", "no-referrer")
-
-        val response = callFactory.newCall(builder.build()).execute()
-
-        val hubInfo = JSONObject(response.body()!!.string())
-
-        val readURL = hubInfo.getString("read_url_prefix")
-        val token = makeV1GaiaAuthToken(hubInfo, challengeSignerHex, gaiaHubUrl, associationToken)
-        val address = PrivateKey(challengeSignerHex).toECKeyPair().toBtcAddress()
-
-        return GaiaHubConfig(readURL, address, token, gaiaHubUrl)
-
-    }
-
-
     /**
      *  @ignore
      */
@@ -214,10 +185,11 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
             userData.json.put("hubUrl", BLOCKSTACK_DEFAULT_GAIA_HUB_URL)
         }
 
-        val gaiaConfig = connectToGaia(
+        val gaiaConfig = hub.connectToGaia(
                 userData.hubUrl,
                 userData.appPrivateKey,
-                userData.json.optStringOrNull("gaiaAssociationToken"))
+                userData.json.optStringOrNull("gaiaAssociationToken")
+        )
 
         userData.json.put("gaiaHubConfig", gaiaConfig)
         val sessionData = sessionStore.sessionData.json
@@ -227,55 +199,6 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         return gaiaConfig
     }
 
-    /**
-     *
-     * @param hubInfo
-     * @param signerKeyHex
-     * @param hubUrl
-     * @param associationToken
-     *
-     * @ignore
-     */
-    suspend fun makeV1GaiaAuthToken(hubInfo: JSONObject,
-                                    signerKeyHex: String,
-                                    hubUrl: String,
-                                    associationToken: String?): String {
-
-        val challengeText = hubInfo.getString("challenge_text")
-        val handlesV1Auth = hubInfo.optString("latest_auth_version").substring(1).let {
-            parseInt(it, 10) >= 1
-        }
-
-        val iss = PrivateKey(signerKeyHex).toECKeyPair().toHexPublicKey64()
-
-        if (!handlesV1Auth) {
-            throw NotImplementedError("only v1 auth supported, please upgrade your gaia server")
-        }
-
-        val saltArray = ByteArray(16) { 0 }
-        SecureRandomUtils.secureRandom().nextBytes(saltArray)
-        val salt = saltArray.toNoPrefixHexString()
-        // {"gaiaChallenge":"[\"gaiahub\",\"0\",\"storage2.blockstack.org\",\"blockstack_storage_please_sign\"]","hubUrl":"https://hub.blockstack.org","iss":"024634ee1d4ff57f2e0ec7a847e1705ec562949f84a83d1f5fdb5956220a9775e0","salt":"c3b9b4aefad343f204bd95c2fa1ae0a4"}
-        val payload = mapOf("gaiaChallenge" to challengeText,
-                "hubUrl" to hubUrl,
-                "iss" to iss,
-                "salt" to salt,
-                "associationToken" to associationToken)
-
-        val header = JwtHeader(alg = JwtHeader.ES256K)
-        val serializedPayload = Json(JsonConfiguration.Stable)
-                .stringify(ArbitraryMapSerializer, payload)
-        Log.d(TAG, header.toJson() + ", " + serializedPayload)
-        val signingInput = listOf(header.toJson(), serializedPayload)
-                .map { it.toBase64UrlSafe() }
-                .joinToString(".")
-
-        val jwtSigner = JWTSignerAlgorithm(header)
-        val signature: String = jwtSigner.sign(signingInput, KPSigner(signerKeyHex))
-        val token = listOf(signingInput, signature).joinToString(".")
-        Log.d(TAG, token)
-        return "v1:${token}"
-    }
 
     /**
      * Retrieves the specified file from the app's data store.
@@ -290,7 +213,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         Log.d(TAG, "getFile: path: $path options: $options")
         return withContext(Dispatchers.IO) {
             val urlResult = getFileUrl(path, options)
-            val getRequest = buildGetRequest(urlResult.value!!)
+            val getRequest = hub.buildGetRequest(urlResult.value!!)
 
             val exception = kotlin.runCatching {
                 val response = callFactory.newCall(getRequest).execute()
@@ -333,7 +256,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                     }
 
                     if (options.verify) {
-                        val signatureRequest = buildGetRequest(getFullReadUrl("$path$SIGNATURE_FILE_EXTENSION", gaiaHubConfig!!))
+                        val signatureRequest = hub.buildGetRequest(hub.getFullReadUrl("$path$SIGNATURE_FILE_EXTENSION", gaiaHubConfig!!))
                         val signatureResponse = callFactory.newCall(signatureRequest).execute()
                         if (signatureResponse.isSuccessful) {
                             val signatureObject = SignatureObject.fromJSONString(signatureResponse.body()!!.string())
@@ -441,23 +364,16 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
             }
         }
 
-        val putRequest = buildPutRequest(path, requestContent, contentType, gaiaHubConfiguration)
         return withContext(Dispatchers.IO) {
             try {
-                val response = callFactory.newCall(putRequest).execute()
-                Log.d(TAG, "put2 $response")
-
-                if (!response.isSuccessful) {
-                    throw Error("Error when uploading to Gaia hub")
-                }
+                val response = hub.uploadToGaiaHub(path, requestContent, gaiaHubConfiguration, contentType)
                 val responseText = response.body()?.string()
                 if (responseText !== null) {
                     if (!options.shouldEncrypt() && options.shouldSign()) {
                         val signedContent = signContent(requestContent.toByteArray(), getSignKey(options))
-                        val putSignatureRequest = buildPutRequest("$path$SIGNATURE_FILE_EXTENSION", signedContent.toJSONByteString(), "application/json", gaiaHubConfig!!)
-                        val signatureResponse = callFactory.newCall(putSignatureRequest).execute()
-                        Log.d(TAG, "put2signature $signatureResponse")
-                        if (!signatureResponse.isSuccessful) {
+                        try {
+                            hub.uploadToGaiaHub("$path$SIGNATURE_FILE_EXTENSION", signedContent.toJSONByteString(), gaiaHubConfig!!, "application/json")
+                        } catch (e: Exception) {
                             return@withContext Result(null, ResultError(ErrorCode.UnknownError, "invalid response from putFile signature $responseText"))
                         }
                     }
@@ -503,52 +419,15 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         }
     }
 
-    private fun buildPutRequest(path: String, content: ByteString, contentType: String, hubConfig: GaiaHubConfig): Request {
-        val url = "${hubConfig.server}/store/${hubConfig.address}/${path}"
-
-        val builder = Request.Builder()
-                .url(url)
-        builder.method("POST", RequestBody.create(MediaType.get(contentType), content))
-        builder.addHeader("Content-Type", contentType)
-        builder.addHeader("Authorization", "bearer ${hubConfig.token}")
-        builder.addHeader("Referrer-Policy", "no-referrer")
-        return builder.build()
-    }
-
-    private fun buildGetRequest(url: String): Request {
-        val builder = Request.Builder()
-                .url(url)
-        builder.addHeader("Referrer-Policy", "no-referrer")
-        return builder.build()
-    }
-
 
     suspend fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions()): Result<out Unit> {
-        val deleteRequest = buildDeleteRequest(path, options.gaiaHubConfig ?: gaiaHubConfig!!)
-
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = callFactory.newCall(deleteRequest).execute()
-                if (response.isSuccessful) {
-                    return@withContext Result(Unit)
-                } else {
-                    return@withContext Result(null, ResultError(ErrorCode.UnknownError, "Failed to delete file: ${response.code()}"))
-                }
-            } catch (e: Exception) {
-                Log.d(TAG, e.message, e)
-                return@withContext Result(null, ResultError(ErrorCode.UnknownError, e.message
-                        ?: e.toString()))
-            }
+        try {
+            hub.deleteFromGaiaHub(path, options.gaiaHubConfig ?: gaiaHubConfig!!)
+            return Result(Unit)
+        } catch (e: Exception) {
+            return Result(null, ResultError(ErrorCode.UnknownError, e.message
+                    ?: e.toString()))
         }
-    }
-
-    private fun buildDeleteRequest(filename: String, hubConfig: GaiaHubConfig): Request {
-        val url = "${hubConfig.server}/delete/${hubConfig.address}/${filename}"
-        val builder = Request.Builder()
-                .url(url)
-        builder.method("DELETE", null)
-        builder.header("Authorization", "bearer ${hubConfig.token}")
-        return builder.build()
     }
 
 
@@ -582,7 +461,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                     options.zoneFileLookupURL?.toString())
         } else {
             val gaiaHubConfig = getOrSetLocalGaiaHubConnection()
-            readUrl = getFullReadUrl(path, gaiaHubConfig)
+            readUrl = hub.getFullReadUrl(path, gaiaHubConfig)
         }
 
         if (readUrl == null) {
@@ -590,10 +469,6 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         } else {
             return Result(readUrl)
         }
-    }
-
-    private fun getFullReadUrl(filename: String, hubConfig: GaiaHubConfig): String {
-        return "${hubConfig.urlPrefix}${hubConfig.address}/${filename}"
     }
 
     suspend fun listFilesLoop(gaiaHubConfig: GaiaHubConfig? = null, callback: (Result<String>) -> Boolean, page: String?, callCount: Int, fileCount: Int): Int {

@@ -6,6 +6,7 @@ import org.json.JSONObject
 import org.kethereum.bip32.generateChildKey
 import org.kethereum.bip32.model.ExtendedKey
 import org.kethereum.bip44.BIP44Element
+import org.kethereum.extensions.toHexStringNoPrefix
 import org.kethereum.hashes.Sha256
 import org.komputing.khex.extensions.toNoPrefixHexString
 
@@ -15,11 +16,18 @@ data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val s
         return AppsNode(keys.generateChildKey(BIP44Element(true, APPS_NODE_INDEX)), salt)
     }
 
+    fun getCollectionsNode(): CollectionsNode {
+        return CollectionsNode(keys.generateChildKey(BIP44Element(true, COLLECTIONS_NODE_INDEX)), salt)
+    }
+
     val ownerAddress:String
             get() = keys.keyPair.toBtcAddress()
 
     companion object {
-        val APPS_NODE_INDEX = 0
+        const val APPS_NODE_INDEX = 0
+        const val SIGNING_NODE_INDEX = 1
+        const val ENCRYPTION_NODE_INDEX = 2
+        const val COLLECTIONS_NODE_INDEX = 3
 
         data class MetaData (
                 var permissions: List<String> = emptyList(),
@@ -29,12 +37,39 @@ data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val s
     }
 }
 
+data class AppNode(val keys: ExtendedKey) {
+    fun getPrivateKeyHex(): String {
+        return keys.keyPair.privateKey.key.toHexStringNoPrefix()
+    }
+
+    fun toBtcAddress(): String {
+        return keys.keyPair.toBtcAddress()
+    }
+}
+
 data class AppsNode(val keys: ExtendedKey, val salt: String) {
 
-    fun getAppNode(origin: String): ExtendedKey {
+    fun getAppNode(origin: String): AppNode {
         val hash = Sha256.digest("$origin$salt".toByteArray()).toNoPrefixHexString()
         val appIndex = hashCode(hash)
-        return keys.generateChildKey(BIP44Element(true, appIndex))
+        return AppNode(keys.generateChildKey(BIP44Element(true, appIndex)))
+    }
+}
+
+data class CollectionNode(val keys: ExtendedKey)
+
+const val COLLECTION_IDENTIFIER_DEFAULT = "default"
+data class CollectionsNode(val keys: ExtendedKey, val salt: String) {
+    fun getCollectionNode(collectionTypeName:String, collectionIdentifier:String = COLLECTION_IDENTIFIER_DEFAULT): CollectionNode {
+        val hash = Sha256.digest("$collectionTypeName$collectionIdentifier$salt".toByteArray()).toNoPrefixHexString()
+        val collectionIndex = hashCode(hash)
+        return CollectionNode(keys.generateChildKey(BIP44Element(true, collectionIndex)))
+    }
+
+    fun getCollectionEncryptionNode(collectionTypeName:String, encryptionIndex:Int, collectionIdentifier:String = COLLECTION_IDENTIFIER_DEFAULT): CollectionNode {
+        val hash = Sha256.digest("$collectionTypeName$collectionIdentifier$salt".toByteArray()).toNoPrefixHexString()
+        val collectionEncryptionIndex = hashCode(hash)
+        return CollectionNode(keys.generateChildKey(BIP44Element(true, collectionEncryptionIndex)))
     }
 }
 

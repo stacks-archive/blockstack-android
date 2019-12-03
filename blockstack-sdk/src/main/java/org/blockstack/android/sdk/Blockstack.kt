@@ -55,8 +55,8 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
 
     suspend fun makeAuthResponseUnencrypted(account: BlockstackAccount, domainName: String,
                                             scopes: Array<Scope>): String {
-        val appPrivateKey = account.getAppsNode().getAppNode(domainName)
-        val privateKeyPayload = appPrivateKey.keyPair.privateKey.key.toHexStringNoPrefix()
+        val appNode = account.getAppsNode().getAppNode(domainName)
+        val privateKeyPayload = appNode.getPrivateKeyHex()
 
         return makeAuthResponseToken(account, privateKeyPayload, scopes)
     }
@@ -71,7 +71,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
         val appPrivateKey = account.getAppsNode().getAppNode(payload.getString("domain_name"))
 
         val privateKeyPayload = encryptContent(
-                appPrivateKey.keyPair.privateKey.key.toHexStringNoPrefix(),
+                appPrivateKey.getPrivateKeyHex(),
                 CryptoOptions(publicKey = transitPublicKey)
         ).value?.json?.toString()?.toByteArray()?.toNoPrefixHexString()
 

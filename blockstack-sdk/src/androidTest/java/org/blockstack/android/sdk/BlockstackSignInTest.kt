@@ -82,9 +82,8 @@ class BlockstackSignInTest {
 
         val origin = "https://amazing.app:443"
         val appNode = appsNode.getAppNode(origin)
-
         val expectedAppNodeAddress = "1A9NEhnXq5jDp9BRT4DrwadRP5jbBK896X"
-        assertThat(appNode.keyPair.toBtcAddress(), CoreMatchers.`is`(expectedAppNodeAddress))
+        assertThat(appNode.toBtcAddress(), CoreMatchers.`is`(expectedAppNodeAddress))
     }
 
     @Test
