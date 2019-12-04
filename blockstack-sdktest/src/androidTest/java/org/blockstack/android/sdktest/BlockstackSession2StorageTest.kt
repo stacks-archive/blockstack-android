@@ -13,6 +13,7 @@ import org.blockstack.android.sdk.Blockstack
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.SessionStore
 import org.blockstack.android.sdk.model.GetFileOptions
+import org.blockstack.android.sdk.model.Hub
 import org.blockstack.android.sdk.model.PutFileOptions
 import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdktest.j2v8.BlockstackSessionJ2V8
@@ -35,6 +36,7 @@ class BlockstackSession2StorageTest {
 
     private lateinit var sessionJ2V8: BlockstackSessionJ2V8
     private lateinit var blockstack: Blockstack
+    private lateinit var hub: Hub
     private lateinit var session: BlockstackSession
 
     @Before
@@ -42,6 +44,7 @@ class BlockstackSession2StorageTest {
         val sessionStore = sessionStoreforIntegrationTests(rule)
         val executor = IntegrationTestExecutor(rule)
         val callFactory = OkHttpClient()
+        hub = Hub(callFactory)
         sessionJ2V8 = BlockstackSessionJ2V8(rule.activity,
                 "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStore,
@@ -63,7 +66,7 @@ class BlockstackSession2StorageTest {
 
         val latch = CountDownLatch(1)
         GlobalScope.launch {
-            session.gaiaHubConfig = session.connectToGaia(hubUrl, appPrivateKey, associationToken)
+            session.gaiaHubConfig = hub.connectToGaia(hubUrl, appPrivateKey, associationToken)
             Log.d(BlockstackSession.TAG, session.gaiaHubConfig.toString())
             latch.countDown()
         }

@@ -1,7 +1,6 @@
 package org.blockstack.android.sdk.model
 
 import org.blockstack.android.sdk.toBtcAddress
-import org.blockstack.android.sdk.toHexPublicKey64
 import org.json.JSONObject
 import org.kethereum.bip32.generateChildKey
 import org.kethereum.bip32.model.ExtendedKey
@@ -10,7 +9,7 @@ import org.kethereum.extensions.toHexStringNoPrefix
 import org.kethereum.hashes.Sha256
 import org.komputing.khex.extensions.toNoPrefixHexString
 
-data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val salt: String, val metaData:MetaData = MetaData()) {
+data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val salt: String, val metaData: MetaData = MetaData()) {
 
     fun getAppsNode(): AppsNode {
         return AppsNode(keys.generateChildKey(BIP44Element(true, APPS_NODE_INDEX)), salt)
@@ -20,8 +19,8 @@ data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val s
         return CollectionsNode(keys.generateChildKey(BIP44Element(true, COLLECTIONS_NODE_INDEX)), salt)
     }
 
-    val ownerAddress:String
-            get() = keys.keyPair.toBtcAddress()
+    val ownerAddress: String
+        get() = keys.keyPair.toBtcAddress()
 
     companion object {
         const val APPS_NODE_INDEX = 0
@@ -29,7 +28,7 @@ data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val s
         const val ENCRYPTION_NODE_INDEX = 2
         const val COLLECTIONS_NODE_INDEX = 3
 
-        data class MetaData (
+        data class MetaData(
                 var permissions: List<String> = emptyList(),
                 var email: String? = null,
                 var profileUrl: String? = null
@@ -56,17 +55,22 @@ data class AppsNode(val keys: ExtendedKey, val salt: String) {
     }
 }
 
-data class CollectionNode(val keys: ExtendedKey)
+data class CollectionNode(val keys: ExtendedKey) {
+    fun getPrivateKeyHex(): String {
+        return keys.keyPair.privateKey.key.toHexStringNoPrefix()
+    }
+}
 
 const val COLLECTION_IDENTIFIER_DEFAULT = "default"
+
 data class CollectionsNode(val keys: ExtendedKey, val salt: String) {
-    fun getCollectionNode(collectionTypeName:String, collectionIdentifier:String = COLLECTION_IDENTIFIER_DEFAULT): CollectionNode {
+    fun getCollectionNode(collectionTypeName: String, collectionIdentifier: String = COLLECTION_IDENTIFIER_DEFAULT): CollectionNode {
         val hash = Sha256.digest("$collectionTypeName$collectionIdentifier$salt".toByteArray()).toNoPrefixHexString()
         val collectionIndex = hashCode(hash)
         return CollectionNode(keys.generateChildKey(BIP44Element(true, collectionIndex)))
     }
 
-    fun getCollectionEncryptionNode(collectionTypeName:String, encryptionIndex:Int, collectionIdentifier:String = COLLECTION_IDENTIFIER_DEFAULT): CollectionNode {
+    fun getCollectionEncryptionNode(collectionTypeName: String, encryptionIndex: Int, collectionIdentifier: String = COLLECTION_IDENTIFIER_DEFAULT): CollectionNode {
         val hash = Sha256.digest("$collectionTypeName$collectionIdentifier$salt".toByteArray()).toNoPrefixHexString()
         val collectionEncryptionIndex = hashCode(hash)
         return CollectionNode(keys.generateChildKey(BIP44Element(true, collectionEncryptionIndex)))
