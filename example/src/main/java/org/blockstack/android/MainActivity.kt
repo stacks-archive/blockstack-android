@@ -291,6 +291,7 @@ class MainActivity : AppCompatActivity() {
             val contacts = StringBuffer()
             lifecycleScope.launch(Dispatchers.IO) {
                 val count = Contact.list({ id ->
+                    Log.d(TAG, id)
                     lifecycleScope.launch(Dispatchers.IO) {
                         Contact.get(id, blockstackSession())
                         contacts.append()
@@ -298,6 +299,9 @@ class MainActivity : AppCompatActivity() {
                     }
                     true
                 }, blockstackSession())
+                if (count == 0) {
+                    getContactsText.text = "No contacts"
+                }
                 Log.d(TAG, "count $count")
             }
         }

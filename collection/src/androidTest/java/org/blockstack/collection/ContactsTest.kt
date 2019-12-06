@@ -42,7 +42,7 @@ class ContactsTest {
             val sessionStore = sessionStoreforIntegrationTests(rule)
             val userSession = BlockstackSession(sessionStore)
 
-            val collectionHubConfig = userSession.connectToGaia(hubUrl, encryptionKey, null)
+            val collectionHubConfig = userSession.hub.connectToGaia(hubUrl, encryptionKey, null)
             val keys = JSONObject().put("Contact", JSONObject()
                     .put("encryptionKey", encryptionKey)
                     .put("hubConfig", JSONObject()
