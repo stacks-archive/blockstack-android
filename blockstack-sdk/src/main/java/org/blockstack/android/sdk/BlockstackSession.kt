@@ -6,6 +6,13 @@ import com.colendi.ecies.Encryption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
+import me.uport.sdk.core.toBase64UrlSafe
+import me.uport.sdk.jwt.JWTSignerAlgorithm
+import me.uport.sdk.jwt.model.ArbitraryMapSerializer
+import me.uport.sdk.jwt.model.JwtHeader
+import me.uport.sdk.signer.KPSigner
 import okhttp3.*
 import okio.ByteString
 import org.blockstack.android.sdk.ecies.signContent
@@ -14,12 +21,15 @@ import org.blockstack.android.sdk.ecies.verify
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONObject
+import org.kethereum.crypto.SecureRandomUtils
 import org.kethereum.crypto.toECKeyPair
 import org.kethereum.hashes.sha256
 import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PrivateKey
 import org.kethereum.model.PublicKey
 import org.komputing.khex.extensions.hexToByteArray
+import org.komputing.khex.extensions.toNoPrefixHexString
+import java.lang.Integer.parseInt
 import java.math.BigInteger
 import java.security.InvalidParameterException
 import java.util.*
@@ -211,6 +221,8 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun getFile(path: String, options: GetFileOptions): Result<out Any> {
         Log.d(TAG, "getFile: path: $path options: $options")
+        val gaiaHubConfiguration = options.gaiaHubConfig ?: getOrSetLocalGaiaHubConnection()
+
         return withContext(Dispatchers.IO) {
             val urlResult = getFileUrl(path, options)
             val getRequest = hub.buildGetRequest(urlResult.value!!)
@@ -321,7 +333,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun putFile(path: String, content: Any, options: PutFileOptions): Result<out String> {
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
-        val gaiaHubConfiguration = getOrSetLocalGaiaHubConnection()
+        val gaiaHubConfiguration = options.gaiaHubConfig ?: getOrSetLocalGaiaHubConnection()
         val valid = content is String || content is ByteArray
         if (!valid) {
             throw IllegalArgumentException("putFile content only supports String or ByteArray")
@@ -460,7 +472,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                     options.app ?: appConfig?.appDomain.toString(),
                     options.zoneFileLookupURL?.toString())
         } else {
-            val gaiaHubConfig = getOrSetLocalGaiaHubConnection()
+            val gaiaHubConfig =  options.gaiaHubConfig ?: getOrSetLocalGaiaHubConnection()
             readUrl = hub.getFullReadUrl(path, gaiaHubConfig)
         }
 
@@ -533,6 +545,35 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
 
                 .method("POST", RequestBody.create(MediaType.get(CONTENT_TYPE_JSON), pageRequest))
                 .build()
+    }
+
+    suspend fun getCollectionConfig(collectionName: String): CollectionConfig? {
+        val userData = loadUserData()
+        return userData.collectionConfigs?.get(collectionName)
+                ?: loadCollectionConfig(userData, collectionName)
+    }
+
+    private suspend fun loadCollectionConfig(userData: UserData, collectionName: String): CollectionConfig {
+        return withContext(Dispatchers.IO) {
+            val result = getFile(COLLECTION_KEY_FILENAME, GetFileOptions())
+            if (result.value is String) {
+                val collectionKeys = JSONObject(result.value)
+                val collectionScope = COLLECTION_SCOPE_PREFIX + collectionName
+                if (collectionKeys.has(collectionScope)) {
+                    val collectionKey = collectionKeys.getJSONObject(collectionScope)
+
+                    // update user data
+                    userData.addCollectionKey(collectionScope, collectionKey)
+                    sessionStore.updateUserData(userData)
+
+                    return@withContext CollectionConfig(collectionKey)
+                } else {
+                    throw RuntimeException("No key for collection $collectionName")
+                }
+            } else {
+                throw RuntimeException("Invalid collection key file: ${result.error}")
+            }
+        }
     }
 
     fun isUserSignedIn(): Boolean {

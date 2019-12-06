@@ -92,7 +92,9 @@ class MainActivity : AppCompatActivity() {
         if (intent?.action == Intent.ACTION_MAIN) {
             val userData = blockstackSession().loadUserData()
             runOnUiThread {
-                onSignIn(userData)
+                if (userData != null) {
+                    onSignIn(userData)
+                }
             }
         }
     }

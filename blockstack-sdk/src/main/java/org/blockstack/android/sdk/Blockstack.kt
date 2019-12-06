@@ -290,7 +290,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
     private fun doPublicKeysMatchUsername(payload: JSONObject, nameLookupURL: String?): Boolean {
-        val username = payload.optStringOrNull("username")
+        val username = payload.optString("username")
         if (username == null || username.isEmpty()) {
             return true
         }
@@ -469,11 +469,11 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
 
     fun wrapProfileToken(token: String): ProfileTokenPair {
         val decodedToken = decodeToken(token)
-        val jsonToken = JSONObject()
+        val token = JSONObject()
                 .put("token", token)
                 .put("decodedToken", tokenTripleToJSON(decodedToken))
 
-        return ProfileTokenPair(jsonToken)
+        return ProfileTokenPair(token)
     }
 
     /**

@@ -27,7 +27,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="blockstacksample" />
+                <data android:scheme="https" android:host="flamboyant-darwin-d11c17.netlify.com" />
             </intent-filter>
         </activity>
     </application>

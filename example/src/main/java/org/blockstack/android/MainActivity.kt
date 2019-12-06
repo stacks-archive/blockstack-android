@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
+import org.blockstack.collection.Contact
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.net.URL
@@ -51,7 +52,7 @@ class MainActivity : AppCompatActivity() {
                 URI("https://flamboyant-darwin-d11c17.netlify.com"),
                 "/",
                 "/manifest.json",
-                arrayOf(BaseScope.StoreWrite.scope))
+                arrayOf(BaseScope.StoreWrite.scope, Contact.scope))
 
         val sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(this))
         blockstack = Blockstack()
@@ -282,6 +283,22 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     it.error?.message
                 }
+            }
+        }
+
+        getContactsButton.setOnClickListener { _ ->
+            getContactsText.text = "Getting contacts ..."
+            val contacts = StringBuffer()
+            lifecycleScope.launch(Dispatchers.IO) {
+                val count = Contact.list({ id ->
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        Contact.get(id, blockstackSession())
+                        contacts.append()
+                        getContactsText.text = contacts.toString()
+                    }
+                    true
+                }, blockstackSession())
+                Log.d(TAG, "count $count")
             }
         }
 

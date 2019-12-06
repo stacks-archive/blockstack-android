@@ -15,7 +15,8 @@ import java.security.InvalidParameterException
  * true when retrieving the data.
  */
 public class PutFileOptions(val encrypt: Boolean = true, val encryptionKey:String? = null,
-                            val contentType: String? = null, val sign: Any = false) {
+                            val contentType: String? = null, val sign: Any = false,
+                            val gaiaHubConfig: GaiaHubConfig? = null) {
 
     /**
      * json representation of these options as used by blockstack.js

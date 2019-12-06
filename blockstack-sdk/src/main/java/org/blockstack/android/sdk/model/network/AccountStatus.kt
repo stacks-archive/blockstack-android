@@ -1,6 +1,5 @@
 package org.blockstack.android.sdk.model.network
 
-import org.blockstack.android.sdk.optStringOrNull
 import org.json.JSONObject
 import java.math.BigInteger
 
@@ -38,7 +37,7 @@ class AccountStatus(private val jsonObject: JSONObject) {
      */
     val creditValue: BigInteger?
         get() {
-            return jsonObject.optStringOrNull("credit_value")?.let { BigInteger(it) }
+            return jsonObject.optString("credit_value")?.let { BigInteger(it) }
         }
 
     /**
@@ -46,7 +45,7 @@ class AccountStatus(private val jsonObject: JSONObject) {
      */
     val debitValue: BigInteger?
         get() {
-            return jsonObject.optStringOrNull("debit_value")?.let { BigInteger(it) }
+            return jsonObject.optString("debit_value")?.let { BigInteger(it) }
         }
 
     /**
