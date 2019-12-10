@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
 
         val config = BlockstackConfig(
                 URI("https://flamboyant-darwin-d11c17.netlify.com"),
-                "/",
+                "/redirect",
                 "/manifest.json",
                 arrayOf(BaseScope.StoreWrite.scope))
 
