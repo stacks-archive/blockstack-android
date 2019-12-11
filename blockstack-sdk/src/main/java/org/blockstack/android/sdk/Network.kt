@@ -206,7 +206,7 @@ class Network(private val blockstackAPIUrl: String,
 
             val sha256 = Sha256.digest(body.toByteArray())
             val h = sha256.ripemd160().toNoPrefixHexString()
-            if (h !== zonefileHash) {
+            if (h != zonefileHash) {
                 return Result(null, ResultError(ErrorCode.UnknownError, "Zone file contents hash to ${h}, not ${zonefileHash}"))
             }
             return Result(body)

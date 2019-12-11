@@ -6,6 +6,7 @@ import kotlinx.coroutines.runBlocking
 import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.startsWith
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -35,7 +36,8 @@ class BlockstackTest {
         val profile = runBlocking {
             blockstack.lookupProfile("public_profile_for_testing.id.blockstack", null)
         }
-        assertThat(profile.json.toString(), `is`("{\"@type\":\"Person\",\"@context\":\"http:\\/\\/schema.org\",\"apps\":{\"https:\\/\\/banter.pub\":\"https:\\/\\/gaia.blockstack.org\\/hub\\/1DkuAChufYjTkTCejJgSztuqp5KdykpWap\\/\"},\"api\":{\"gaiaHubConfig\":{\"url_prefix\":\"https:\\/\\/gaia.blockstack.org\\/hub\\/\"},\"gaiaHubUrl\":\"https:\\/\\/hub.blockstack.org\"}}"))
+        // Note that this can fail due to updates on the profile (the secret key is publicly available
+        assertThat(profile.json.toString(), startsWith("{\"@type\":\"Person\",\"@context\":\"http:\\/\\/schema.org\",\"apps\":{"))
     }
 
 
