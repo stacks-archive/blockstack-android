@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Network` methods return results, no callback used anymore
 - `Network.getNamePrice` is using v2 API (expecting amounts in decimals, not hex format)
 
+## [0.4.8] - 2019-09-16
+
+### Added
+- Add getPublicKeyFromPrivate, publicKeyToAddress, makeECPrivateKey
+
+
 ## [0.4.7] - 2019-09-04
 
 ### Added

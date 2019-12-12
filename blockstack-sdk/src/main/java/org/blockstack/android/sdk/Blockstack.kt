@@ -24,6 +24,7 @@ import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import org.kethereum.crypto.CryptoAPI
 import org.kethereum.crypto.getCompressedPublicKey
 import org.kethereum.crypto.toECKeyPair
 import org.kethereum.encodings.encodeToBase58String
@@ -413,6 +414,19 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
         } else {
             return Result(null, ResultError(ErrorCode.FailedDecryptionError, "failed to decrypt"))
         }
+    }
+
+    fun getPublicKeyFromPrivate(privateKey: String): String? {
+        return PrivateKey(privateKey).toECKeyPair().toHexPublicKey64()
+    }
+
+    fun makeECPrivateKey(): String? {
+        val keyPair = CryptoAPI.keyPairGenerator.generate()
+        return keyPair.privateKey.key.toHexStringNoPrefix()
+    }
+
+    fun publicKeyToAddress(publicKey: String): String? {
+        return publicKey.toBtcAddress()
     }
 
     /**
