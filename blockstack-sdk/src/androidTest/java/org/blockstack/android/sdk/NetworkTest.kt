@@ -198,27 +198,22 @@ class NetworkTest {
         assertThat(result.error?.message, `is`("Namespace not found"))
     }
 
-    /* enable test as soon as core.blockstack.org exposes zonefiles.
-
     @Test
     fun getZonefileReturnsCorrectContent() {
-        val latch = CountDownLatch(1)
-        var result: Result<String>? = null
+
         val hash = "6454d4e7052279480fadca7ebd01a97b7a9ad26f"
-        network.getZonefile(hash) {
-            result = it
-            latch.countDown()
+        val result = runBlocking {
+            letCoreNodeAPIrecover()
+            network.getZonefile(hash)
         }
 
-        latch.await()
-        Log.d("networktest", result?.error)
-        assertThat(result?.hasValue, `is`(true))
-        assertThat(result?.value, `is`("kjk"))
+        assertThat(result.hasValue, `is`(true))
+        assertThat(result.value, `is`("\$ORIGIN aaron.id\n\$TTL 3600\n_https._tcp URI 10 1 \"https://gaia.blockstack.org/hub/1EJh2y3xKUwFjJ8v29a2NRruPJ71neozEE/profile.json\"\n"))
     }
 
-    */
 
-
+    /*
+    TODO find invalid zone file
     @Test
     fun getZonefileReturnsErrorForHashMismatch() {
         val opReturn = "69642b65cb791d68bbafab0fffea7f8a32499c3bd68d67eea0a621bf2b789d1ac97271afdfb8e1" // from https://www.blocktrail.com/BTC/tx/e2029990fa75e9fc642f149dad196ac6b64b9c4a6db254f23a580b7508fc34d7
@@ -231,6 +226,7 @@ class NetworkTest {
         assertThat(result.hasValue, `is`(false))
         assertThat(result.error?.message, `is`("Zone file contents hash to 7825a1f3f844c2936d0e23ef21f17b52ce7565c0, not 3bd68d67eea0a621bf2b789d1ac97271afdfb8e1"))
     }
+     */
 
     @Test
     fun getZonefileReturnsErrorForInvalidHash() {

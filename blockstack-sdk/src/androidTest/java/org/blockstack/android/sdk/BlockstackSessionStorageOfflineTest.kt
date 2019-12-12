@@ -48,20 +48,14 @@ class BlockstackSessionStorageOfflineTest {
 
     @Test
     fun testOfflineGetFile() {
-        var result: Result<Any>? = null
-        val latch = CountDownLatch(1)
+        var result: Result<out Any>? = null
 
         if (session.isUserSignedIn()) {
             runBlocking {
-                session.getFile("404file.txt", GetFileOptions(false)) {
-                    result = it
-                    latch.countDown()
-                }
+                 result = session.getFile("404file.txt", GetFileOptions(false))
+
             }
-        } else {
-            latch.countDown()
         }
-        latch.await()
         assertThat(result, `is`(notNullValue()))
         assertThat(result?.value, `is`(nullValue()))
         assertThat(result?.error?.message, `is`("offline"))

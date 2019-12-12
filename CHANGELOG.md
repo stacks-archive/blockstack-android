@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A `ResultError` type and enum `ErrorCode` to better represent errors from Blockstack
 
 ### Changed
+- Replaced J2V8 with kotlin implementation of auth and storage procotol
+- Removed callbacks from all method calls
 - Replaced `Result.error` type String with type `ResultError`
 - `loadUserData` throws an error if user not logged in
 - `Network` methods return results, no callback used anymore

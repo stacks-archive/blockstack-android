@@ -98,11 +98,8 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onNewIntent")
 
         if (intent?.action == Intent.ACTION_MAIN) {
-            val userData = blockstackSession().loadUserData()
             runOnUiThread {
-                if (userData != null) {
-                    onSignIn()
-                }
+                onSignIn()
             }
         } else if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
@@ -119,13 +116,12 @@ class MainActivity : AppCompatActivity() {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: $authResponse")
                 lifecycleScope.launch(Dispatchers.IO) {
-                    blockstackSession().handlePendingSignIn(authResponse) { result ->
-                        Log.d(TAG, "signed in?" + result.hasValue)
-                        if (result.hasValue) {
-                            runOnUiThread {
-                                onSignIn()
+                    val result = blockstackSession().handlePendingSignIn(authResponse)
+                    Log.d(TAG, "signed in?" + result.hasValue)
+                    if (result.hasValue) {
+                        runOnUiThread {
+                            onSignIn()
 
-                            }
                         }
                     }
                 }

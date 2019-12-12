@@ -93,12 +93,14 @@ fun String.fromDER(): SignatureData {
         throw InvalidParameterException()
     }
     var s = data.sliceArray(p.place until slen + p.place)
+    /* BigInteger is dealing with leading zero correctly
     if (r[0] == ZERO && (r[1] and LENGTH) != ZERO) {
         r = r.sliceArray(1 until r.size)
     }
     if (s[0] == ZERO && (s[1] and LENGTH) != ZERO) {
         s = s.sliceArray(1 until s.size)
     }
+   */
 
     return SignatureData(BigInteger(r), BigInteger(s), BigInteger.ZERO)
 }
@@ -179,7 +181,7 @@ fun SignatureData.toDER(): String {
     addSize(arr, s.size)
     arr.addAll(s.toTypedArray())
 
-    var res = mutableListOf<Byte>(0x30)
+    val res = mutableListOf<Byte>(0x30)
     addSize(res, arr.size)
     res.addAll(arr)
 

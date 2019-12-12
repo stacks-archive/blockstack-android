@@ -8,7 +8,7 @@ import org.json.JSONObject
  * @property wasSigned set to true if the file was originally signed
  * in order for the corresponding signature file to also be deleted.
  */
-public class DeleteFileOptions(val wasSigned: Boolean = false) {
+public class DeleteFileOptions(val wasSigned: Boolean = false, val gaiaHubConfig: GaiaHubConfig? = null) {
 
     /**
      * json representation of these options as used by blockstack.js

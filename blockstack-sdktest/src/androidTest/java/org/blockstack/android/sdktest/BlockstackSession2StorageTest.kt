@@ -13,6 +13,7 @@ import org.blockstack.android.sdk.Blockstack
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.SessionStore
 import org.blockstack.android.sdk.model.GetFileOptions
+import org.blockstack.android.sdk.model.Hub
 import org.blockstack.android.sdk.model.PutFileOptions
 import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdktest.j2v8.BlockstackSessionJ2V8
@@ -35,6 +36,7 @@ class BlockstackSession2StorageTest {
 
     private lateinit var sessionJ2V8: BlockstackSessionJ2V8
     private lateinit var blockstack: Blockstack
+    private lateinit var hub: Hub
     private lateinit var session: BlockstackSession
 
     @Before
@@ -42,6 +44,7 @@ class BlockstackSession2StorageTest {
         val sessionStore = sessionStoreforIntegrationTests(rule)
         val executor = IntegrationTestExecutor(rule)
         val callFactory = OkHttpClient()
+        hub = Hub(callFactory)
         sessionJ2V8 = BlockstackSessionJ2V8(rule.activity,
                 "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStore,
@@ -63,7 +66,7 @@ class BlockstackSession2StorageTest {
 
         val latch = CountDownLatch(1)
         GlobalScope.launch {
-            session.gaiaHubConfig = session.connectToGaia(hubUrl, appPrivateKey, associationToken)
+            session.gaiaHubConfig = hub.connectToGaia(hubUrl, appPrivateKey, associationToken)
             Log.d(BlockstackSession.TAG, session.gaiaHubConfig.toString())
             latch.countDown()
         }
@@ -73,24 +76,19 @@ class BlockstackSession2StorageTest {
     @Test
     fun testPutJ2V8ThenGetEncryptedStringFile() {
         var result: String? = null
-        val latch = CountDownLatch(1)
 
         if (sessionJ2V8.isUserSignedIn()) {
 
             sessionJ2V8.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
                 runBlocking {
-                    session.getFile("try.txt", GetFileOptions(true)) {
-                        if (it.value is String) {
-                            result = it.value as String
-                        }
-                        latch.countDown()
+                    val it = session.getFile("try.txt", GetFileOptions(true))
+                    if (it.value is String) {
+                        result = it.value as String
                     }
+
                 }
             }
-        } else {
-            latch.countDown()
         }
-        latch.await()
         assertThat(result, `is`("Hello Test"))
     }
 
@@ -101,8 +99,7 @@ class BlockstackSession2StorageTest {
 
         if (sessionJ2V8.isUserSignedIn()) {
             runBlocking {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(true)) {
-                }
+                session.putFile("try.txt", "Hello Test", PutFileOptions(true))
             }
             sessionJ2V8.getFile("try.txt", GetFileOptions(true)) {
                 if (it.value is String) {
@@ -124,9 +121,7 @@ class BlockstackSession2StorageTest {
 
         if (sessionJ2V8.isUserSignedIn()) {
             runBlocking {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(true, sign = true)) {
-
-                }
+                session.putFile("try.txt", "Hello Test", PutFileOptions(true, sign = true))
             }
             sessionJ2V8.getFile("try.txt", GetFileOptions(true, verify = true)) {
                 if (it.value is String) {
@@ -170,9 +165,7 @@ class BlockstackSession2StorageTest {
 
         if (sessionJ2V8.isUserSignedIn()) {
             runBlocking {
-                session.putFile("try.txt", "Hello Test", PutFileOptions(false, sign = true)) {
-
-                }
+                session.putFile("try.txt", "Hello Test", PutFileOptions(false, sign = true))
             }
             sessionJ2V8.getFile("try.txt", GetFileOptions(false, verify = true)) {
                 if (it.value is String) {
@@ -199,10 +192,9 @@ class BlockstackSession2StorageTest {
             }
             latch.await()
             runBlocking {
-                sessionJ2V8.getFile("try.txt", GetFileOptions(false, verify = true)) {
-                    if (it.value is String) {
-                        result = it.value as String
-                    }
+                val it = session.getFile("try.txt", GetFileOptions(false, verify = true))
+                if (it.value is String) {
+                    result = it.value as String
                 }
             }
 

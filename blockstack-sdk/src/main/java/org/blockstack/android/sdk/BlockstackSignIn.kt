@@ -43,7 +43,7 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
         val transitKeyPair = PrivateKey(transitPrivateKey).toECKeyPair()
         val btcAddress = transitKeyPair.toBtcAddress()
         val issuerDID = "did:btc-addr:${btcAddress}"
-        val payload = mutableMapOf<String, Any>(
+        val payload = mutableMapOf(
                 "jti" to UUID.randomUUID().toString(),
                 "iat" to Date().time / 1000,
                 "exp" to expiresAt / 1000,
@@ -55,7 +55,7 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
                 "version" to "1.3.1",
                 "do_not_include_profile" to true,
                 "supports_hub_url" to true,
-                "scopes" to appConfig.scopes.map { it.scope }
+                "scopes" to appConfig.scopes.map { it.name }
         )
         if (extraParams != null) {
             payload.putAll(extraParams)

@@ -10,14 +10,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.preference.PreferenceManager
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_cipher.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.blockstack.android.sdk.Blockstack
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.SessionStore
 import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.model.GetFileOptions
 import org.blockstack.android.sdk.model.PutFileOptions
@@ -61,14 +59,12 @@ class CipherActivity : AppCompatActivity() {
     private fun putFileGetFile() {
         // works
         lifecycleScope.launch(Dispatchers.IO) {
-            blockstackSession().putFile("try.txt", "Hello from Blockstack2", PutFileOptions(encrypt = true)) {
-                Log.d(TAG, "result: " + it.value)
-                // does not yet work
-                lifecycleScope.launch(Dispatchers.IO) {
-                    blockstackSession().getFile("try.txt", GetFileOptions(true)) {
-                        Log.d(TAG, "content " + it.value)
-                    }
-                }
+            val it = blockstackSession().putFile("try.txt", "Hello from Blockstack2", PutFileOptions(encrypt = true))
+            Log.d(TAG, "result: " + it.value)
+            // does not yet work
+            lifecycleScope.launch(Dispatchers.IO) {
+                val it2 = blockstackSession().getFile("try.txt", GetFileOptions(true))
+                Log.d(TAG, "content " + it2.value)
             }
         }
     }
@@ -84,19 +80,17 @@ class CipherActivity : AppCompatActivity() {
 
         // works
         lifecycleScope.launch(Dispatchers.IO) {
-            blockstackSession().putFile("try.txt", bitMapData, PutFileOptions(encrypt = true)) {
-                Log.d(TAG, "result: " + it.value)
-                // does not yet work
-                lifecycleScope.launch(Dispatchers.IO) {
+            val it = blockstackSession().putFile("try.txt", bitMapData, PutFileOptions(encrypt = true))
+            Log.d(TAG, "result: " + it.value)
+            // does not yet work
+            lifecycleScope.launch(Dispatchers.IO) {
 
-                    blockstackSession().getFile("try.txt", GetFileOptions(true)) {
-                        val plainContent: ByteArray = it.value as ByteArray
-                        val imageByteArray = plainContent
-                        val receivedBitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
-                        runOnUiThread {
-                            imageView.setImageBitmap(receivedBitmap)
-                        }
-                    }
+                val it2 = blockstackSession().getFile("try.txt", GetFileOptions(true))
+                val plainContent: ByteArray = it2.value as ByteArray
+                val imageByteArray = plainContent
+                val receivedBitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+                runOnUiThread {
+                    imageView.setImageBitmap(receivedBitmap)
                 }
             }
         }

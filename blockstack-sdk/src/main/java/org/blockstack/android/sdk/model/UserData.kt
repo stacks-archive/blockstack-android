@@ -2,6 +2,8 @@ package org.blockstack.android.sdk.model
 
 import org.json.JSONObject
 
+private val PROFILE = "profile"
+
 /**
  * Object containing user data. This object is backed by the original JSON representation.
  *
@@ -11,12 +13,11 @@ import org.json.JSONObject
  */
 class UserData(private val jsonObject: JSONObject) {
 
-
     /**
      * The profile of the user or null if not defined
      */
-    val profile: Profile? = if (jsonObject.has("profile")) {
-        Profile(jsonObject.getJSONObject("profile"))
+    val profile: Profile? = if (jsonObject.has(PROFILE)) {
+        Profile(jsonObject.getJSONObject(PROFILE))
     } else {
         null
     }

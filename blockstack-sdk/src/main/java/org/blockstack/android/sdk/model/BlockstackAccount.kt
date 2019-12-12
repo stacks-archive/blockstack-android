@@ -1,25 +1,27 @@
 package org.blockstack.android.sdk.model
 
 import org.blockstack.android.sdk.toBtcAddress
-import org.blockstack.android.sdk.toHexPublicKey64
 import org.json.JSONObject
 import org.kethereum.bip32.generateChildKey
 import org.kethereum.bip32.model.ExtendedKey
 import org.kethereum.bip44.BIP44Element
+import org.kethereum.extensions.toHexStringNoPrefix
 import org.kethereum.hashes.Sha256
 import org.komputing.khex.extensions.toNoPrefixHexString
 
-data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val salt: String) {
+data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val salt: String, val metaData: MetaData = MetaData()) {
 
     fun getAppsNode(): AppsNode {
         return AppsNode(keys.generateChildKey(BIP44Element(true, APPS_NODE_INDEX)), salt)
     }
 
-    val ownerAddress:String
-            get() = keys.keyPair.toBtcAddress()
+    val ownerAddress: String
+        get() = keys.keyPair.toBtcAddress()
 
     companion object {
-        val APPS_NODE_INDEX = 0
+        const val APPS_NODE_INDEX = 0
+        const val SIGNING_NODE_INDEX = 1
+        const val ENCRYPTION_NODE_INDEX = 2
 
         data class MetaData(
                 var permissions: List<String> = emptyList(),
@@ -29,12 +31,22 @@ data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val s
     }
 }
 
+data class AppNode(val keys: ExtendedKey) {
+    fun getPrivateKeyHex(): String {
+        return keys.keyPair.privateKey.key.toHexStringNoPrefix()
+    }
+
+    fun toBtcAddress(): String {
+        return keys.keyPair.toBtcAddress()
+    }
+}
+
 data class AppsNode(val keys: ExtendedKey, val salt: String) {
 
-    fun getAppNode(origin: String): ExtendedKey {
+    fun getAppNode(origin: String): AppNode {
         val hash = Sha256.digest("$origin$salt".toByteArray()).toNoPrefixHexString()
         val appIndex = hashCode(hash)
-        return keys.generateChildKey(BIP44Element(true, appIndex))
+        return AppNode(keys.generateChildKey(BIP44Element(true, appIndex)))
     }
 }
 

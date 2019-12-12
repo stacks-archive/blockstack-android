@@ -53,27 +53,32 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
 
-    suspend fun makeAuthResponseUnencrypted(account: BlockstackAccount, domainName: String): String {
-        val appPrivateKey = account.getAppsNode().getAppNode(domainName)
+    suspend fun makeAuthResponseUnencrypted(account: BlockstackAccount, domainName: String,
+                                            scopes: Array<Scope>): String {
+        val appNode = account.getAppsNode().getAppNode(domainName)
+        val privateKeyPayload = appNode.getPrivateKeyHex()
 
-        val privateKeyPayload = appPrivateKey.keyPair.privateKey.key.toHexStringNoPrefix()
-        return makeAuthResponseToken(account, privateKeyPayload)
+        return makeAuthResponseToken(account, privateKeyPayload, scopes)
     }
 
-    suspend fun makeAuthResponse(account: BlockstackAccount, authRequest: String): String {
+    suspend fun makeAuthResponse(account: BlockstackAccount, authRequest: String, scopes: Array<Scope>): String {
         val authRequestTriple = decodeToken(authRequest)
-        val transitPublicKey = authRequestTriple.second.getJSONArray("public_keys").getString(0)
-        val appPrivateKey = account.getAppsNode().getAppNode(authRequestTriple.second.getString("domain_name"))
+        return makeAuthResponse(authRequestTriple.second, account, scopes)
+    }
+
+    suspend fun makeAuthResponse(payload: JSONObject, account: BlockstackAccount, scopes: Array<Scope>): String {
+        val transitPublicKey = payload.getJSONArray("public_keys").getString(0)
+        val appPrivateKey = account.getAppsNode().getAppNode(payload.getString("domain_name"))
 
         val privateKeyPayload = encryptContent(
-                appPrivateKey.keyPair.privateKey.key.toHexStringNoPrefix(),
+                appPrivateKey.getPrivateKeyHex(),
                 CryptoOptions(publicKey = transitPublicKey)
         ).value?.json?.toString()?.toByteArray()?.toNoPrefixHexString()
 
-        return makeAuthResponseToken(account, privateKeyPayload)
+        return makeAuthResponseToken(account, privateKeyPayload, scopes)
     }
 
-    private suspend fun makeAuthResponseToken(account: BlockstackAccount, privateKeyPayload: String?): String {
+    private suspend fun makeAuthResponseToken(account: BlockstackAccount, privateKeyPayload: String?, scopes: Array<Scope>): String {
         val username = account.username
         val profile = if (username != null) {
             lookupProfile(username, null)
@@ -90,7 +95,11 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                 "public_keys" to arrayOf(account.keys.keyPair.toHexPublicKey64()),
                 "profile" to profile.json.toMap(),
                 "username" to (account.username ?: ""),
-                "email" to "",
+                "email" to if (scopes.contains(BaseScope.Email.scope)) {
+                    (account.metaData.email ?: "")
+                } else {
+                    ""
+                },
                 "profile_url" to null,
                 "hubUrl" to "https://hub.blockstack.org",
                 "blockstackAPIUrl" to "https://core.blockstack.org",
@@ -281,7 +290,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
     private fun doPublicKeysMatchUsername(payload: JSONObject, nameLookupURL: String?): Boolean {
-        val username = payload.optString("username")
+        val username = payload.optStringOrNull("username")
         if (username == null || username.isEmpty()) {
             return true
         }
@@ -442,7 +451,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
             val apps = profile.json.getJSONObject("apps")
             if (apps.has(appOrigin)) {
                 val url = apps.getString(appOrigin)
-                val bucket = url.replace(Regex("/?(\\?|#|$)"), "/$1")
+                val bucket = url.replace(Regex("/+(\\?|#|$)"), "/$1")
                 bucketUrl = "${bucket}${path}"
             }
         }
@@ -460,11 +469,11 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
 
     fun wrapProfileToken(token: String): ProfileTokenPair {
         val decodedToken = decodeToken(token)
-        val token = JSONObject()
+        val jsonToken = JSONObject()
                 .put("token", token)
                 .put("decodedToken", tokenTripleToJSON(decodedToken))
 
-        return ProfileTokenPair(token)
+        return ProfileTokenPair(jsonToken)
     }
 
     /**

@@ -15,17 +15,16 @@ private val TAG = SessionStore::class.java.simpleName
 interface ISessionStore {
     var sessionData: SessionData
     fun deleteSessionData()
+    fun updateUserData(userData: UserData)
 
     fun setTransitPrivateKey(transitPrivateKey: String) {
         sessionData = SessionData(this.sessionData.json.put("transitKey", transitPrivateKey))
     }
 
-    fun getTransitPrivateKey():String {
+    fun getTransitPrivateKey(): String {
         return sessionData.json.getString("transitKey")
     }
 }
-
-
 
 
 class SessionStore(private val prefs: SharedPreferences) : ISessionStore {
@@ -43,7 +42,7 @@ class SessionStore(private val prefs: SharedPreferences) : ISessionStore {
         sessionDataObject = SessionData(JSONObject())
     }
 
-    fun updateUserData(userData: UserData) {
+    override fun updateUserData(userData: UserData) {
         sessionDataObject.json.put("userData", userData.json)
         prefs.edit().putString(BLOCKSTACK_SESSION, sessionDataObject.json.toString()).apply()
     }
