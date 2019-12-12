@@ -8,13 +8,13 @@
 <a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="index.html">Network</a>&nbsp;/&nbsp;<a href="./get-namespace-burn-address.html">getNamespaceBurnAddress</a><br/>
 <br/>
 <h1>getNamespaceBurnAddress</h1>
-<a name="org.blockstack.android.sdk.Network$getNamespaceBurnAddress(kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))"></a>
-<code><span class="keyword">fun </span><span class="identifier">getNamespaceBurnAddress</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.Network$getNamespaceBurnAddress(kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/namespaceId">namespaceId</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.Network$getNamespaceBurnAddress(kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<a name="org.blockstack.android.sdk.Network$getNamespaceBurnAddress(kotlin.String)"></a>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">getNamespaceBurnAddress</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.Network$getNamespaceBurnAddress(kotlin.String)/namespace">namespace</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span></code>
 <p>Get the blockchain address to which a name's registration fee must be sent (the address will depend on the namespace in which it is registered.).</p>
 <h3>Parameters</h3>
-<p><a name="namespaceId"></a>
-<code>namespaceId</code> - the namespace ID</p>
-<p><a name="callback"></a>
-<code>callback</code> - called with a result object that contains the address as string or error if the request failed.</p>
+<p><a name="namespace"></a>
+<code>namespace</code> - the namespace ID</p>
+<p><strong>Result</strong><br/>
+result object that contains the address as string or error if the request failed.</p>
 </BODY>
 </HTML>

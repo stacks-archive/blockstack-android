@@ -18,7 +18,7 @@
 <p><a href="-init-.html">&lt;init&gt;</a></p>
 </td>
 <td>
-<code><span class="identifier">BlockstackConfig</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.BlockstackConfig$<init>(java.net.URI, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.Scope)))/appDomain">appDomain</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/java/net/URI.html"><span class="identifier">URI</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.BlockstackConfig$<init>(java.net.URI, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.Scope)))/redirectPath">redirectPath</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.BlockstackConfig$<init>(java.net.URI, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.Scope)))/manifestPath">manifestPath</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.BlockstackConfig$<init>(java.net.URI, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.Scope)))/scopes">scopes</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html"><span class="identifier">Array</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk/-scope/index.html"><span class="identifier">Scope</span></a><span class="symbol">&gt;</span><span class="symbol">)</span></code>
+<code><span class="identifier">BlockstackConfig</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.BlockstackConfig$<init>(java.net.URI, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.Scope)), kotlin.String, kotlin.String)/appDomain">appDomain</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/java/net/URI.html"><span class="identifier">URI</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.BlockstackConfig$<init>(java.net.URI, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.Scope)), kotlin.String, kotlin.String)/redirectPath">redirectPath</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.BlockstackConfig$<init>(java.net.URI, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.Scope)), kotlin.String, kotlin.String)/manifestPath">manifestPath</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.BlockstackConfig$<init>(java.net.URI, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.Scope)), kotlin.String, kotlin.String)/scopes">scopes</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html"><span class="identifier">Array</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk/-scope/index.html"><span class="identifier">Scope</span></a><span class="symbol">&gt;</span><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.BlockstackConfig$<init>(java.net.URI, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.Scope)), kotlin.String, kotlin.String)/coreNode">coreNode</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.BlockstackConfig$<init>(java.net.URI, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.Scope)), kotlin.String, kotlin.String)/authenticatorUrl">authenticatorUrl</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span></code>
 <p>Configuration of the app using Blockstack</p>
 </td>
 </tr>
@@ -34,6 +34,22 @@
 <td>
 <code><span class="keyword">val </span><span class="identifier">appDomain</span><span class="symbol">: </span><a href="https://developer.android.com/reference/java/net/URI.html"><span class="identifier">URI</span></a></code>
 <p>the domain of the app, like <code>https://example.com</code></p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="authenticator-url.html">authenticatorUrl</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">authenticatorUrl</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="core-node.html">coreNode</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">coreNode</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code><ul><li>override the default or user selected core node</li>
+</ul>
 </td>
 </tr>
 <tr>

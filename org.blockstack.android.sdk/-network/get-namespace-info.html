@@ -8,13 +8,13 @@
 <a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="index.html">Network</a>&nbsp;/&nbsp;<a href="./get-namespace-info.html">getNamespaceInfo</a><br/>
 <br/>
 <h1>getNamespaceInfo</h1>
-<a name="org.blockstack.android.sdk.Network$getNamespaceInfo(kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.network.NamespaceInfo)), kotlin.Unit)))"></a>
-<code><span class="keyword">fun </span><span class="identifier">getNamespaceInfo</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.Network$getNamespaceInfo(kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.network.NamespaceInfo)), kotlin.Unit)))/namespaceId">namespaceId</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.Network$getNamespaceInfo(kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.network.NamespaceInfo)), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model.network/-namespace-info/index.html"><span class="identifier">NamespaceInfo</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<a name="org.blockstack.android.sdk.Network$getNamespaceInfo(kotlin.String)"></a>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">getNamespaceInfo</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.Network$getNamespaceInfo(kotlin.String)/namespaceId">namespaceId</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model.network/-namespace-info/index.html"><span class="identifier">NamespaceInfo</span></a><span class="symbol">&gt;</span></code>
 <p>Get the pricing parameters and creation history of a namespace.</p>
 <h3>Parameters</h3>
 <p><a name="namespaceId"></a>
 <code>namespaceId</code> - the namespace to query</p>
-<p><a name="callback"></a>
-<code>callback</code> - called with a result object that contains the namespace information or error if the request failed.</p>
+<p><strong>Result</strong><br/>
+result object that contains the namespace information or error if the request failed.</p>
 </BODY>
 </HTML>

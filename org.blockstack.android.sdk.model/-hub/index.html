@@ -1,0 +1,91 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>Hub - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk.model</a>&nbsp;/&nbsp;<a href="./index.html">Hub</a><br/>
+<br/>
+<h1>Hub</h1>
+<code><span class="keyword">class </span><span class="identifier">Hub</span></code>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">Hub</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$<init>(okhttp3.Call.Factory)/callFactory">callFactory</span><span class="symbol">:</span>&nbsp;<span class="identifier">Factory</span>&nbsp;<span class="symbol">=</span>&nbsp;OkHttpClient()<span class="symbol">)</span></code></td>
+</tr>
+</tbody>
+</table>
+<h3>Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="call-factory.html">callFactory</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">callFactory</span><span class="symbol">: </span><span class="identifier">Factory</span></code></td>
+</tr>
+</tbody>
+</table>
+<h3>Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="build-get-request.html">buildGetRequest</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">buildGetRequest</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$buildGetRequest(kotlin.String)/url">url</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Request</span></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="connect-to-gaia.html">connectToGaia</a></p>
+</td>
+<td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">connectToGaia</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$connectToGaia(kotlin.String, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.model.AuthScope)))/gaiaHubUrl">gaiaHubUrl</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$connectToGaia(kotlin.String, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.model.AuthScope)))/challengeSignerHex">challengeSignerHex</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$connectToGaia(kotlin.String, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.model.AuthScope)))/associationToken">associationToken</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$connectToGaia(kotlin.String, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.model.AuthScope)))/scopes">scopes</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html"><span class="identifier">Array</span></a><span class="symbol">&lt;</span><a href="../-auth-scope/index.html"><span class="identifier">AuthScope</span></a><span class="symbol">&gt;</span>&nbsp;<span class="symbol">=</span>&nbsp;emptyArray()<span class="symbol">)</span><span class="symbol">: </span><a href="../-gaia-hub-config/index.html"><span class="identifier">GaiaHubConfig</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="delete-from-gaia-hub.html">deleteFromGaiaHub</a></p>
+</td>
+<td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">deleteFromGaiaHub</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$deleteFromGaiaHub(kotlin.String, org.blockstack.android.sdk.model.GaiaHubConfig)/filename">filename</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$deleteFromGaiaHub(kotlin.String, org.blockstack.android.sdk.model.GaiaHubConfig)/gaiaHubConfig">gaiaHubConfig</span><span class="symbol">:</span>&nbsp;<a href="../-gaia-hub-config/index.html"><span class="identifier">GaiaHubConfig</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="get-from-gaia-hub.html">getFromGaiaHub</a></p>
+</td>
+<td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">getFromGaiaHub</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$getFromGaiaHub(kotlin.String)/url">url</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Response</span></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="get-full-read-url.html">getFullReadUrl</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">getFullReadUrl</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$getFullReadUrl(kotlin.String, org.blockstack.android.sdk.model.GaiaHubConfig)/filename">filename</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$getFullReadUrl(kotlin.String, org.blockstack.android.sdk.model.GaiaHubConfig)/hubConfig">hubConfig</span><span class="symbol">:</span>&nbsp;<a href="../-gaia-hub-config/index.html"><span class="identifier">GaiaHubConfig</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="make-v1-gaia-auth-token.html">makeV1GaiaAuthToken</a></p>
+</td>
+<td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">makeV1GaiaAuthToken</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$makeV1GaiaAuthToken(org.json.JSONObject, kotlin.String, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.model.AuthScope)))/hubInfo">hubInfo</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$makeV1GaiaAuthToken(org.json.JSONObject, kotlin.String, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.model.AuthScope)))/signerKeyHex">signerKeyHex</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$makeV1GaiaAuthToken(org.json.JSONObject, kotlin.String, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.model.AuthScope)))/hubUrl">hubUrl</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$makeV1GaiaAuthToken(org.json.JSONObject, kotlin.String, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.model.AuthScope)))/associationToken">associationToken</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$makeV1GaiaAuthToken(org.json.JSONObject, kotlin.String, kotlin.String, kotlin.String, kotlin.Array((org.blockstack.android.sdk.model.AuthScope)))/scopes">scopes</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html"><span class="identifier">Array</span></a><span class="symbol">&lt;</span><a href="../-auth-scope/index.html"><span class="identifier">AuthScope</span></a><span class="symbol">&gt;</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="upload-to-gaia-hub.html">uploadToGaiaHub</a></p>
+</td>
+<td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">uploadToGaiaHub</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$uploadToGaiaHub(kotlin.String, okio.ByteString, org.blockstack.android.sdk.model.GaiaHubConfig, kotlin.String)/filename">filename</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$uploadToGaiaHub(kotlin.String, okio.ByteString, org.blockstack.android.sdk.model.GaiaHubConfig, kotlin.String)/content">content</span><span class="symbol">:</span>&nbsp;<span class="identifier">ByteString</span><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$uploadToGaiaHub(kotlin.String, okio.ByteString, org.blockstack.android.sdk.model.GaiaHubConfig, kotlin.String)/gaiaHubConfig">gaiaHubConfig</span><span class="symbol">:</span>&nbsp;<a href="../-gaia-hub-config/index.html"><span class="identifier">GaiaHubConfig</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.Hub$uploadToGaiaHub(kotlin.String, okio.ByteString, org.blockstack.android.sdk.model.GaiaHubConfig, kotlin.String)/contentType">contentType</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a>&nbsp;<span class="symbol">=</span>&nbsp;"application/octet-stream"<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Response</span></code></td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

@@ -1,0 +1,103 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>BlockstackSignIn - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="./index.html">BlockstackSignIn</a><br/>
+<br/>
+<h1>BlockstackSignIn</h1>
+<code><span class="keyword">class </span><span class="identifier">BlockstackSignIn</span></code>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">BlockstackSignIn</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$<init>(org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.model.BlockstackConfig)/sessionStore">sessionStore</span><span class="symbol">:</span>&nbsp;<a href="../-i-session-store/index.html"><span class="identifier">ISessionStore</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$<init>(org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.model.BlockstackConfig)/appConfig">appConfig</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-blockstack-config/index.html"><span class="identifier">BlockstackConfig</span></a><span class="symbol">)</span></code></td>
+</tr>
+</tbody>
+</table>
+<h3>Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="generate-and-store-transit-key.html">generateAndStoreTransitKey</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">generateAndStoreTransitKey</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="make-auth-request.html">makeAuthRequest</a></p>
+</td>
+<td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">makeAuthRequest</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$makeAuthRequest(kotlin.String, kotlin.Long, kotlin.collections.Map((kotlin.String, kotlin.Any)))/transitPrivateKey">transitPrivateKey</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$makeAuthRequest(kotlin.String, kotlin.Long, kotlin.collections.Map((kotlin.String, kotlin.Any)))/expiresAt">expiresAt</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-long/index.html"><span class="identifier">Long</span></a>&nbsp;<span class="symbol">=</span>&nbsp;Date().time + 3600 * 24 * 7<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$makeAuthRequest(kotlin.String, kotlin.Long, kotlin.collections.Map((kotlin.String, kotlin.Any)))/extraParams">extraParams</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-map/index.html"><span class="identifier">Map</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">,</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a><span class="symbol">&gt;</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>Generates an authentication request that can be sent to the Blockstack browser
+for the user to approve sign in. This authentication request can then be used for
+sign in by passing it to the redirectToSignInWithAuthRequest method.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="open-url.html">openUrl</a></p>
+</td>
+<td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">openUrl</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$openUrl(android.content.Context, kotlin.String)/context">context</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/android/content/Context.html"><span class="identifier">Context</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$openUrl(android.content.Context, kotlin.String)/location">location</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="redirect-to-sign-in-with-auth-request.html">redirectToSignInWithAuthRequest</a></p>
+</td>
+<td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">redirectToSignInWithAuthRequest</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$redirectToSignInWithAuthRequest(android.content.Context, kotlin.String, kotlin.String)/context">context</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/android/content/Context.html"><span class="identifier">Context</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$redirectToSignInWithAuthRequest(android.content.Context, kotlin.String, kotlin.String)/authRequest">authRequest</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$redirectToSignInWithAuthRequest(android.content.Context, kotlin.String, kotlin.String)/blockstackIDHost">blockstackIDHost</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Redirects the user to the Blockstack browser to approve the sign in request.
+To construct a request see the [<a href="make-auth-request.html">makeAuthRequest</a>] function.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="redirect-user-to-sign-in.html">redirectUserToSignIn</a></p>
+</td>
+<td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">redirectUserToSignIn</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$redirectUserToSignIn(android.content.Context)/context">context</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/android/content/Context.html"><span class="identifier">Context</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code></td>
+</tr>
+</tbody>
+</table>
+<h3>Companion Object Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-t-a-g.html">TAG</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">TAG</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="do-not-verify-app-link-configuration.html">doNotVerifyAppLinkConfiguration</a></p>
+</td>
+<td>
+<code><span class="keyword">var </span><span class="identifier">doNotVerifyAppLinkConfiguration</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
+<p>Flag indicating that verified app links should not be checked for correct configuration</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="should-launch-in-custom-tabs.html">shouldLaunchInCustomTabs</a></p>
+</td>
+<td>
+<code><span class="keyword">var </span><span class="identifier">shouldLaunchInCustomTabs</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
+<p>Flag indicating whether the authentication flow should be started in custom tabs.
+Defaults to true.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

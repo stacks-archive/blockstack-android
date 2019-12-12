@@ -1,8 +1,17 @@
 $dokka.format:html
 $dokka.linkExtension:html
+$dokka.location:org.blockstack.android.sdk$optStringOrNull(org.json.JSONObject, kotlin.String)org.blockstack.android.sdk/org.json.-j-s-o-n-object/opt-string-or-null.html
+$dokka.location:org.blockstack.android.sdk$toBtcAddress(kotlin.String)org.blockstack.android.sdk/kotlin.-string/to-btc-address.html
+$dokka.location:org.blockstack.android.sdk$toBtcAddress(org.kethereum.model.ECKeyPair)org.blockstack.android.sdk/org.kethereum.model.-e-c-key-pair/to-btc-address.html
+$dokka.location:org.blockstack.android.sdk$toBtcAddress(org.kethereum.model.PublicKey)org.blockstack.android.sdk/org.kethereum.model.-public-key/to-btc-address.html
+$dokka.location:org.blockstack.android.sdk$toHexPublicKey64(org.kethereum.model.ECKeyPair)org.blockstack.android.sdk/org.kethereum.model.-e-c-key-pair/to-hex-public-key64.html
+$dokka.location:org.blockstack.android.sdk.ecies$fromDER(kotlin.String)org.blockstack.android.sdk.ecies/kotlin.-string/from-d-e-r.html
+$dokka.location:org.blockstack.android.sdk.ecies$toDER(org.kethereum.model.SignatureData)org.blockstack.android.sdk.ecies/org.kethereum.model.-signature-data/to-d-e-r.html
+$dokka.location:org.blockstack.android.sdk.ecies$verify(org.kethereum.model.ECKeyPair, kotlin.ByteArray, kotlin.String)org.blockstack.android.sdk.ecies/org.kethereum.model.-e-c-key-pair/verify.html
 $dokka.location:org.blockstack.android.sdk.model$toBlockstackConfig(kotlin.String, kotlin.Array((org.blockstack.android.sdk.Scope)), kotlin.String, kotlin.String)org.blockstack.android.sdk.model/kotlin.-string/to-blockstack-config.html
+com.colendi.ecies
 org.blockstack.android.sdk
-org.blockstack.android.sdk.j2v8
+org.blockstack.android.sdk.ecies
 org.blockstack.android.sdk.model
 org.blockstack.android.sdk.model.network
 org.blockstack.android.sdk.ui

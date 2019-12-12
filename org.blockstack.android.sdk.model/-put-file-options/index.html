@@ -18,7 +18,7 @@
 <p><a href="-init-.html">&lt;init&gt;</a></p>
 </td>
 <td>
-<code><span class="identifier">PutFileOptions</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.PutFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.Any)/encrypt">encrypt</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;true<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.PutFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.Any)/contentType">contentType</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.PutFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.Any)/sign">sign</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a>&nbsp;<span class="symbol">=</span>&nbsp;false<span class="symbol">)</span></code>
+<code><span class="identifier">PutFileOptions</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.PutFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.String, kotlin.Any)/encrypt">encrypt</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;true<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.PutFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.String, kotlin.Any)/encryptionKey">encryptionKey</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.PutFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.String, kotlin.Any)/contentType">contentType</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.PutFileOptions$<init>(kotlin.Boolean, kotlin.String, kotlin.String, kotlin.Any)/sign">sign</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a>&nbsp;<span class="symbol">=</span>&nbsp;false<span class="symbol">)</span></code>
 <p>An object to configure options for <code>putFile</code> operations.</p>
 </td>
 </tr>
@@ -42,7 +42,16 @@
 </td>
 <td>
 <code><span class="keyword">val </span><span class="identifier">encrypt</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
-<p>encrypt the with the private key of the current user before writing to storage</p>
+<p>encrypt the content with the public key of the current user before writing to storage</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="encryption-key.html">encryptionKey</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">encryptionKey</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>encrypt the content with the given key, if not null then <code>encrypt</code> is ignored</p>
 </td>
 </tr>
 <tr>
@@ -62,6 +71,20 @@ true when retrieving the data.</p>
 <h3>Functions</h3>
 <table>
 <tbody>
+<tr>
+<td>
+<p><a href="should-encrypt.html">shouldEncrypt</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">shouldEncrypt</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="should-sign.html">shouldSign</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">shouldSign</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code></td>
+</tr>
 <tr>
 <td>
 <p><a href="to-j-s-o-n.html">toJSON</a></p>

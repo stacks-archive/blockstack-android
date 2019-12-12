@@ -1,0 +1,22 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>BlockstackSignIn.redirectToSignInWithAuthRequest - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="index.html">BlockstackSignIn</a>&nbsp;/&nbsp;<a href="./redirect-to-sign-in-with-auth-request.html">redirectToSignInWithAuthRequest</a><br/>
+<br/>
+<h1>redirectToSignInWithAuthRequest</h1>
+<a name="org.blockstack.android.sdk.BlockstackSignIn$redirectToSignInWithAuthRequest(android.content.Context, kotlin.String, kotlin.String)"></a>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">redirectToSignInWithAuthRequest</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$redirectToSignInWithAuthRequest(android.content.Context, kotlin.String, kotlin.String)/context">context</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/android/content/Context.html"><span class="identifier">Context</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$redirectToSignInWithAuthRequest(android.content.Context, kotlin.String, kotlin.String)/authRequest">authRequest</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSignIn$redirectToSignInWithAuthRequest(android.content.Context, kotlin.String, kotlin.String)/blockstackIDHost">blockstackIDHost</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Redirects the user to the Blockstack browser to approve the sign in request.
+To construct a request see the [<a href="make-auth-request.html">makeAuthRequest</a>] function.</p>
+<p>The user is redirected to the authenticator URL specified in the <code>AppConfig</code> or the default authenticator url</p>
+<h3>Parameters</h3>
+<p><a name="authRequest"></a>
+<code>authRequest</code> - A request string built by the [<a href="make-auth-request.html">makeAuthRequest</a>] function</p>
+<p><a name="blockstackIDHost"></a>
+<code>blockstackIDHost</code> - The ID of the Blockstack Browser application.</p>
+</BODY>
+</HTML>

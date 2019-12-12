@@ -14,24 +14,6 @@
 <tbody>
 <tr>
 <td>
-<p><a href="-android-executor/index.html">AndroidExecutor</a></p>
-</td>
-<td>
-<code><span class="keyword">class </span><span class="identifier">AndroidExecutor</span>&nbsp;<span class="symbol">:</span>&nbsp;<a href="-executor/index.html"><span class="identifier">Executor</span></a></code>
-<p>Standard executor for using Blockstack session in an activity.</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="-android-script-repo/index.html">AndroidScriptRepo</a></p>
-</td>
-<td>
-<code><span class="keyword">class </span><span class="identifier">AndroidScriptRepo</span>&nbsp;<span class="symbol">:</span>&nbsp;<a href="-script-repo/index.html"><span class="identifier">ScriptRepo</span></a></code>
-<p>Repository that provides script files for this SDK from the resources</p>
-</td>
-</tr>
-<tr>
-<td>
 <p><a href="-app-link-verifier/index.html">AppLinkVerifier</a></p>
 </td>
 <td>
@@ -42,20 +24,55 @@ Verified App Links is the recommended way for Android Blockstack apps to handle 
 </tr>
 <tr>
 <td>
-<p><a href="-blockstack-session/index.html">BlockstackSession</a></p>
+<p><a href="-base-scope/index.html">BaseScope</a></p>
 </td>
 <td>
-<code><span class="keyword">class </span><span class="identifier">BlockstackSession</span></code>
-<p>Main object to interact with blockstack in an activity or service</p>
+<code><span class="keyword">enum</span> <span class="keyword">class </span><span class="identifier">BaseScope</span></code>
+<p>An enum of scopes supported in Blockstack Authentication.</p>
 </td>
 </tr>
 <tr>
 <td>
-<p><a href="-executor/index.html">Executor</a></p>
+<p><a href="-bit-addr-resolver/index.html">BitAddrResolver</a></p>
 </td>
 <td>
-<code><span class="keyword">interface </span><span class="identifier">Executor</span></code>
-<p>Executor defines where functions are executed. Three different cases are distinguished:</p>
+<code><span class="keyword">class </span><span class="identifier">BitAddrResolver</span>&nbsp;<span class="symbol">:</span>&nbsp;<span class="identifier">DIDResolver</span></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="-blockstack/index.html">Blockstack</a></p>
+</td>
+<td>
+<code><span class="keyword">class </span><span class="identifier">Blockstack</span></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="-blockstack-session/index.html">BlockstackSession</a></p>
+</td>
+<td>
+<code><span class="keyword">class </span><span class="identifier">BlockstackSession</span></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="-blockstack-sign-in/index.html">BlockstackSignIn</a></p>
+</td>
+<td>
+<code><span class="keyword">class </span><span class="identifier">BlockstackSignIn</span></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="-d-i-ds/index.html">DIDs</a></p>
+</td>
+<td>
+<code><span class="keyword">class </span><span class="identifier">DIDs</span></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="-error-code/index.html">ErrorCode</a></p>
+</td>
+<td>
+<code><span class="keyword">enum</span> <span class="keyword">class </span><span class="identifier">ErrorCode</span></code>
+<p>An enum of error codes thrown by Blockstack calls</p>
 </td>
 </tr>
 <tr>
@@ -85,22 +102,19 @@ Verified App Links is the recommended way for Android Blockstack apps to handle 
 </tr>
 <tr>
 <td>
-<p><a href="-scope/index.html">Scope</a></p>
+<p><a href="-result-error/index.html">ResultError</a></p>
 </td>
 <td>
-<code><span class="keyword">enum</span> <span class="keyword">class </span><span class="identifier">Scope</span></code>
-<p>An enum of scopes supported in Blockstack Authentication.</p>
+<code><span class="keyword">open</span> <span class="keyword">class </span><span class="identifier">ResultError</span></code>
+<p>Object containing details about errors from blockstack calls</p>
 </td>
 </tr>
 <tr>
 <td>
-<p><a href="-script-repo/index.html">ScriptRepo</a></p>
+<p><a href="-scope/index.html">Scope</a></p>
 </td>
 <td>
-<code><span class="keyword">interface </span><span class="identifier">ScriptRepo</span></code>
-<p>Repository to access script files used for this SDK
-Application developers should use {@Link AndroidScriptRepo}</p>
-</td>
+<code><span class="keyword">data</span> <span class="keyword">class </span><span class="identifier">Scope</span></code></td>
 </tr>
 <tr>
 <td>
@@ -118,6 +132,58 @@ Application developers should use {@Link AndroidScriptRepo}</p>
 <p>An enum of algorithms used to sign tokens</p>
 </td>
 </tr>
+<tr>
+<td>
+<p><a href="-u-r-i-type/index.html">URIType</a></p>
+</td>
+<td>
+<code><span class="keyword">data</span> <span class="keyword">class </span><span class="identifier">URIType</span></code></td>
+</tr>
+</tbody>
+</table>
+<h3>Exceptions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-invalid-d-i-d-error/index.html">InvalidDIDError</a></p>
+</td>
+<td>
+<code><span class="keyword">class </span><span class="identifier">InvalidDIDError</span>&nbsp;<span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-throwable/index.html"><span class="identifier">Throwable</span></a></code></td>
+</tr>
+</tbody>
+</table>
+<h3>Extensions for External Classes</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="kotlin.-string/index.html">kotlin.String</a></p>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="org.json.-j-s-o-n-object/index.html">org.json.JSONObject</a></p>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="org.kethereum.model.-e-c-key-pair/index.html">org.kethereum.model.ECKeyPair</a></p>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="org.kethereum.model.-public-key/index.html">org.kethereum.model.PublicKey</a></p>
+</td>
+<td>
+</td>
+</tr>
 </tbody>
 </table>
 <h3>Properties</h3>
@@ -125,10 +191,85 @@ Application developers should use {@Link AndroidScriptRepo}</p>
 <tbody>
 <tr>
 <td>
+<p><a href="-b-l-o-c-k-s-t-a-c-k_-d-e-f-a-u-l-t_-g-a-i-a_-h-u-b_-u-r-l.html">BLOCKSTACK_DEFAULT_GAIA_HUB_URL</a></p>
+</td>
+<td>
+<code><span class="keyword">const</span> <span class="keyword">val </span><span class="identifier">BLOCKSTACK_DEFAULT_GAIA_HUB_URL</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
 <p><a href="-b-l-o-c-k-s-t-a-c-k_-s-e-s-s-i-o-n.html">BLOCKSTACK_SESSION</a></p>
 </td>
 <td>
 <code><span class="keyword">val </span><span class="identifier">BLOCKSTACK_SESSION</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="-d-e-f-a-u-l-t_-b-l-o-c-k-s-t-a-c-k_-i-d_-h-o-s-t.html">DEFAULT_BLOCKSTACK_ID_HOST</a></p>
+</td>
+<td>
+<code><span class="keyword">const</span> <span class="keyword">val </span><span class="identifier">DEFAULT_BLOCKSTACK_ID_HOST</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="-d-e-f-a-u-l-t_-c-o-r-e_-a-p-i_-e-n-d-p-o-i-n-t.html">DEFAULT_CORE_API_ENDPOINT</a></p>
+</td>
+<td>
+<code><span class="keyword">const</span> <span class="keyword">val </span><span class="identifier">DEFAULT_CORE_API_ENDPOINT</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="-s-i-g-n-a-t-u-r-e_-f-i-l-e_-e-x-t-e-n-s-i-o-n.html">SIGNATURE_FILE_EXTENSION</a></p>
+</td>
+<td>
+<code><span class="keyword">const</span> <span class="keyword">val </span><span class="identifier">SIGNATURE_FILE_EXTENSION</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="-v-e-r-s-i-o-n.html">VERSION</a></p>
+</td>
+<td>
+<code><span class="keyword">const</span> <span class="keyword">val </span><span class="identifier">VERSION</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+</tbody>
+</table>
+<h3>Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="flatten.html">flatten</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">flatten</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk$flatten(kotlin.String)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="parse-r-rs.html">parseRRs</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">parseRRs</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk$parseRRs(kotlin.String)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../org.blockstack.android.sdk.model/-zone-file/index.html"><span class="identifier">ZoneFile</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="parse-u-r-i.html">parseURI</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">parseURI</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk$parseURI(kotlin.String)/rr">rr</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="-u-r-i-type/index.html"><span class="identifier">URIType</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="parse-zone-file.html">parseZoneFile</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">parseZoneFile</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk$parseZoneFile(kotlin.String)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../org.blockstack.android.sdk.model/-zone-file/index.html"><span class="identifier">ZoneFile</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="remove-comments.html">removeComments</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">removeComments</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk$removeComments(kotlin.String)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
 </tr>
 </tbody>
 </table>

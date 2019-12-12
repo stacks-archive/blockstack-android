@@ -20,7 +20,7 @@
 <p><a href="-init-.html">&lt;init&gt;</a></p>
 </td>
 <td>
-<code><span class="identifier">CipherObject</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.CipherObject$<init>(org.json.JSONObject)/jsonObject">jsonObject</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a><span class="symbol">)</span></code>
+<code><span class="identifier">CipherObject</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.CipherObject$<init>(kotlin.String, kotlin.String, kotlin.String, kotlin.String, kotlin.Boolean)/iv">iv</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.CipherObject$<init>(kotlin.String, kotlin.String, kotlin.String, kotlin.String, kotlin.Boolean)/ephemeralPK">ephemeralPK</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.CipherObject$<init>(kotlin.String, kotlin.String, kotlin.String, kotlin.String, kotlin.Boolean)/cipherText">cipherText</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.CipherObject$<init>(kotlin.String, kotlin.String, kotlin.String, kotlin.String, kotlin.Boolean)/mac">mac</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.model.CipherObject$<init>(kotlin.String, kotlin.String, kotlin.String, kotlin.String, kotlin.Boolean)/wasString">wasString</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a><span class="symbol">)</span></code><code><span class="identifier">CipherObject</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.model.CipherObject$<init>(org.json.JSONObject)/jsonObject">jsonObject</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a><span class="symbol">)</span></code>
 <p>Object containing encrypted content. It is backed by the JSONObject.</p>
 </td>
 </tr>
@@ -31,12 +31,47 @@
 <tbody>
 <tr>
 <td>
+<p><a href="cipher-text.html">cipherText</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">cipherText</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="ephemeral-p-k.html">ephemeralPK</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">ephemeralPK</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="iv.html">iv</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">iv</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
 <p><a href="json.html">json</a></p>
 </td>
 <td>
 <code><span class="keyword">val </span><span class="identifier">json</span><span class="symbol">: </span><a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a></code>
 <p>json representation of the encrypted content</p>
 </td>
+</tr>
+<tr>
+<td>
+<p><a href="mac.html">mac</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">mac</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="was-string.html">wasString</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">wasString</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code></td>
 </tr>
 </tbody>
 </table>

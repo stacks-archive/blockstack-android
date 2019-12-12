@@ -1,0 +1,23 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>Blockstack.lookupProfile - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="index.html">Blockstack</a>&nbsp;/&nbsp;<a href="./lookup-profile.html">lookupProfile</a><br/>
+<br/>
+<h1>lookupProfile</h1>
+<a name="org.blockstack.android.sdk.Blockstack$lookupProfile(kotlin.String, java.net.URL)"></a>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">lookupProfile</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.Blockstack$lookupProfile(kotlin.String, java.net.URL)/username">username</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.Blockstack$lookupProfile(kotlin.String, java.net.URL)/zoneFileLookupURL">zoneFileLookupURL</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/java/net/URL.html"><span class="identifier">URL</span></a><span class="symbol">?</span><span class="symbol">)</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-profile/index.html"><span class="identifier">Profile</span></a></code>
+<p>Look up a user profile by blockstack ID</p>
+<p><strong>Parameters</strong><br/>
+{string} username - The Blockstack ID of the profile to look up</p>
+<p><strong>Parameters</strong><br/>
+{string} <a href="#">zoneFileLookupURL=null</a> - The URL
+to use for zonefile lookup. If falsey, lookupProfile will use the
+blockstack.js [<a href="#">getNameInfo</a>] function.</p>
+<p><strong>Returns</strong><br/>
+{Promise} that resolves to a profile object</p>
+</BODY>
+</HTML>

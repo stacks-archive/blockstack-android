@@ -1,0 +1,65 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>Encryption - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">com.colendi.ecies</a>&nbsp;/&nbsp;<a href="./index.html">Encryption</a><br/>
+<br/>
+<h1>Encryption</h1>
+<code><span class="keyword">open</span> <span class="keyword">class </span><span class="identifier">Encryption</span></code>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">Encryption</span><span class="symbol">(</span><span class="symbol">)</span></code></td>
+</tr>
+</tbody>
+</table>
+<h3>Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="decrypt-a-e-s256-c-b-c.html">decryptAES256CBC</a></p>
+</td>
+<td>
+<code><span class="keyword">open</span> <span class="keyword">static</span> <span class="keyword">fun </span><span class="identifier">decryptAES256CBC</span><span class="symbol">(</span><span class="identifier" id="com.colendi.ecies.Encryption$decryptAES256CBC(kotlin.ByteArray, kotlin.String, kotlin.ByteArray)/ciphertext">ciphertext</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">, </span><span class="identifier" id="com.colendi.ecies.Encryption$decryptAES256CBC(kotlin.ByteArray, kotlin.String, kotlin.ByteArray)/encKey">encKey</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.colendi.ecies.Encryption$decryptAES256CBC(kotlin.ByteArray, kotlin.String, kotlin.ByteArray)/IV">IV</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="decrypt-with-private-key.html">decryptWithPrivateKey</a></p>
+</td>
+<td>
+<code><span class="keyword">open</span> <span class="keyword">fun </span><span class="identifier">decryptWithPrivateKey</span><span class="symbol">(</span><span class="identifier" id="com.colendi.ecies.Encryption$decryptWithPrivateKey(com.colendi.ecies.EncryptedResultForm)/formData">formData</span><span class="symbol">:</span>&nbsp;<a href="../-encrypted-result-form/index.html"><span class="identifier">EncryptedResultForm</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="encrypt-with-public-key.html">encryptWithPublicKey</a></p>
+</td>
+<td>
+<code><span class="keyword">open</span> <span class="keyword">fun </span><span class="identifier">encryptWithPublicKey</span><span class="symbol">(</span><span class="identifier" id="com.colendi.ecies.Encryption$encryptWithPublicKey(kotlin.ByteArray, kotlin.String)/plainText">plainText</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">, </span><span class="identifier" id="com.colendi.ecies.Encryption$encryptWithPublicKey(kotlin.ByteArray, kotlin.String)/pubKey">pubKey</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-encrypted-result/index.html"><span class="identifier">EncryptedResult</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="get-h-m-a-c.html">getHMAC</a></p>
+</td>
+<td>
+<code><span class="keyword">open</span> <span class="keyword">static</span> <span class="keyword">fun </span><span class="identifier">getHMAC</span><span class="symbol">(</span><span class="identifier" id="com.colendi.ecies.Encryption$getHMAC(kotlin.ByteArray, kotlin.ByteArray)/macKey">macKey</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">, </span><span class="identifier" id="com.colendi.ecies.Encryption$getHMAC(kotlin.ByteArray, kotlin.ByteArray)/dataToMac">dataToMac</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="shared-secret-to-keys.html">sharedSecretToKeys</a></p>
+</td>
+<td>
+<code><span class="keyword">open</span> <span class="keyword">static</span> <span class="keyword">fun </span><span class="identifier">sharedSecretToKeys</span><span class="symbol">(</span><span class="identifier" id="com.colendi.ecies.Encryption$sharedSecretToKeys(java.security.MessageDigest, kotlin.ByteArray)/mda">mda</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/java/security/MessageDigest.html"><span class="identifier">MessageDigest</span></a><span class="symbol">, </span><span class="identifier" id="com.colendi.ecies.Encryption$sharedSecretToKeys(java.security.MessageDigest, kotlin.ByteArray)/derivedKeyInBytes">derivedKeyInBytes</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-mac-aes-pair/index.html"><span class="identifier">MacAesPair</span></a></code></td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

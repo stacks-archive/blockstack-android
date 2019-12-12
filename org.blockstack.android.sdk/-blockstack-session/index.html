@@ -9,23 +9,6 @@
 <br/>
 <h1>BlockstackSession</h1>
 <code><span class="keyword">class </span><span class="identifier">BlockstackSession</span></code>
-<p>Main object to interact with blockstack in an activity or service</p>
-<p>The current implementation is a wrapper for blockstack.js using a j2v8 javascript engine.</p>
-<h3>Parameters</h3>
-<p><a name="context"></a>
-<code>context</code> - the context used to define shared preferences for storing session data, to locate resources for this SDK.
-Can be null if SessionStore, executor and scriptRepo is defined.</p>
-<p><a name="config"></a>
-<code>config</code> - the configuration for blockstack</p>
-<p><a name="sessionStore"></a>
-<code>sessionStore</code> - the location where session data should be stored. Defaults to the default shared preferences of the app using the SDK</p>
-<p><a name="executor"></a>
-<code>executor</code> - defines where functions of this SDK should be executed. Defaults to @see AndroidExecutor with given context</p>
-<p><a name="scriptRepo"></a>
-<code>scriptRepo</code> - required to locate this SDK's resources. Defaults to AndroidScriptRepo with given context.
-Can be AndroidScriptRepo with application context as well.</p>
-<p><a name="betaMode"></a>
-<code>betaMode</code> - flag indicating whether the beta version of the hosted blockstack browser should be used. Defaults to false.</p>
 <h3>Constructors</h3>
 <table>
 <tbody>
@@ -34,9 +17,7 @@ Can be AndroidScriptRepo with application context as well.</p>
 <p><a href="-init-.html">&lt;init&gt;</a></p>
 </td>
 <td>
-<code><span class="identifier">BlockstackSession</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean, okhttp3.Call.Factory)/context">context</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/android/content/Context.html"><span class="identifier">Context</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean, okhttp3.Call.Factory)/config">config</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-blockstack-config/index.html"><span class="identifier">BlockstackConfig</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean, okhttp3.Call.Factory)/nameLookupUrl">nameLookupUrl</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a>&nbsp;<span class="symbol">=</span>&nbsp;"https://core.blockstack.org/v1/names/"<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean, okhttp3.Call.Factory)/sessionStore">sessionStore</span><span class="symbol">:</span>&nbsp;<a href="../-i-session-store/index.html"><span class="identifier">ISessionStore</span></a>&nbsp;<span class="symbol">=</span>&nbsp;SessionStore(PreferenceManager.getDefaultSharedPreferences(context))<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean, okhttp3.Call.Factory)/executor">executor</span><span class="symbol">:</span>&nbsp;<a href="../-executor/index.html"><span class="identifier">Executor</span></a>&nbsp;<span class="symbol">=</span>&nbsp;AndroidExecutor(context!!)<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean, okhttp3.Call.Factory)/scriptRepo">scriptRepo</span><span class="symbol">:</span>&nbsp;<a href="../-script-repo/index.html"><span class="identifier">ScriptRepo</span></a>&nbsp;<span class="symbol">=</span>&nbsp;if (context != null) AndroidScriptRepo(context) else throw InvalidParameterException("context or scriptRepo required")<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean, okhttp3.Call.Factory)/betaMode">betaMode</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;false<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(android.content.Context, org.blockstack.android.sdk.model.BlockstackConfig, kotlin.String, org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.Executor, org.blockstack.android.sdk.ScriptRepo, kotlin.Boolean, okhttp3.Call.Factory)/callFactory">callFactory</span><span class="symbol">:</span>&nbsp;<span class="identifier">Factory</span>&nbsp;<span class="symbol">=</span>&nbsp;OkHttpClient()<span class="symbol">)</span></code>
-<p>Main object to interact with blockstack in an activity or service</p>
-</td>
+<code><span class="identifier">BlockstackSession</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.model.BlockstackConfig, okhttp3.Call.Factory, org.blockstack.android.sdk.Blockstack, org.blockstack.android.sdk.model.Hub)/sessionStore">sessionStore</span><span class="symbol">:</span>&nbsp;<a href="../-i-session-store/index.html"><span class="identifier">ISessionStore</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.model.BlockstackConfig, okhttp3.Call.Factory, org.blockstack.android.sdk.Blockstack, org.blockstack.android.sdk.model.Hub)/appConfig">appConfig</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-blockstack-config/index.html"><span class="identifier">BlockstackConfig</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.model.BlockstackConfig, okhttp3.Call.Factory, org.blockstack.android.sdk.Blockstack, org.blockstack.android.sdk.model.Hub)/callFactory">callFactory</span><span class="symbol">:</span>&nbsp;<span class="identifier">Factory</span>&nbsp;<span class="symbol">=</span>&nbsp;OkHttpClient()<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.model.BlockstackConfig, okhttp3.Call.Factory, org.blockstack.android.sdk.Blockstack, org.blockstack.android.sdk.model.Hub)/blockstack">blockstack</span><span class="symbol">:</span>&nbsp;<a href="../-blockstack/index.html"><span class="identifier">Blockstack</span></a>&nbsp;<span class="symbol">=</span>&nbsp;Blockstack()<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$<init>(org.blockstack.android.sdk.ISessionStore, org.blockstack.android.sdk.model.BlockstackConfig, okhttp3.Call.Factory, org.blockstack.android.sdk.Blockstack, org.blockstack.android.sdk.model.Hub)/hub">hub</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-hub/index.html"><span class="identifier">Hub</span></a>&nbsp;<span class="symbol">=</span>&nbsp;Hub(callFactory)<span class="symbol">)</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -45,31 +26,24 @@ Can be AndroidScriptRepo with application context as well.</p>
 <tbody>
 <tr>
 <td>
-<p><a href="loaded.html">loaded</a></p>
+<p><a href="blockstack.html">blockstack</a></p>
 </td>
 <td>
-<code><span class="keyword">var </span><span class="identifier">loaded</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
-<p>Flag indicating whether this object is ready to use</p>
-</td>
+<code><span class="keyword">val </span><span class="identifier">blockstack</span><span class="symbol">: </span><a href="../-blockstack/index.html"><span class="identifier">Blockstack</span></a></code></td>
 </tr>
 <tr>
 <td>
-<p><a href="name-lookup-url.html">nameLookupUrl</a></p>
+<p><a href="gaia-hub-config.html">gaiaHubConfig</a></p>
 </td>
 <td>
-<code><span class="keyword">val </span><span class="identifier">nameLookupUrl</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
-<p>url of the name lookup service, defaults to core.blockstack.org/v1/names</p>
-</td>
+<code><span class="keyword">var </span><span class="identifier">gaiaHubConfig</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-gaia-hub-config/index.html"><span class="identifier">GaiaHubConfig</span></a><span class="symbol">?</span></code></td>
 </tr>
 <tr>
 <td>
-<p><a href="network.html">network</a></p>
+<p><a href="hub.html">hub</a></p>
 </td>
 <td>
-<code><span class="keyword">val </span><span class="identifier">network</span><span class="symbol">: </span><a href="../-network/index.html"><span class="identifier">Network</span></a></code>
-<p>Object that is used in this blockstack user session.
-It can be used already before the user is logged in.</p>
-</td>
+<code><span class="keyword">val </span><span class="identifier">hub</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-hub/index.html"><span class="identifier">Hub</span></a></code></td>
 </tr>
 </tbody>
 </table>
@@ -78,74 +52,40 @@ It can be used already before the user is logged in.</p>
 <tbody>
 <tr>
 <td>
-<p><a href="aquire-thread-lock.html">aquireThreadLock</a></p>
+<p><a href="auth-response-to-user-data.html">authResponseToUserData</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">aquireThreadLock</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code></td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">authResponseToUserData</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$authResponseToUserData(org.json.JSONObject, kotlin.String, kotlin.String, kotlin.String, kotlin.String)/tokenPayload">tokenPayload</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$authResponseToUserData(org.json.JSONObject, kotlin.String, kotlin.String, kotlin.String, kotlin.String)/nameLookupUrl">nameLookupUrl</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$authResponseToUserData(org.json.JSONObject, kotlin.String, kotlin.String, kotlin.String, kotlin.String)/appPrivateKey">appPrivateKey</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$authResponseToUserData(org.json.JSONObject, kotlin.String, kotlin.String, kotlin.String, kotlin.String)/coreSessionToken">coreSessionToken</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$authResponseToUserData(org.json.JSONObject, kotlin.String, kotlin.String, kotlin.String, kotlin.String)/authResponse">authResponse</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-user-data/index.html"><span class="identifier">UserData</span></a></code></td>
 </tr>
 <tr>
 <td>
 <p><a href="decrypt-content.html">decryptContent</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">decryptContent</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$decryptContent(kotlin.Any, kotlin.Boolean, org.blockstack.android.sdk.model.CryptoOptions)/cipherObject">cipherObject</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$decryptContent(kotlin.Any, kotlin.Boolean, org.blockstack.android.sdk.model.CryptoOptions)/binary">binary</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$decryptContent(kotlin.Any, kotlin.Boolean, org.blockstack.android.sdk.model.CryptoOptions)/options">options</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-crypto-options/index.html"><span class="identifier">CryptoOptions</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a><span class="symbol">&gt;</span></code>
-<p>Decrypt content</p>
-</td>
+<code><span class="keyword">fun </span><span class="identifier">decryptContent</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$decryptContent(kotlin.String, kotlin.Boolean, org.blockstack.android.sdk.model.CryptoOptions)/cipherObject">cipherObject</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$decryptContent(kotlin.String, kotlin.Boolean, org.blockstack.android.sdk.model.CryptoOptions)/binary">binary</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$decryptContent(kotlin.String, kotlin.Boolean, org.blockstack.android.sdk.model.CryptoOptions)/options">options</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-crypto-options/index.html"><span class="identifier">CryptoOptions</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a><span class="symbol">&gt;</span></code></td>
 </tr>
 <tr>
 <td>
 <p><a href="delete-file.html">deleteFile</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">deleteFile</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$deleteFile(kotlin.String, org.blockstack.android.sdk.model.DeleteFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.Unit)), )))/path">path</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$deleteFile(kotlin.String, org.blockstack.android.sdk.model.DeleteFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.Unit)), )))/options">options</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-delete-file-options/index.html"><span class="identifier">DeleteFileOptions</span></a>&nbsp;<span class="symbol">=</span>&nbsp;DeleteFileOptions()<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$deleteFile(kotlin.String, org.blockstack.android.sdk.model.DeleteFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.Unit)), )))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
-<p>Deletes the specified file from the app's data store.</p>
-</td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">deleteFile</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$deleteFile(kotlin.String, org.blockstack.android.sdk.model.DeleteFileOptions)/path">path</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$deleteFile(kotlin.String, org.blockstack.android.sdk.model.DeleteFileOptions)/options">options</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-delete-file-options/index.html"><span class="identifier">DeleteFileOptions</span></a>&nbsp;<span class="symbol">=</span>&nbsp;DeleteFileOptions()<span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><span class="keyword">out</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">&gt;</span></code></td>
 </tr>
 <tr>
 <td>
 <p><a href="encrypt-content.html">encryptContent</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">encryptContent</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$encryptContent(kotlin.Any, org.blockstack.android.sdk.model.CryptoOptions)/plainContent">plainContent</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$encryptContent(kotlin.Any, org.blockstack.android.sdk.model.CryptoOptions)/options">options</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-crypto-options/index.html"><span class="identifier">CryptoOptions</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model/-cipher-object/index.html"><span class="identifier">CipherObject</span></a><span class="symbol">&gt;</span></code>
-<p>Encrypt content</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="extract-profile.html">extractProfile</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">extractProfile</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$extractProfile(kotlin.String, kotlin.String)/token">token</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$extractProfile(kotlin.String, kotlin.String)/publicKeyOrAddress">publicKeyOrAddress</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-profile-token/index.html"><span class="identifier">ProfileToken</span></a></code>
-<p>Extracts a profile from an encoded token and optionally verifies it,
-if publicKeyOrAddress is provided.</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="generate-and-store-transit-key.html">generateAndStoreTransitKey</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">generateAndStoreTransitKey</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
-<p>Generates a ECDSA keypair to use as the ephemeral app transit private key
-and stores the hex value of the private key in the session storage.</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="get-app-bucket-url.html">getAppBucketUrl</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">getAppBucketUrl</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getAppBucketUrl(kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/gaiaHubUrl">gaiaHubUrl</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getAppBucketUrl(kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/appPrivateKey">appPrivateKey</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getAppBucketUrl(kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
-<p>Get the app storage bucket URL</p>
-</td>
+<code><span class="keyword">fun </span><span class="identifier">encryptContent</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$encryptContent(kotlin.Any, org.blockstack.android.sdk.model.CryptoOptions)/content">content</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$encryptContent(kotlin.Any, org.blockstack.android.sdk.model.CryptoOptions)/options">options</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-crypto-options/index.html"><span class="identifier">CryptoOptions</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model/-cipher-object/index.html"><span class="identifier">CipherObject</span></a><span class="symbol">&gt;</span></code></td>
 </tr>
 <tr>
 <td>
 <p><a href="get-file.html">getFile</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">getFile</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getFile(kotlin.String, org.blockstack.android.sdk.model.GetFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.Any)), kotlin.Unit)))/path">path</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getFile(kotlin.String, org.blockstack.android.sdk.model.GetFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.Any)), kotlin.Unit)))/options">options</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-get-file-options/index.html"><span class="identifier">GetFileOptions</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getFile(kotlin.String, org.blockstack.android.sdk.model.GetFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.Any)), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
-<p>Retrieves the specified file from the app's data store.</p>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">getFile</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getFile(kotlin.String, org.blockstack.android.sdk.model.GetFileOptions)/path">path</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getFile(kotlin.String, org.blockstack.android.sdk.model.GetFileOptions)/options">options</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-get-file-options/index.html"><span class="identifier">GetFileOptions</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><span class="keyword">out</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a><span class="symbol">&gt;</span></code>
+<p>Retrieves the specified file from the app's data store.
+The method is called with <code>Dispatchers.IO</code></p>
 </td>
 </tr>
 <tr>
@@ -153,166 +93,89 @@ and stores the hex value of the private key in the session storage.</p>
 <p><a href="get-file-url.html">getFileUrl</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">getFileUrl</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getFileUrl(kotlin.String, org.blockstack.android.sdk.model.GetFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/path">path</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getFileUrl(kotlin.String, org.blockstack.android.sdk.model.GetFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/options">options</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-get-file-options/index.html"><span class="identifier">GetFileOptions</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getFileUrl(kotlin.String, org.blockstack.android.sdk.model.GetFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">getFileUrl</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getFileUrl(kotlin.String, org.blockstack.android.sdk.model.GetFileOptions)/path">path</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getFileUrl(kotlin.String, org.blockstack.android.sdk.model.GetFileOptions)/options">options</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-get-file-options/index.html"><span class="identifier">GetFileOptions</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span></code>
 <p>Get the URL for reading a file from an app's data store.</p>
 </td>
 </tr>
 <tr>
 <td>
-<p><a href="get-public-key-from-private.html">getPublicKeyFromPrivate</a></p>
+<p><a href="get-gaia-address.html">getGaiaAddress</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">getPublicKeyFromPrivate</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getPublicKeyFromPrivate(kotlin.String)/privateKey">privateKey</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code></td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">getGaiaAddress</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getGaiaAddress(kotlin.String, kotlin.String)/appDomain">appDomain</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getGaiaAddress(kotlin.String, kotlin.String)/username">username</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
 </tr>
 <tr>
 <td>
-<p><a href="get-user-app-file-url.html">getUserAppFileUrl</a></p>
+<p><a href="get-or-set-local-gaia-hub-connection.html">getOrSetLocalGaiaHubConnection</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">getUserAppFileUrl</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getUserAppFileUrl(kotlin.String, kotlin.String, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/path">path</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getUserAppFileUrl(kotlin.String, kotlin.String, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/username">username</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getUserAppFileUrl(kotlin.String, kotlin.String, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/appOrigin">appOrigin</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getUserAppFileUrl(kotlin.String, kotlin.String, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/zoneFileLookupURL">zoneFileLookupURL</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$getUserAppFileUrl(kotlin.String, kotlin.String, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
-<p>Fetch the public read URL of a user file for the specified app.</p>
-</td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">getOrSetLocalGaiaHubConnection</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-gaia-hub-config/index.html"><span class="identifier">GaiaHubConfig</span></a></code></td>
 </tr>
 <tr>
 <td>
 <p><a href="handle-pending-sign-in.html">handlePendingSignIn</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">handlePendingSignIn</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$handlePendingSignIn(kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.UserData)), kotlin.Unit)))/authResponse">authResponse</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$handlePendingSignIn(kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.UserData)), kotlin.Unit)))/signInCallback">signInCallback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model/-user-data/index.html"><span class="identifier">UserData</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">handlePendingSignIn</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$handlePendingSignIn(kotlin.String)/authResponse">authResponse</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model/-user-data/index.html"><span class="identifier">UserData</span></a><span class="symbol">&gt;</span></code>
 <p>Process a pending sign in. This method should be called by your app when it
 receives a request to the app's custom protocol handler.</p>
 </td>
 </tr>
 <tr>
 <td>
+<p><a href="handle-unencrypted-sign-in.html">handleUnencryptedSignIn</a></p>
+</td>
+<td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">handleUnencryptedSignIn</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$handleUnencryptedSignIn(kotlin.String)/authResponse">authResponse</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model/-user-data/index.html"><span class="identifier">UserData</span></a><span class="symbol">&gt;</span></code></td>
+</tr>
+<tr>
+<td>
 <p><a href="is-user-signed-in.html">isUserSignedIn</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">isUserSignedIn</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
-<p>Check if a user is currently signed in</p>
-</td>
+<code><span class="keyword">fun </span><span class="identifier">isUserSignedIn</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code></td>
 </tr>
 <tr>
 <td>
 <p><a href="list-files.html">listFiles</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">listFiles</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$listFiles(kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Boolean)), kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.Int)), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$listFiles(kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Boolean)), kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.Int)), kotlin.Unit)))/countCallback">countCallback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html"><span class="identifier">Int</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">listFiles</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$listFiles(kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Boolean)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html"><span class="identifier">Int</span></a><span class="symbol">&gt;</span></code>
 <p>List the set of files in this application's Gaia storage bucket.</p>
 </td>
+</tr>
+<tr>
+<td>
+<p><a href="list-files-loop.html">listFilesLoop</a></p>
+</td>
+<td>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">listFilesLoop</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$listFilesLoop(org.blockstack.android.sdk.model.GaiaHubConfig, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Boolean)), kotlin.String, kotlin.Int, kotlin.Int)/gaiaHubConfig">gaiaHubConfig</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-gaia-hub-config/index.html"><span class="identifier">GaiaHubConfig</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$listFilesLoop(org.blockstack.android.sdk.model.GaiaHubConfig, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Boolean)), kotlin.String, kotlin.Int, kotlin.Int)/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$listFilesLoop(org.blockstack.android.sdk.model.GaiaHubConfig, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Boolean)), kotlin.String, kotlin.Int, kotlin.Int)/page">page</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$listFilesLoop(org.blockstack.android.sdk.model.GaiaHubConfig, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Boolean)), kotlin.String, kotlin.Int, kotlin.Int)/callCount">callCount</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html"><span class="identifier">Int</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$listFilesLoop(org.blockstack.android.sdk.model.GaiaHubConfig, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Boolean)), kotlin.String, kotlin.Int, kotlin.Int)/fileCount">fileCount</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html"><span class="identifier">Int</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html"><span class="identifier">Int</span></a></code></td>
 </tr>
 <tr>
 <td>
 <p><a href="load-user-data.html">loadUserData</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">loadUserData</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-user-data/index.html"><span class="identifier">UserData</span></a><span class="symbol">?</span></code>
-<p>Retrieve data of signed in user</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="lookup-profile.html">lookupProfile</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">lookupProfile</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$lookupProfile(kotlin.String, java.net.URL, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.Profile)), kotlin.Unit)))/username">username</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$lookupProfile(kotlin.String, java.net.URL, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.Profile)), kotlin.Unit)))/zoneFileLookupURL">zoneFileLookupURL</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/java/net/URL.html"><span class="identifier">URL</span></a>&nbsp;<span class="symbol">=</span>&nbsp;URL(nameLookupUrl)<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$lookupProfile(kotlin.String, java.net.URL, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.Profile)), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model/-profile/index.html"><span class="identifier">Profile</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
-<p>Lookup the profile of a user</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="make-auth-request.html">makeAuthRequest</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">makeAuthRequest</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$makeAuthRequest(kotlin.String, kotlin.Number, kotlin.collections.Map((kotlin.String, kotlin.Any)))/transitPrivateKey">transitPrivateKey</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$makeAuthRequest(kotlin.String, kotlin.Number, kotlin.collections.Map((kotlin.String, kotlin.Any)))/expiresAt">expiresAt</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-number/index.html"><span class="identifier">Number</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$makeAuthRequest(kotlin.String, kotlin.Number, kotlin.collections.Map((kotlin.String, kotlin.Any)))/extraParams">extraParams</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-map/index.html"><span class="identifier">Map</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">,</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a><span class="symbol">&gt;</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
-<p>Generates an authentication request that can be sent to the Blockstack browser
-for the user to approve sign in. This authentication request can then be used for
-sign in by passing it to the redirectToSignInWithAuthRequest method.</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="make-e-c-private-key.html">makeECPrivateKey</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">makeECPrivateKey</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code></td>
-</tr>
-<tr>
-<td>
-<p><a href="parse-zone-file.html">parseZoneFile</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">parseZoneFile</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$parseZoneFile(kotlin.String)/zoneFileContent">zoneFileContent</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-zone-file/index.html"><span class="identifier">ZoneFile</span></a></code>
-<p>Parses zone file content.</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="public-key-to-address.html">publicKeyToAddress</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">publicKeyToAddress</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$publicKeyToAddress(kotlin.String)/publicKey">publicKey</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code></td>
+<code><span class="keyword">fun </span><span class="identifier">loadUserData</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-user-data/index.html"><span class="identifier">UserData</span></a></code></td>
 </tr>
 <tr>
 <td>
 <p><a href="put-file.html">putFile</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">putFile</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$putFile(kotlin.String, kotlin.Any, org.blockstack.android.sdk.model.PutFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/path">path</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$putFile(kotlin.String, kotlin.Any, org.blockstack.android.sdk.model.PutFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/content">content</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$putFile(kotlin.String, kotlin.Any, org.blockstack.android.sdk.model.PutFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/options">options</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-put-file-options/index.html"><span class="identifier">PutFileOptions</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$putFile(kotlin.String, kotlin.Any, org.blockstack.android.sdk.model.PutFileOptions, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.String)), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">putFile</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$putFile(kotlin.String, kotlin.Any, org.blockstack.android.sdk.model.PutFileOptions)/path">path</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$putFile(kotlin.String, kotlin.Any, org.blockstack.android.sdk.model.PutFileOptions)/content">content</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html"><span class="identifier">Any</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$putFile(kotlin.String, kotlin.Any, org.blockstack.android.sdk.model.PutFileOptions)/options">options</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-put-file-options/index.html"><span class="identifier">PutFileOptions</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><span class="keyword">out</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span></code>
 <p>Stores the data provided in the app's data store to to the file specified.</p>
 </td>
 </tr>
 <tr>
 <td>
-<p><a href="redirect-to-sign-in-with-auth-request.html">redirectToSignInWithAuthRequest</a></p>
+<p><a href="set-local-gaia-hub-connection.html">setLocalGaiaHubConnection</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">redirectToSignInWithAuthRequest</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$redirectToSignInWithAuthRequest(kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.Unit)), )))/authRequest">authRequest</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$redirectToSignInWithAuthRequest(kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.Unit)), )))/blockstackIDHost">blockstackIDHost</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a>&nbsp;<span class="symbol">=</span>&nbsp;if (betaMode) DEFAULT_BETA_BLOCKSTACK_HOST else DEFAULT_BLOCKSTACK_HOST<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$redirectToSignInWithAuthRequest(kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.Unit)), )))/errorCallback">errorCallback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
-<p>Redirects the user to the Blockstack browser to approve the sign in request given.</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="redirect-user-to-sign-in.html">redirectUserToSignIn</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">redirectUserToSignIn</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$redirectUserToSignIn(kotlin.Function1((org.blockstack.android.sdk.Result((kotlin.Unit)), )))/errorCallback">errorCallback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
-<p>Generates an authentication request opens an activity that allows the user to
-sign with an existing Blockstack ID already on the device or create a new one.</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="release.html">release</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">release</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
-<p>Releases resources of the users blockstack session</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="release-thread-lock.html">releaseThreadLock</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">releaseThreadLock</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code></td>
-</tr>
-<tr>
-<td>
-<p><a href="resolve-zone-file-to-profile.html">resolveZoneFileToProfile</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">resolveZoneFileToProfile</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$resolveZoneFileToProfile(kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.Profile)), kotlin.Unit)))/zoneFileContent">zoneFileContent</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$resolveZoneFileToProfile(kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.Profile)), kotlin.Unit)))/publicKeyOrAddress">publicKeyOrAddress</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$resolveZoneFileToProfile(kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.Profile)), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model/-profile/index.html"><span class="identifier">Profile</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
-<p>Parses zone file content and converts to profile</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="sign-profile-token.html">signProfileToken</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">signProfileToken</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$signProfileToken(org.blockstack.android.sdk.model.Profile, kotlin.String, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.SigningAlgorithm, java.util.Date, java.util.Date)/profile">profile</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-profile/index.html"><span class="identifier">Profile</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$signProfileToken(org.blockstack.android.sdk.model.Profile, kotlin.String, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.SigningAlgorithm, java.util.Date, java.util.Date)/privateKey">privateKey</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$signProfileToken(org.blockstack.android.sdk.model.Profile, kotlin.String, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.SigningAlgorithm, java.util.Date, java.util.Date)/subject">subject</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-entity/index.html"><span class="identifier">Entity</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$signProfileToken(org.blockstack.android.sdk.model.Profile, kotlin.String, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.SigningAlgorithm, java.util.Date, java.util.Date)/issuer">issuer</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-entity/index.html"><span class="identifier">Entity</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$signProfileToken(org.blockstack.android.sdk.model.Profile, kotlin.String, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.SigningAlgorithm, java.util.Date, java.util.Date)/signingAlgorithm">signingAlgorithm</span><span class="symbol">:</span>&nbsp;<a href="../-signing-algorithm/index.html"><span class="identifier">SigningAlgorithm</span></a>&nbsp;<span class="symbol">=</span>&nbsp;SigningAlgorithm.ES256K<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$signProfileToken(org.blockstack.android.sdk.model.Profile, kotlin.String, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.SigningAlgorithm, java.util.Date, java.util.Date)/issuedAt">issuedAt</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/java/util/Date.html"><span class="identifier">Date</span></a>&nbsp;<span class="symbol">=</span>&nbsp;Date()<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$signProfileToken(org.blockstack.android.sdk.model.Profile, kotlin.String, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.model.Entity, org.blockstack.android.sdk.SigningAlgorithm, java.util.Date, java.util.Date)/expiresAt">expiresAt</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/java/util/Date.html"><span class="identifier">Date</span></a>&nbsp;<span class="symbol">=</span>&nbsp;nextYear()<span class="symbol">)</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-profile-token-pair/index.html"><span class="identifier">ProfileTokenPair</span></a></code>
-<p>Signs a profile token</p>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">setLocalGaiaHubConnection</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-gaia-hub-config/index.html"><span class="identifier">GaiaHubConfig</span></a></code>
+<p>These two functions are app-specific connections to gaia hub,
+they read the user data object for information on setting up
+a hub connection, and store the hub config to localstorage</p>
 </td>
 </tr>
 <tr>
@@ -320,37 +183,14 @@ sign with an existing Blockstack ID already on the device or create a new one.</
 <p><a href="sign-user-out.html">signUserOut</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">signUserOut</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
-<p>Sign the user out</p>
-</td>
+<code><span class="keyword">fun </span><span class="identifier">signUserOut</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code></td>
 </tr>
 <tr>
 <td>
 <p><a href="validate-proofs.html">validateProofs</a></p>
 </td>
 <td>
-<code><span class="keyword">fun </span><span class="identifier">validateProofs</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$validateProofs(org.blockstack.android.sdk.model.Profile, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((java.util.ArrayList((org.blockstack.android.sdk.model.Proof)))), kotlin.Unit)))/profile">profile</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-profile/index.html"><span class="identifier">Profile</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$validateProofs(org.blockstack.android.sdk.model.Profile, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((java.util.ArrayList((org.blockstack.android.sdk.model.Proof)))), kotlin.Unit)))/ownerAdress">ownerAdress</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$validateProofs(org.blockstack.android.sdk.model.Profile, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((java.util.ArrayList((org.blockstack.android.sdk.model.Proof)))), kotlin.Unit)))/name">name</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$validateProofs(org.blockstack.android.sdk.model.Profile, kotlin.String, kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((java.util.ArrayList((org.blockstack.android.sdk.model.Proof)))), kotlin.Unit)))/callback">callback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://developer.android.com/reference/java/util/ArrayList.html"><span class="identifier">ArrayList</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model/-proof/index.html"><span class="identifier">Proof</span></a><span class="symbol">&gt;</span><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
-<p>Validates the social proofs in a user's profile.
-Currently supports validation of Facebook, Twitter, GitHub, Instagram, LinkedIn and HackerNews accounts.</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="verify-profile-token.html">verifyProfileToken</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">verifyProfileToken</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$verifyProfileToken(kotlin.String, kotlin.String)/token">token</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$verifyProfileToken(kotlin.String, kotlin.String)/publicKeyOrAddress">publicKeyOrAddress</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-profile-token/index.html"><span class="identifier">ProfileToken</span></a></code>
-<p>Verifies a profile token.</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="wrap-profile-token.html">wrapProfileToken</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">wrapProfileToken</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$wrapProfileToken(kotlin.String)/token">token</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../../org.blockstack.android.sdk.model/-profile-token-pair/index.html"><span class="identifier">ProfileTokenPair</span></a></code>
-<p>Wraps a token for a profile token file</p>
-</td>
+<code><span class="keyword">fun </span><span class="identifier">validateProofs</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$validateProofs(org.blockstack.android.sdk.model.Profile, kotlin.String, kotlin.String)/profile">profile</span><span class="symbol">:</span>&nbsp;<a href="../../org.blockstack.android.sdk.model/-profile/index.html"><span class="identifier">Profile</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$validateProofs(org.blockstack.android.sdk.model.Profile, kotlin.String, kotlin.String)/ownerAddress">ownerAddress</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$validateProofs(org.blockstack.android.sdk.model.Profile, kotlin.String, kotlin.String)/optString">optString</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="https://developer.android.com/reference/java/util/ArrayList.html"><span class="identifier">ArrayList</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model/-proof/index.html"><span class="identifier">Proof</span></a><span class="symbol">&gt;</span><span class="symbol">&gt;</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -359,41 +199,17 @@ Currently supports validation of Facebook, Twitter, GitHub, Instagram, LinkedIn 
 <tbody>
 <tr>
 <td>
+<p><a href="-c-o-n-t-e-n-t_-t-y-p-e_-j-s-o-n.html">CONTENT_TYPE_JSON</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">CONTENT_TYPE_JSON</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
 <p><a href="-t-a-g.html">TAG</a></p>
 </td>
 <td>
-<code><span class="keyword">const</span> <span class="keyword">val </span><span class="identifier">TAG</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
-</tr>
-<tr>
-<td>
-<p><a href="do-not-verify-app-link-configuration.html">doNotVerifyAppLinkConfiguration</a></p>
-</td>
-<td>
-<code><span class="keyword">var </span><span class="identifier">doNotVerifyAppLinkConfiguration</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
-<p>Flag indicating that verified app links should not be checked for correct configuration</p>
-</td>
-</tr>
-<tr>
-<td>
-<p><a href="should-launch-in-custom-tabs.html">shouldLaunchInCustomTabs</a></p>
-</td>
-<td>
-<code><span class="keyword">var </span><span class="identifier">shouldLaunchInCustomTabs</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
-<p>Flag indicating whether the authentication flow should be started in custom tabs.
-Defaults to true.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<h3>Companion Object Functions</h3>
-<table>
-<tbody>
-<tr>
-<td>
-<p><a href="verify-auth-response.html">verifyAuthResponse</a></p>
-</td>
-<td>
-<code><span class="keyword">fun </span><span class="identifier">verifyAuthResponse</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession.Companion$verifyAuthResponse(kotlin.String)/authResponse">authResponse</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code></td>
+<code><span class="keyword">val </span><span class="identifier">TAG</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
 </tr>
 </tbody>
 </table>

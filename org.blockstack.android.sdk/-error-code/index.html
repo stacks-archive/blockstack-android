@@ -1,0 +1,141 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>ErrorCode - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="./index.html">ErrorCode</a><br/>
+<br/>
+<h1>ErrorCode</h1>
+<code><span class="keyword">enum</span> <span class="keyword">class </span><span class="identifier">ErrorCode</span></code>
+<p>An enum of error codes thrown by Blockstack calls</p>
+<h3>Enum Values</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-missing-parameter-error.html">MissingParameterError</a></p>
+</td>
+<td>
+<p>Missing parameter</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="-remote-service-error.html">RemoteServiceError</a></p>
+</td>
+<td>
+<p>Error thrown by remote service</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="-failed-decryption-error.html">FailedDecryptionError</a></p>
+</td>
+<td>
+<p>Error during decyption</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="-invalid-did-error.html">InvalidDidError</a></p>
+</td>
+<td>
+<p>Invalid decentralized ID</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="-not-enough-funds-error.html">NotEnoughFundsError</a></p>
+</td>
+<td>
+<p>User has not enough funds</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="-invalid-amount-error.html">InvalidAmountError</a></p>
+</td>
+<td>
+<p>Amount is not valid</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="-login-failed-error.html">LoginFailedError</a></p>
+</td>
+<td>
+<p>User could not be signed-in</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="-signature-verification-error.html">SignatureVerificationError</a></p>
+</td>
+<td>
+<p>Signature could not be verified</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="-redirect-failed.html">RedirectFailed</a></p>
+</td>
+<td>
+<p>User could not be redirected to sign in</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="-unknown-error.html">UnknownError</a></p>
+</td>
+<td>
+<p>Other error than the one above</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="code.html">code</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">code</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>identifies the error</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="to-string.html">toString</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">toString</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>the code as string</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Companion Object Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="from-j-s.html">fromJS</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">fromJS</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.ErrorCode.Companion$fromJS(kotlin.String)/code">code</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="./index.html"><span class="identifier">ErrorCode</span></a></code>
+<p>converts a json error code into the corresponding enum</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

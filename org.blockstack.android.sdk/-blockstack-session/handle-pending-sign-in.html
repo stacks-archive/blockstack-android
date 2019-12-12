@@ -8,14 +8,14 @@
 <a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="index.html">BlockstackSession</a>&nbsp;/&nbsp;<a href="./handle-pending-sign-in.html">handlePendingSignIn</a><br/>
 <br/>
 <h1>handlePendingSignIn</h1>
-<a name="org.blockstack.android.sdk.BlockstackSession$handlePendingSignIn(kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.UserData)), kotlin.Unit)))"></a>
-<code><span class="keyword">fun </span><span class="identifier">handlePendingSignIn</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$handlePendingSignIn(kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.UserData)), kotlin.Unit)))/authResponse">authResponse</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$handlePendingSignIn(kotlin.String, kotlin.Function1((org.blockstack.android.sdk.Result((org.blockstack.android.sdk.model.UserData)), kotlin.Unit)))/signInCallback">signInCallback</span><span class="symbol">:</span>&nbsp;<span class="symbol">(</span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model/-user-data/index.html"><span class="identifier">UserData</span></a><span class="symbol">&gt;</span><span class="symbol">)</span>&nbsp;<span class="symbol">-&gt;</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<a name="org.blockstack.android.sdk.BlockstackSession$handlePendingSignIn(kotlin.String)"></a>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">handlePendingSignIn</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.BlockstackSession$handlePendingSignIn(kotlin.String)/authResponse">authResponse</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../-result/index.html"><span class="identifier">Result</span></a><span class="symbol">&lt;</span><a href="../../org.blockstack.android.sdk.model/-user-data/index.html"><span class="identifier">UserData</span></a><span class="symbol">&gt;</span></code>
 <p>Process a pending sign in. This method should be called by your app when it
 receives a request to the app's custom protocol handler.</p>
 <h3>Parameters</h3>
 <p><a name="authResponse"></a>
 <code>authResponse</code> - authentication response token</p>
-<p><a name="signInCallback"></a>
-<code>signInCallback</code> - called with the user data after sign-in or with an error</p>
+<p><strong>Return</strong><br/>
+result object with the user data after sign-in or with an error</p>
 </BODY>
 </HTML>

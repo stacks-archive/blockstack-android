@@ -1,0 +1,26 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>Blockstack.getUserAppFileUrl - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="index.html">Blockstack</a>&nbsp;/&nbsp;<a href="./get-user-app-file-url.html">getUserAppFileUrl</a><br/>
+<br/>
+<h1>getUserAppFileUrl</h1>
+<a name="org.blockstack.android.sdk.Blockstack$getUserAppFileUrl(kotlin.String, kotlin.String, kotlin.String, kotlin.String)"></a>
+<code><span class="keyword">suspend</span> <span class="keyword">fun </span><span class="identifier">getUserAppFileUrl</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.Blockstack$getUserAppFileUrl(kotlin.String, kotlin.String, kotlin.String, kotlin.String)/path">path</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.Blockstack$getUserAppFileUrl(kotlin.String, kotlin.String, kotlin.String, kotlin.String)/username">username</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.Blockstack$getUserAppFileUrl(kotlin.String, kotlin.String, kotlin.String, kotlin.String)/appOrigin">appOrigin</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.Blockstack$getUserAppFileUrl(kotlin.String, kotlin.String, kotlin.String, kotlin.String)/zoneFileLookupURL">zoneFileLookupURL</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>Fetch the public read URL of a user file for the specified app.</p>
+<h3>Parameters</h3>
+<p><a name="path"></a>
+<code>path</code> - the path to the file to read</p>
+<p><a name="username"></a>
+<code>username</code> - The Blockstack ID of the user to look up</p>
+<p><a name="appOrigin"></a>
+<code>appOrigin</code> - The app origin</p>
+<p><a name="zoneFileLookupURL"></a>
+<code>zoneFileLookupURL</code> - The URL to use for zonefile lookup. If false, this will use the blockstack.js's getNameInfo function instead.</p>
+<p><strong>Result</strong><br/>
+the public read URL of the file or null on error</p>
+</BODY>
+</HTML>

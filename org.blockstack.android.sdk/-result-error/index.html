@@ -1,0 +1,97 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>ResultError - blockstack-sdk</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">blockstack-sdk</a>&nbsp;/&nbsp;<a href="../index.html">org.blockstack.android.sdk</a>&nbsp;/&nbsp;<a href="./index.html">ResultError</a><br/>
+<br/>
+<h1>ResultError</h1>
+<code><span class="keyword">open</span> <span class="keyword">class </span><span class="identifier">ResultError</span></code>
+<p>Object containing details about errors from blockstack calls</p>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">ResultError</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.ResultError$<init>(org.blockstack.android.sdk.ErrorCode, kotlin.String, kotlin.String, org.json.JSONObject)/code">code</span><span class="symbol">:</span>&nbsp;<a href="../-error-code/index.html"><span class="identifier">ErrorCode</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.ResultError$<init>(org.blockstack.android.sdk.ErrorCode, kotlin.String, kotlin.String, org.json.JSONObject)/message">message</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.ResultError$<init>(org.blockstack.android.sdk.ErrorCode, kotlin.String, kotlin.String, org.json.JSONObject)/parameter">parameter</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">, </span><span class="identifier" id="org.blockstack.android.sdk.ResultError$<init>(org.blockstack.android.sdk.ErrorCode, kotlin.String, kotlin.String, org.json.JSONObject)/json">json</span><span class="symbol">:</span>&nbsp;<a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span></code>
+<p>Object containing details about errors from blockstack calls</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="code.html">code</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">code</span><span class="symbol">: </span><a href="../-error-code/index.html"><span class="identifier">ErrorCode</span></a></code>
+<p>error code identifying the type of error</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="json.html">json</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">json</span><span class="symbol">: </span><a href="https://developer.android.com/reference/org/json/JSONObject.html"><span class="identifier">JSONObject</span></a><span class="symbol">?</span></code>
+<p>json object representing the error, may contain more information</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="message.html">message</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">message</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>details about the error</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="parameter.html">parameter</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">parameter</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span></code>
+<p>parameter</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="to-string.html">toString</a></p>
+</td>
+<td>
+<code><span class="keyword">open</span> <span class="keyword">fun </span><span class="identifier">toString</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>converts object to code:message string</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Companion Object Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="from-j-s.html">fromJS</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">fromJS</span><span class="symbol">(</span><span class="identifier" id="org.blockstack.android.sdk.ResultError.Companion$fromJS(kotlin.String)/error">error</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="./index.html"><span class="identifier">ResultError</span></a></code>
+<p>converts a json error object into the corresponding object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>
