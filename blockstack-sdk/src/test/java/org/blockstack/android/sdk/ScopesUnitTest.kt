@@ -8,14 +8,14 @@ import org.junit.Test
 class ScopesUnitTest {
     @Test
     fun testScopesToString() {
-        val scopes: Array<Scope> = arrayOf(Scope.Email, Scope.PublishData, Scope.StoreWrite)
+        val scopes: Array<Scope> = arrayOf(BaseScope.Email.scope, BaseScope.PublishData.scope, BaseScope.StoreWrite.scope)
         val result = Scope.scopesArrayToJSONString(scopes)
         assertEquals("[\"email\", \"publish_data\", \"store_write\"]", result)
     }
 
     @Test
     fun testFromJSName() {
-        assertThat(Scope.StoreWrite, `is`(Scope.fromJSName("store_write")))
+        assertThat(BaseScope.StoreWrite, `is`(Scope.fromJSName("store_write")))
     }
 
     @Test

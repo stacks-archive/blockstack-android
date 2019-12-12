@@ -19,11 +19,11 @@ class BlockstackSessionCompanionTest {
 
     @Test
     fun verifyAuthResponseReturnsNullForValidAuthResponse() {
-        assertThat(BlockstackSession.verifyAuthResponse(TOKEN), isEmptyOrNullString())
+        assertThat(Blockstack.verifyAuthResponse(TOKEN)?.message, isEmptyOrNullString())
     }
 
     @Test
     fun verifyAuthResponseReturnsErrorForInValidAuthResponse() {
-        assertThat(BlockstackSession.verifyAuthResponse("a.b.c"), `is`("The authResponse parameter is an invalid base64 encoded token\nbad base-64\nAuth response: a.b.c"))
+        assertThat(Blockstack.verifyAuthResponse("a.b.c")?.message, `is`("The authResponse parameter is an invalid base64 encoded token\nbad base-64\nAuth response: a.b.c"))
     }
 }

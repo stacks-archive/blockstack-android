@@ -11,17 +11,18 @@ import android.os.HandlerThread
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.preference.PreferenceManager
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.Executor
+import org.blockstack.android.sdk.SessionStore
 import org.blockstack.android.sdk.model.PutFileOptions
 
 
 class BlockstackService : IntentService("BlockstackExample") {
 
+    private lateinit var sessionStore: SessionStore
     private val TAG: String = "BlockstackService"
     private val CHANNEL_ID = "progress"
     private lateinit var _blockstackSession: BlockstackSession
@@ -33,36 +34,15 @@ class BlockstackService : IntentService("BlockstackExample") {
         handlerThread = HandlerThread("BlockstackService")
         handlerThread.start()
         handler = Handler(handlerThread.looper)
+        sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(this))
 
     }
 
     override fun onHandleIntent(intent: Intent?) {
-        runOnV8Thread {
-            _blockstackSession = BlockstackSession(this, defaultConfig, executor = object : Executor {
-                override fun onMainThread(function: (Context) -> Unit) {
-                    GlobalScope.launch(Dispatchers.Main) {
-                        function.invoke(applicationContext)
-                    }
-                }
-
-                override fun onV8Thread(function: () -> Unit) {
-                    runOnV8Thread {
-                        function.invoke()
-                    }
-                }
-
-                override fun onNetworkThread(function: suspend () -> Unit) {
-                    GlobalScope.launch(Dispatchers.IO) {
-                        function.invoke()
-                    }
-                }
-            })
+        _blockstackSession = BlockstackSession(sessionStore, defaultConfig)
+        CoroutineScope(Dispatchers.IO).launch {
             putFileFromService()
         }
-    }
-
-    fun runOnV8Thread(runnable: () -> Unit) {
-        handler.post(runnable)
     }
 
     fun initNotifChannel() {
@@ -77,7 +57,7 @@ class BlockstackService : IntentService("BlockstackExample") {
         notificationManager.createNotificationChannel(channel)
     }
 
-    private fun putFileFromService() {
+    private suspend fun putFileFromService() {
         initNotifChannel()
         val signedIn = _blockstackSession.isUserSignedIn()
         if (signedIn) {
@@ -90,20 +70,21 @@ class BlockstackService : IntentService("BlockstackExample") {
             NotificationManagerCompat.from(this).notify(0, notif)
             // make it take looong
             Thread.sleep(10000)
-            _blockstackSession.putFile("fromService.txt", "Hello Android from Service", PutFileOptions()) { result ->
-                Log.d(TAG, "File stored at: ${result.value}")
-                val notif2 = NotificationCompat.Builder(this, CHANNEL_ID)
-                        .setSmallIcon(org.blockstack.android.sdk.R.drawable.org_blockstack_logo)
-                        .setContentTitle("Blockstack Service")
-                        .setContentText("File stored at: ${result.value}")
-                        .build()
+            val result = _blockstackSession.putFile("fromService.txt", "Hello Android from Service", PutFileOptions())
+            Log.d(TAG, "File stored at: ${result.value}")
+            val notif2 = NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(org.blockstack.android.sdk.R.drawable.org_blockstack_logo)
+                    .setContentTitle("Blockstack Service")
+                    .setContentText("File stored at: ${result.value}")
+                    .build()
 
-                NotificationManagerCompat.from(this).notify(0, notif2)
-                androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(ACTION_DONE))
-            }
+            NotificationManagerCompat.from(this).notify(0, notif2)
+            androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(ACTION_DONE))
+
         } else {
             val notif = NotificationCompat.Builder(this, CHANNEL_ID)
                     .setContentTitle("Not logged In")
+                    .setSmallIcon(R.drawable.org_blockstack_logo)
                     .build()
             NotificationManagerCompat.from(this).notify(0, notif)
         }

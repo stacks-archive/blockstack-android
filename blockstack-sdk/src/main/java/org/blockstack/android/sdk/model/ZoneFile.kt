@@ -1,5 +1,6 @@
 package org.blockstack.android.sdk.model
 
+import org.blockstack.android.sdk.URIType
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -31,19 +32,22 @@ class ZoneFile(private val jsonObject: JSONObject) {
             if (uris.length() < 1) {
                 return null
             }
-            val firstUriRecord = uris.getJSONObject(0)
+            val firstUriRecord = uris.get(0)
 
-            if (!firstUriRecord.has("target")) {
+            if (firstUriRecord !is URIType) {
                 return null
             }
-            var tokenFileUrl = firstUriRecord.getString("target")
+            if (firstUriRecord.target.isEmpty()) {
+                return null
+            }
+            var tokenFileUrl = firstUriRecord.target
 
             if (tokenFileUrl.startsWith("https")) {
                 // pass
             } else if (tokenFileUrl.startsWith("http")) {
                 // pass
             } else {
-                tokenFileUrl = "https://${tokenFileUrl}"
+                tokenFileUrl = "https://$tokenFileUrl"
             }
             return tokenFileUrl
         }

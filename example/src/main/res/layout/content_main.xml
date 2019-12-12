@@ -221,7 +221,7 @@
         android:id="@+id/getNameInfoButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Get name info of android_sdk_dev"
+        android:text="Get name info of dev_android_sdk"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/listFilesText" />

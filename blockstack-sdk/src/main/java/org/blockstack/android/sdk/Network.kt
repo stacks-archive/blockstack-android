@@ -1,224 +1,287 @@
 package org.blockstack.android.sdk
 
-import android.util.Log
-import com.eclipsesource.v8.V8
-import com.eclipsesource.v8.V8Array
-import com.eclipsesource.v8.V8Object
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.Call
+import okhttp3.OkHttpClient
+import okhttp3.Request.Builder
+import okhttp3.Response
 import org.blockstack.android.sdk.model.network.AccountStatus
 import org.blockstack.android.sdk.model.network.Denomination
 import org.blockstack.android.sdk.model.network.NameInfo
 import org.blockstack.android.sdk.model.network.NamespaceInfo
 import org.json.JSONArray
 import org.json.JSONObject
+import org.kethereum.hashes.Sha256
+import org.kethereum.hashes.ripemd160
+import org.komputing.khex.extensions.toNoPrefixHexString
 import java.math.BigInteger
 
 /**
  * Object giving access to information about the blockstack network.
  */
-class Network internal constructor(private val v8networkAndroid: V8Object, val v8: V8) {
-
-    init {
-        registerJSNetworkBridgeMethods()
-    }
-
-    private fun registerJSNetworkBridgeMethods() {
-        val network = JSNetworkBridge(this)
-        v8networkAndroid.registerJavaMethod(network, "getNamePriceResult", "getNamePriceResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNamePriceFailure", "getNamePriceFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getNamespacePriceResult", "getNamespacePriceResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNamespacePriceFailure", "getNamespacePriceFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getGracePeriodResult", "getGracePeriodResult", arrayOf<Class<*>>(Int::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getGracePeriodFailure", "getGracePeriodFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getNamesOwnedResult", "getNamesOwnedResult", arrayOf<Class<*>>(V8Array::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNamesOwnedFailure", "getNamesOwnedFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getNamespaceBurnAddressResult", "getNamespaceBurnAddressResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNamespaceBurnAddressFailure", "getNamespaceBurnAddressFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoResult", "getNameInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNameInfoFailure", "getNameInfoFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getNamespaceInfoResult", "getNamespaceInfoResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getNamespaceInfoFailure", "getNamespaceInfoFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getZonefileResult", "getZonefileResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getZonefileFailure", "getZonefileFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getAccountStatusResult", "getAccountStatusResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getAccountStatusFailure", "getAccountStatusFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getAccountHistoryPageResult", "getAccountHistoryPageResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getAccountHistoryPageFailure", "getAccountHistoryPageFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getAccountAtResult", "getAccountAtResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getAccountAtFailure", "getAccountAtFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getAccountTokensResult", "getAccountTokensResult", arrayOf<Class<*>>(V8Array::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getAccountTokensFailure", "getAccountTokensFailure", arrayOf<Class<*>>(String::class.java))
-
-        v8networkAndroid.registerJavaMethod(network, "getAccountBalanceResult", "getAccountBalanceResult", arrayOf<Class<*>>(String::class.java))
-        v8networkAndroid.registerJavaMethod(network, "getAccountBalanceFailure", "getAccountBalanceFailure", arrayOf<Class<*>>(String::class.java))
-
-    }
-
-    private var getNamePriceCallback: ((Result<Denomination>) -> Unit)? = null
+class Network(private val blockstackAPIUrl: String,
+              private val callFactory: Call.Factory = OkHttpClient()) {
 
     /**
      * Get the price to pay for registering a name.
      * @param fullyQualifiedName can be a name or subdomain name.
-     * @param callback  called with a result object that contains the denomination (units, amount) of the requested price
+     * @result result object that contains the denomination (units, amount) of the requested price
      * or error if the request failed.
      */
-    fun getNamePrice(fullyQualifiedName: String, callback: (Result<Denomination>) -> Unit) {
-        getNamePriceCallback = callback
-        val v8Params = V8Array(v8)
-                .push(fullyQualifiedName)
-        v8networkAndroid.executeVoidFunction("getNamePrice", v8Params)
-        v8Params.release()
+    suspend fun getNamePrice(fullyQualifiedName: String): Result<Denomination> {
+        val response = fetchPrivate("${this.blockstackAPIUrl}/v2/prices/names/${fullyQualifiedName}")
+        if (response.isSuccessful) {
+            val result = JSONObject(response.body()!!.string())
+            val namePrice = result.getJSONObject("name_price")
+            val denomination = Denomination(namePrice)
+            if ("BTC" == denomination.units) {
+                val amount = denomination.amount
+                        ?: return Result(null, ResultError(ErrorCode.InvalidAmountError, "missing amount"))
+                if (amount < DUST_MINIMUM) {
+                    denomination.json.put("amount", DUST_MINIMUM.toString())
+                }
+            }
+            return Result(denomination)
+        } else {
+            return Result(null, ResultError(ErrorCode.RemoteServiceError, "Failed to query name price for $fullyQualifiedName"))
+        }
     }
 
-    private var getNamespacePriceCallback: ((Result<Denomination>) -> Unit)? = null
 
     /**
      * Get the price to pay for registering a namesapce.
-     * @param fullyQualifiedName can be a name or subdomain name.
-     * @param callback  called with a result object that contains the denomination (units, amount) of the requested price
+     * @param namespaceID can be a name or subdomain name.
+     * @result result object that contains the denomination (units, amount) of the requested price
      * or error if the request failed.
      */
-    fun getNamespacePrice(namespaceID: String, callback: (Result<Denomination>) -> Unit) {
-        getNamespacePriceCallback = callback
-        val v8Params = V8Array(v8)
-                .push(namespaceID)
-        v8networkAndroid.executeVoidFunction("getNamespacePrice", v8Params)
-        v8Params.release()
+    suspend fun getNamespacePrice(namespaceID: String): Result<Denomination> {
+        val response = fetchPrivate("${this.blockstackAPIUrl}/v2/prices/namespaces/${namespaceID}")
+        if (response.isSuccessful) {
+            val namespacePrice = JSONObject(response.body()!!.string())
+            val denomination = Denomination(namespacePrice)
+            if ("BTC" == denomination.units) {
+                val amount = denomination.amount
+                        ?: return Result(null, ResultError(ErrorCode.InvalidAmountError, "missing amount"))
+                if (amount < DUST_MINIMUM) {
+                    denomination.json.put("amount", DUST_MINIMUM.toString())
+                }
+            }
+            return Result(denomination)
+        } else {
+            return Result(null, ResultError(ErrorCode.RemoteServiceError, "Failed to query namespace price for $namespaceID"))
+        }
     }
-
-    private var getGracePeriodCallback: ((Result<Int>) -> Unit)? = null
 
     /**
      * Get the number of blocks that can pass between a name expiring and the name being able to be re-registered by a different owner.
-     * @param callback called with a result object that contains the number of blocks or error if the request failed.
+     * @result result object that contains the number of blocks or error if the request failed.
      */
-    fun getGracePeriod(callback: (Result<Int>) -> Unit) {
-        getGracePeriodCallback = callback
-        v8networkAndroid.executeVoidFunction("getGracePeriod", null)
+    fun getGracePeriod(): Result<Int> {
+        return Result(5000)
     }
 
-    private var getNamesOwnedCallback: ((Result<List<String>>) -> Unit)? = null
+    private val utxoProviderUrl: String = "https://blockchain.info"
 
     /**
      * Get the names -- both on-chain and off-chain -- owned by an address.
      * @param address the blockchain address (the hash of the owner public key)
-     * @param callback called with a result object that contains the list of names or error if the request failed.
+     * @result result object that contains the list of names or error if the request failed.
      */
-    fun getNamesOwned(address: String, callback: (Result<List<String>>) -> Unit) {
-        getNamesOwnedCallback = callback
-        val v8Params = V8Array(v8)
-                .push(address)
-        v8networkAndroid.executeVoidFunction("getNamesOwned", v8Params)
-        v8Params.release()
-    }
+    suspend fun getNamesOwned(address: String): Result<List<String>> {
+        val networkAddress = this.coerceAddress(address)
+        val response = fetchPrivate("${this.blockstackAPIUrl}/v1/addresses/bitcoin/${networkAddress}")
+        val result = JSONObject(response.body()!!.string())
+        if (result.has("error")) {
+            return Result(null, ResultError(ErrorCode.UnknownError, result.getString("error")))
+        } else {
+            return Result(result.getJSONArray("names").toStringList())
+        }
 
-    private var getNamespaceBurnAddressCallback: ((Result<String>) -> Unit)? = null
+    }
 
     /**
      * Get the blockchain address to which a name's registration fee must be sent (the address will depend on the namespace in which it is registered.).
-     * @param namespaceId the namespace ID
-     * @param callback called with a result object that contains the address as string or error if the request failed.
+     * @param namespace the namespace ID
+     * @result result object that contains the address as string or error if the request failed.
      */
-    fun getNamespaceBurnAddress(namespaceId: String, callback: (Result<String>) -> Unit) {
-        getNamespaceBurnAddressCallback = callback
-        val v8Params = V8Array(v8)
-                .push(namespaceId)
-        v8networkAndroid.executeVoidFunction("getNamespaceBurnAddress", v8Params)
-        v8Params.release()
+    suspend fun getNamespaceBurnAddress(namespace: String): Result<String> {
+
+        val response = fetchPrivate("${this.blockstackAPIUrl}/v1/namespaces/${namespace}")
+        val blockHeight = this.getBlockHeight()
+
+
+        val namespaceInfo = if (response.code() == 404) {
+            return Result(null, ResultError(ErrorCode.UnknownError, "No such namespace '${namespace}'"))
+        } else {
+            JSONObject(response.body()!!.string())
+        }
+
+        var address = this.getDefaultBurnAddress()
+        if (namespaceInfo.getInt("version") == 2) {
+            // pay-to-namespace-creator if this namespace is less than 1 year old
+            if (namespaceInfo.getInt("reveal_block") + 52595 >= blockHeight) {
+                address = namespaceInfo.getString("address")
+            }
+        }
+        return Result(coerceAddress(address))
     }
 
-    private var getNameInfoCallback: ((Result<NameInfo>) -> Unit)? = null
+    private fun getDefaultBurnAddress(): String {
+        return this.coerceAddress("1111111111111111111114oLvT2")
+
+    }
+
+    private suspend fun getBlockHeight(): Int {
+        val response = fetchPrivate("${this.utxoProviderUrl}/latestblock?cors=true")
+        val blockHeight = response.json()
+        return blockHeight.getInt("height")
+    }
 
     /**
      * Get WHOIS-like information for a name, including the address that owns it, the block at which it expires, and the zone file anchored to it (if available).
      * @param fullyQualifiedName the name to query. Can be on-chain of off-chain.
-     * @param callback called with a result object that contains the WHOIS-like name information or error if the request failed.
+     * @result result object that contains the WHOIS-like name information or error if the request failed.
      */
-    fun getNameInfo(fullyQualifiedName: String, callback: (Result<NameInfo>) -> Unit) {
-        getNameInfoCallback = callback
-        val v8params = V8Array(v8)
-                .push(fullyQualifiedName)
-        v8networkAndroid.executeVoidFunction("getNameInfo", v8params)
-        v8params.release()
-    }
+    suspend fun getNameInfo(fullyQualifiedName: String): Result<NameInfo> {
+        val response = fetchPrivate("${this.blockstackAPIUrl}/v1/names/${fullyQualifiedName}")
 
-    private var getNamespaceInfoCallback: ((Result<NamespaceInfo>) -> Unit)? = null
+        if (response.code() == 404) {
+            return Result(null, ResultError(ErrorCode.UnknownError, "Name not found"))
+        } else {
+            return response.resumeWithJsonObject {
+                val nameInfo = it.getOrNull()
+                if (nameInfo != null) {
+                    val address = nameInfo.optStringOrNull("address")
+                    if (address != null) {
+                        nameInfo.put("address", coerceAddress(address))
+                    }
+                    Result(NameInfo(nameInfo))
+                } else {
+                    Result(null, ResultError(ErrorCode.UnknownError, it.exceptionOrNull()?.message
+                            ?: "Invalid name info response"))
+                }
+            }
+        }
+    }
 
     /**
      *Get the pricing parameters and creation history of a namespace.
      * @param namespaceId the namespace to query
-     * @param callback called with a result object that contains the namespace information or error if the request failed.
+     * @result result object that contains the namespace information or error if the request failed.
      */
-    fun getNamespaceInfo(namespaceId: String, callback: (Result<NamespaceInfo>) -> Unit) {
-        getNamespaceInfoCallback = callback
-        val v8Params = V8Array(v8)
-                .push(namespaceId)
-        v8networkAndroid.executeVoidFunction("getNamespaceInfo", v8Params)
-        v8Params.release()
+    suspend fun getNamespaceInfo(namespaceId: String): Result<NamespaceInfo> {
+        val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/namespaces/${namespaceId}")
+        if (resp.code() == 404) {
+            return Result(null, ResultError(ErrorCode.UnknownError, "Namespace not found"))
+        } else {
+            return resp.resumeWithJsonObject {
+                val nameSpaceInfo = it.getOrNull()
+                if (nameSpaceInfo != null) {
+                    val address = nameSpaceInfo.optStringOrNull("address")
+                    val recipientAddress = nameSpaceInfo.optStringOrNull("recipient_address")
+                    if (address != null && recipientAddress != null) {
+                        nameSpaceInfo.put("address", coerceAddress(address))
+                        nameSpaceInfo.put("recipient_address", coerceAddress(recipientAddress))
+                    }
+                    Result(NamespaceInfo(nameSpaceInfo))
+                } else {
+                    Result(null, ResultError(ErrorCode.UnknownError, it.exceptionOrNull()?.message
+                            ?: "Invalid namespace info response"))
+                }
+            }
+        }
     }
-
-    private var getZonefileCallback: ((Result<String>) -> Unit)? = null
 
     /**
      * Get a zone file, given its hash.
      * @param zonefileHash the ripemd160(sha256) hash of the zone file.
-     * @param callback called with a result object that contains the zone file's text
+     * @result result object that contains the zone file's text
      * or error if the request failed or the zone file obtained does not match the hash.
      */
-    fun getZonefile(zonefileHash: String, callback: (Result<String>) -> Unit) {
-        getZonefileCallback = callback
-        val v8Params = V8Array(v8)
-                .push(zonefileHash)
-        v8networkAndroid.executeVoidFunction("getZonefile", v8Params)
-        v8Params.release()
+    suspend fun getZonefile(zonefileHash: String): Result<String> {
+        val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/zonefiles/${zonefileHash}")
+        if (resp.code() == 200) {
+            val body = resp.body()!!.string()
+
+            val sha256 = Sha256.digest(body.toByteArray())
+            val h = sha256.ripemd160().toNoPrefixHexString()
+            if (h != zonefileHash) {
+                return Result(null, ResultError(ErrorCode.UnknownError, "Zone file contents hash to ${h}, not ${zonefileHash}"))
+            }
+            return Result(body)
+        } else {
+            return Result(null, ResultError(ErrorCode.UnknownError, "Bad response status: ${resp.code()}"))
+        }
+
     }
 
-    private var getAccountStatusCallback: ((Result<AccountStatus>) -> Unit)? = null
 
     /**
      * Get the status of an account for a particular token holding. This includes its total number of expenditures and credits, lockup times, last txid, and so on.
-     * @param address  the account's address
+     * @param accountAddress  the account's address
      * @param tokenType the token type to query
-     * @param callback called with a result object that contains the state of the account for this token
+     * @result result object that contains the state of the account for this token
      * or error if the request failed
      */
-    fun getAccountStatus(address: String, tokenType: String, callback: (Result<AccountStatus>) -> Unit) {
-        getAccountStatusCallback = callback
-        val v8Params = V8Array(v8)
-                .push(address)
-                .push(tokenType)
-        v8networkAndroid.executeVoidFunction("getAccountStatus", v8Params)
-        v8Params.release()
-    }
+    suspend fun getAccountStatus(accountAddress: String, tokenType: String): Result<AccountStatus> {
+        val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${accountAddress}/${tokenType}/status")
 
-    private var getAccountHistoryPageCallback: ((Result<List<AccountStatus>>) -> Unit)? = null
+        if (resp.code() == 404) {
+            return Result(null, ResultError(ErrorCode.UnknownError, "Account not found"))
+        } else {
+            return resp.resumeWithJsonObject {
+                val accountStatus = it.getOrNull()
+                if (accountStatus != null) {
+                    // coerce all addresses, and convert credit/debit to biginteger
+                    val address = coerceAddress(accountStatus.getString("address"))
+                    val debitValue = BigInteger(accountStatus.getString("debit_value"))
+                    val creditValue = BigInteger(accountStatus.getString("credit_value"))
+                    accountStatus.put("address", address)
+                            .put("debit_value", debitValue)
+                            .put("credit_value", creditValue)
+                    Result(AccountStatus(accountStatus))
+                } else {
+                    Result(null, ResultError(ErrorCode.UnknownError, "Invalid account status for $accountAddress"))
+                }
+            }
+        }
+    }
 
     /**
      * Get a page of an account's transaction history.
      * @param address the account's address
      * @param page the page number. Page 0 contains the most recent transactions
-     * @param callback called with a result object that contains a list of account statuses at various block heights (e.g. prior balances, txids, etc)
+     * @result result object that contains a list of account statuses at various block heights (e.g. prior balances, txids, etc)
      */
-    fun getAccountHistoryPage(address: String, page: Int, callback: (Result<List<AccountStatus>>) -> Unit) {
-        getAccountHistoryPageCallback = callback
-        val v8Params = V8Array(v8)
-                .push(address)
-                .push(page)
-        v8networkAndroid.executeVoidFunction("getAccountHistoryPage", v8Params)
-        v8Params.release()
-    }
+    suspend fun getAccountHistoryPage(address: String, page: Int): Result<List<AccountStatus>> {
+        val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/history?page=${page}")
 
-    private var getAccountAtCallback: ((Result<List<AccountStatus>>) -> Unit)? = null
+        val historyList = if (resp.code() == 404) {
+            throw  Error("Account not found")
+        } else if (resp.code() != 200) {
+            throw  Error("Bad response status: ${resp.code()}")
+        } else {
+            val jsonString = resp.body()!!.string()
+            if (jsonString.startsWith("{")) {
+                val error = JSONObject(jsonString)
+                val historyListError = error.optStringOrNull("error")
+                return Result(null, ResultError(ErrorCode.UnknownError, "Unable to get account history page: ${historyListError}"))
+            } else {
+                JSONArray(jsonString)
+            }
+        }
+
+        val result = arrayListOf<AccountStatus>()
+        for (
+        arrayIndex in 0 until historyList.length()) {
+            val histEntry = historyList.getJSONObject(arrayIndex)
+            val addr = coerceAddress(histEntry.getString("address"))
+            histEntry.put("address", addr)
+            result.add(AccountStatus(histEntry))
+        }
+        return Result(result)
+    }
 
     /**
      * Get the state(s) of an account at a particular block height. This includes the state of the account
@@ -226,178 +289,144 @@ class Network internal constructor(private val v8networkAndroid: V8Object, val v
      * as well as all of the states the account passed through when this block was processed (if any).
      * @param address the accounts's address.
      * @param blockHeight the block to query.
-     * @param callback called with result object that contains the account states of the account at this block
+     * @result result object that contains the account states of the account at this block
      * or error if the request failed
      */
-    fun getAccountAt(address: String, blockHeight: Int, callback: (Result<List<AccountStatus>>) -> Unit) {
-        getAccountAtCallback = callback
-        val v8Params = V8Array(v8)
-                .push(address)
-                .push(blockHeight)
-        v8networkAndroid.executeVoidFunction("getAccountAt", v8Params)
-        v8Params.release()
-    }
+    suspend fun getAccountAt(address: String, blockHeight: Int): Result<ArrayList<AccountStatus>> {
+        val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/history/${blockHeight}")
 
-    private var getAccountTokensCallback: ((Result<List<String>>) -> Unit)? = null
+        val historyList = if (resp.code() == 404) {
+            throw  Error("Account not found")
+        } else if (resp.code() != 200) {
+            var msg = "Bad response status: ${resp.code()}"
+            if (resp.body() != null) {
+                val errorObject = JSONObject(resp.body()!!.string())
+                if (errorObject.has("error")) {
+                    msg = "$msg - ${errorObject.getString("error")}"
+                }
+            }
+            return Result(null, ResultError(ErrorCode.UnknownError, msg))
+        } else {
+            val jsonString = resp.body()!!.string()
+            if (jsonString.startsWith("{")) {
+                val error = JSONObject(jsonString)
+                val historyListError = error.optStringOrNull("error")
+                return Result(null, ResultError(ErrorCode.UnknownError, "Unable to get historical account state: ${historyListError}"))
+            } else {
+                JSONArray(jsonString)
+            }
+        }
+
+        val result = arrayListOf<AccountStatus>()
+        for (
+        arrayIndex in 0 until historyList.length()) {
+            val histEntry = historyList.getJSONObject(arrayIndex)
+            val addr = coerceAddress(histEntry.getString("address"))
+            histEntry.put("address", addr)
+            result.add(AccountStatus(histEntry))
+        }
+        return Result(result)
+    }
 
     /**
      * Get the set of token types that this account owns
      * @param address the accounts's address
-     * @param callback called with a result object that contains the list of types of token this account holds (excluding the underlying blockchain's tokens)
+     * @result result object that contains the list of types of token this account holds (excluding the underlying blockchain's tokens)
      * or error if the request failed
      */
-    fun getAccountTokens(address: String, callback: (Result<List<String>>) -> Unit) {
-        getAccountTokensCallback = callback
-        val v8Params = V8Array(v8)
-                .push(address)
-        v8networkAndroid.executeVoidFunction("getAccountTokens", v8Params)
-        v8Params.release()
+    suspend fun getAccountTokens(address: String): Result<ArrayList<String>> {
+        val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/tokens")
+
+        if (resp.code() == 404) {
+            return Result(null, ResultError(ErrorCode.UnknownError, "Account not found"))
+        } else {
+            return resp.resumeWithJsonObject { it: kotlin.Result<JSONObject> ->
+                val responseValue = it.getOrNull()
+                if (responseValue?.has("tokens") == true) {
+                    val tokenList = responseValue.getJSONArray("tokens")
+                    val result = arrayListOf<String>()
+                    for (arrayIndex in 0 until tokenList.length()) {
+                        val token = tokenList.getString(arrayIndex)
+                        result.add(token)
+                    }
+                    Result(result)
+                } else {
+                    Result(null, ResultError(ErrorCode.UnknownError, it.exceptionOrNull()?.message
+                            ?: "Invalid token list response"))
+                }
+            }
+        }
     }
 
-    private var getAccountBalanceCallback: ((Result<BigInteger>) -> Unit)? = null
 
     /**
      * Get the number of tokens owned by an account. If the account does not exist or has no tokens of this type, then 0 will be returned.
      * @param address the account's address.
      * @param tokenType the type of token to query.
-     * @param callback called with a result object that contains the number of tokens held by this account in
+     * @result result object that contains the number of tokens held by this account in
      * the smallest denomination.
      */
-    fun getAccountBalance(address: String, tokenType: String, callback: (Result<BigInteger>) -> Unit) {
-        getAccountBalanceCallback = callback
-        val v8Params = V8Array(v8)
-                .push(address)
-                .push(tokenType)
-        v8networkAndroid.executeVoidFunction("getAccountBalance", v8Params)
-        v8Params.release()
-    }
-
-    private class JSNetworkBridge(private val network: Network) {
-        fun getNamePriceResult(denomination: String) {
-            network.getNamePriceCallback?.invoke(Result(Denomination(JSONObject(denomination))))
-        }
-
-        fun getNamePriceFailure(error: String) {
-            network.getNamePriceCallback?.invoke(Result(null, error))
-        }
-
-        fun getNamespacePriceResult(namespacePrice: String) {
-            network.getNamespacePriceCallback?.invoke(Result(Denomination(JSONObject(namespacePrice))))
-        }
-
-        fun getNamespacePriceFailure(error: String) {
-            network.getNamespacePriceCallback?.invoke(Result(null, error))
-        }
-
-        fun getGracePeriodResult(gracePeriod: Int) {
-            network.getGracePeriodCallback?.invoke(Result(gracePeriod))
-        }
-
-        fun getGracePeriodFailure(error: String) {
-            network.getGracePeriodCallback?.invoke(Result(null, error))
-        }
-
-        fun getNamesOwnedResult(names: V8Array) {
-            val nameList = ArrayList<String>()
-            for (index in 0 until names.length()) {
-                nameList.add(names.getString(index))
+    suspend fun getAccountBalance(address: String, tokenType: String): Result<BigInteger> {
+        val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/${tokenType}/balance")
+        return resp.resumeWithJsonObject { it ->
+            val tokenBalance = it.getOrNull()
+            if (tokenBalance != null) {
+                val balance = tokenBalance.optString("balance") ?: "0"
+                Result(BigInteger(balance))
+            } else {
+                val error = it.exceptionOrNull()
+                Result(null, ResultError(ErrorCode.UnknownError, error?.message
+                        ?: "Invalid request response"))
             }
-            names.release()
-            network.getNamesOwnedCallback?.invoke(Result(nameList))
-        }
-
-        fun getNamesOwnedFailure(error: String) {
-            network.getNamesOwnedCallback?.invoke(Result(null, error))
-        }
-
-        fun getNamespaceBurnAddressResult(burnAddress: String) {
-            network.getNamespaceBurnAddressCallback?.invoke(Result(burnAddress))
-        }
-
-        fun getNamespaceBurnAddressFailure(error: String) {
-            network.getNamespaceBurnAddressCallback?.invoke(Result(null, error))
-        }
-
-        fun getNameInfoResult(nameInfo: String) {
-            network.getNameInfoCallback?.invoke(Result(NameInfo(JSONObject(nameInfo))))
-        }
-
-        fun getNameInfoFailure(error: String) {
-            network.getNameInfoCallback?.invoke(Result(null, error))
-        }
-
-        fun getNamespaceInfoResult(namespaceInfo: String) {
-            network.getNamespaceInfoCallback?.invoke(Result(NamespaceInfo(JSONObject(namespaceInfo))))
-        }
-
-        fun getNamespaceInfoFailure(error: String) {
-            network.getNamespaceInfoCallback?.invoke(Result(null, error))
-        }
-
-        fun getZonefileResult(zoneFileContent: String) {
-            network.getZonefileCallback?.invoke(Result(zoneFileContent))
-        }
-
-        fun getZonefileFailure(error: String) {
-            network.getZonefileCallback?.invoke(Result(null, error))
-        }
-
-        fun getAccountStatusResult(accountStatus: String) {
-            network.getAccountStatusCallback?.invoke(Result(AccountStatus(JSONObject(accountStatus))))
-        }
-
-        fun getAccountStatusFailure(error: String) {
-            network.getAccountStatusCallback?.invoke(Result(null, error))
-        }
-
-        fun getAccountHistoryPageResult(accountStatuses: String) {
-            val list = JSONArray(accountStatuses)
-            val accountHistoryPage = ArrayList<AccountStatus>(list.length())
-            for (index in 0..list.length() - 1) {
-                accountHistoryPage.add(AccountStatus(list.getJSONObject(index)))
-            }
-            network.getAccountHistoryPageCallback?.invoke(Result(accountHistoryPage))
-        }
-
-        fun getAccountHistoryPageFailure(error: String) {
-            network.getAccountHistoryPageCallback?.invoke(Result(null, error))
-        }
-
-        fun getAccountAtResult(accountStatuses: String) {
-            val list = JSONArray(accountStatuses)
-            val account = ArrayList<AccountStatus>(list.length())
-            for (index in 0..list.length() - 1) {
-                account.add(AccountStatus(list.getJSONObject(index)))
-            }
-            network.getAccountAtCallback?.invoke(Result(account))
-        }
-
-        fun getAccountAtFailure(error: String) {
-            network.getAccountAtCallback?.invoke(Result(null, error))
-        }
-
-        fun getAccountTokensResult(tokens: V8Array) {
-            Log.d("network", "received " + tokens.length())
-            val tokenList = ArrayList<String>()
-            for (index in 0 until tokens.length()) {
-                tokenList.add(tokens.getString(index))
-            }
-            tokens.release()
-            network.getAccountTokensCallback?.invoke(Result(tokenList))
-        }
-
-        fun getAccountTokensFailure(error: String) {
-            network.getAccountTokensCallback?.invoke(Result(null, error))
-        }
-
-        fun getAccountBalanceResult(balance: String) {
-            val value = BigInteger(balance)
-            network.getAccountBalanceCallback?.invoke(Result(value))
-        }
-
-        fun getAccountBalanceFailure(error: String) {
-            network.getAccountBalanceCallback?.invoke(Result(null, error))
         }
     }
 
+
+    private suspend fun fetchPrivate(url: String): Response {
+        val request = Builder().url(url)
+                .addHeader("Referrer-Policy", "no-referrer")
+                .build()
+        return withContext(Dispatchers.IO) {
+            callFactory.newCall(request).execute()
+        }
+    }
+
+    fun coerceAddress(address: String): String {
+        // TODO coerce to network address
+        return address
+    }
+
+
+    companion object {
+        private val DUST_MINIMUM: BigInteger = BigInteger("5500")
+    }
+
+}
+
+private fun <T> Response.resumeWithJsonObject(handleJsonObject: (kotlin.Result<JSONObject>) -> T): T {
+    val jsonString = this.body()!!.string()
+    val result = JSONObject(jsonString)
+    val requestError = result.optStringOrNull("error")
+    if (requestError != null) {
+        return handleJsonObject(kotlin.Result.failure(Error("request failed: $requestError")))
+    } else {
+        return handleJsonObject(kotlin.Result.success(result))
+    }
+}
+
+private fun Response.json(): JSONObject {
+    return this.body()!!.string().let {
+        JSONObject(it)
+    }
+}
+
+private fun JSONArray.toStringList(): List<String> {
+    val result = arrayListOf<String>()
+    var i = 0
+    val size = this.length()
+    while (i < size) {
+        result.add(this.getString(i))
+        i++
+    }
+    return result
 }

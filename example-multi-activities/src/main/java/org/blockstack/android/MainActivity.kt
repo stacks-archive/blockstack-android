@@ -10,6 +10,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View.GONE
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.Dispatchers
@@ -17,11 +18,13 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.SessionStore
 import org.blockstack.android.sdk.model.UserData
 import java.net.URL
 
 @SuppressLint("SetTextI18n")
 class MainActivity : AppCompatActivity() {
+    private lateinit var sessionStore: SessionStore
     private val TAG = MainActivity::class.java.simpleName
 
     private var _blockstackSession: BlockstackSession? = null
@@ -31,8 +34,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-
-        _blockstackSession = BlockstackSession(this, defaultConfig)
+        sessionStore = SessionStoreProvider.getInstance(this)
+        _blockstackSession = BlockstackSession(sessionStore, defaultConfig)
         checkLogin()
     }
 
@@ -53,9 +56,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (_blockstackSession?.loaded == true) {
-            checkLogin()
-        }
+        checkLogin()
     }
 
     private fun onSignIn(userData: UserData) {
@@ -91,9 +92,7 @@ class MainActivity : AppCompatActivity() {
         if (intent?.action == Intent.ACTION_MAIN) {
             val userData = blockstackSession().loadUserData()
             runOnUiThread {
-                if (userData != null) {
-                    onSignIn(userData)
-                }
+                onSignIn(userData)
             }
         }
     }

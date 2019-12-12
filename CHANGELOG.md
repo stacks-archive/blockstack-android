@@ -4,7 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [0.5.0] - 2019-10-12
+
+### Added
+- A `ResultError` type and enum `ErrorCode` to better represent errors from Blockstack
+
+### Changed
+- Replaced J2V8 with kotlin implementation of auth and storage protocol
+- Removed callbacks from all method calls
+- Replaced `Result.error` type String with type `ResultError`
+- `loadUserData` throws an error if user not logged in
+- `Network` methods return results, no callback used anymore
+- `Network.getNamePrice` is using v2 API (expecting amounts in decimals, not hex format)
 
 ## [0.4.8] - 2019-09-16
 

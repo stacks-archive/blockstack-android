@@ -2,8 +2,11 @@ package org.blockstack.android.sdk
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
+import kotlinx.coroutines.runBlocking
+import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
+import org.hamcrest.CoreMatchers.startsWith
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Before
@@ -22,32 +25,50 @@ private val TAG = BlockstackTest::class.java.simpleName
 @RunWith(AndroidJUnit4::class)
 class BlockstackTest {
 
+
     @get:Rule
     val rule = ActivityTestRule(TestActivity::class.java)
-    private lateinit var session: BlockstackSession
 
+    private lateinit var blockstack: Blockstack
 
     @Before
     fun setup() {
-        session = BlockstackSession(rule.activity,
-                "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
-                sessionStore = sessionStoreforIntegrationTests(rule),
-                executor = IntegrationTestExecutor(rule))
+        blockstack = Blockstack()
     }
 
     @Test
     fun getPublicKeyFromPrivateReturnsCorrectKey() {
-        assertThat(session.getPublicKeyFromPrivate(PRIVATE_KEY), `is`(PUBLIC_KEY))
+        assertThat(blockstack.getPublicKeyFromPrivate(PRIVATE_KEY), `is`(PUBLIC_KEY))
     }
 
     @Test
     fun makeECPrivateKeyDoesNotThrow() {
-        session.makeECPrivateKey()
+        blockstack.makeECPrivateKey()
         // ok, no exception thrown
     }
 
     @Test
     fun publicKeyToAddressReturnsCorrectAddress() {
-        assertThat(session.publicKeyToAddress(PUBLIC_KEY), `is`(ADDRESS))
+        assertThat(blockstack.publicKeyToAddress(PUBLIC_KEY), `is`(ADDRESS))
+    }
+
+    @Test
+    fun testLookupProfile() {
+
+        val profile = runBlocking {
+            blockstack.lookupProfile("public_profile_for_testing.id.blockstack", null)
+        }
+        // Note that this can fail due to updates on the profile (the secret key is publicly available
+        assertThat(profile.json.toString(), startsWith("{\"@type\":\"Person\",\"@context\":\"http:\\/\\/schema.org\",\"apps\":{"))
+    }
+
+
+    @Test
+    fun testEncryptThenDecrypt() {
+        val message = "Hello Test"
+        val result = blockstack.encryptContent(message, CryptoOptions(publicKey = PUBLIC_KEY))
+        val plainText = blockstack.decryptContent(result.value!!.json.toString(), false, CryptoOptions(privateKey = PRIVATE_KEY))
+        assertThat(plainText.value as String, `is`(message))
     }
 }
+
