@@ -19,12 +19,13 @@ repository](https://github.com/blockstack/blockstack-android/issues).
 ## Upgrade to 0.5.0
 Apps using SDK version below 0.5.0 need to make following changes:
 
-- Use `BlockstackSignIn.redirectUserToSignIn` instead of `BlockstackSession.redirectUserToSignIn`
-- Replace result handling in callbacks of `BlockstackSession.getFile` and so by directly handling the result
-- Handle exception when calling `BlockstackSession.loadUserData` while the user is not signed in
-- Handle `Result.error` as type `ResultError`, not as type `String`
+- Use `BlockstackSignIn.redirectUserToSignIn` instead of `BlockstackSession.redirectUserToSignIn`.
+- Replace result handling in callbacks of `BlockstackSession.getFile` by directly handling the result.
+- Handle `IllegalStateException` exception when calling `BlockstackSession.loadUserData` while 
+the user is not signed in.
+- Handle `Result.error` as type `ResultError`, not as type `String`.
 
-All changes can be reviewed [here](https://github.com/blockstack/blockstack-android/commit/ca88a12fa5e4fd028caef5d54253c6cb1fbd94b0).
+For a complete list of changes with the 0.5.0 upgrade, see [this commit](https://github.com/blockstack/blockstack-android/commit/ca88a12fa5e4fd028caef5d54253c6cb1fbd94b0).
 
 ## Get started
 
@@ -45,14 +46,21 @@ module ([`/example`](examples/)),
 ```
 
 ## Handling Blockstack sessions
-Blockstack sessions are stored in the SessionStore. The default implementation of SessionStore uses 
-the default shared preferences. If an apps needs to use two `BlockstackSession`s then they should 
-use the same session store or synchronize the state regularly.  
+`BlockstackSession`s use a session store to persist their state. 
+
+The default implementation of `ISessionStore` uses the default shared preferences. If an apps needs 
+to use two `BlockstackSession`s then both should use the same session store instance. If two session stores 
+are used then it could happen that for example the user is loged out in one session while still being logged in 
+in the other session.
 
 
 ### Redirect with app links
-The example applications and tutorial uses a custom url scheme to handle the redirect from the sign-in process. 
-In production, the redirect should be handled by [app links](https://developer.android.com/studio/write/app-link-indexing) such that no other apps could hijack the custom url scheme. (There is no security risk, it is just a bad user experience if an app chooser pops up and the user has to choose how to finish the sign-in.)
+The example applications and tutorial uses a custom url scheme to handle the redirect 
+from the sign-in process. While suitable for samples, do not use this scheme in a production app.
+
+In production, handle the redirect with [app links](https://developer.android.com/studio/write/app-link-indexing) 
+such that no other apps could hijack the custom url scheme. Hijacking in this manner is not a security risk; It 
+is simply a bad user experience if an app chooser pops up and the user has to choose how to finish the sign-in.
 
 Replace the custom scheme intent filter with the intent filter with your domain/host name like this:
 ```
@@ -72,20 +80,22 @@ Note, when using app links you do not need a web server anymore that redirects t
 All you need to host is a `manifest.json` file for the app details and the assetlinks.json file for the app links.
 
 ### Thread Handling
-The Android SDK uses kotlin's Coroutines. Network requests are using the `Dispatchers.IO` context.
+The Android SDK uses Kotlin's Coroutines. Network requests are using the [`Dispatchers.IO` dispatcher](https://developer.android.com/kotlin/coroutines#main-safety).
 
 ### Sign-In Flow
-The most basic way to sign-in a user with Blockstack is to use `BlockstackSignIn.redirectUserToSignIn`, 
-`BlockstackSession.handlePendingAuthResponse` and all subsequent method calls in the same activity. 
-This is shown in the 
-[simple example](/example). However, applications usually have a separate screen to handle user sessions. 
+To sign-in a user with Blockstack the app needs to use `BlockstackSignIn.redirectUserToSignIn` and 
+`BlockstackSession.handlePendingAuthResponse`. After the auth response was handled, the `BlockstackSession` can
+ be used to manage the user's data.
+ 
+In the [simple example](/example), the both sign-in and data management happens in the same activity. 
+However, applications usually have a separate activity to handle user sign-in. 
 
 In the [multi activity example](/example-multi-activities) a sign-in flow with two separate activities
 is implemented, one for the main activity and one for the account handling.
 The account handling activity updates the session data and the main activity
-uses the same session store to retrieve the session data. The default
-session store is using the default `SharedPreferences`, therefore, the 
-session data is shared between all activities of the same app.
+uses the same session store to retrieve the session data. The
+`SessionStore is using the default `SharedPreferences`, therefore, the 
+session data is shared between the two activities of the app.
 
 
 ### Document Provider
