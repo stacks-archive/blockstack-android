@@ -49,9 +49,9 @@ module ([`/example`](examples/)),
 `BlockstackSession`s use a session store to persist their state. 
 
 The default implementation of `ISessionStore` uses the default shared preferences. If an apps needs 
-to use two `BlockstackSession`s then both should use the same session store instance. If two session stores 
-are used then it could happen that for example the user is loged out in one session while still being logged in 
-in the other session.
+to use two `BlockstackSession`s then both should use the same session store instance. Failure to use 
+the same session store instance can cause situations where a user is logged out of one session 
+while still being logged into the other.
 
 
 ### Redirect with app links
@@ -83,11 +83,11 @@ All you need to host is a `manifest.json` file for the app details and the asset
 The Android SDK uses Kotlin's Coroutines. Network requests are using the [`Dispatchers.IO` dispatcher](https://developer.android.com/kotlin/coroutines#main-safety).
 
 ### Sign-In Flow
-To sign-in a user with Blockstack the app needs to use `BlockstackSignIn.redirectUserToSignIn` and 
-`BlockstackSession.handlePendingAuthResponse`. After the auth response was handled, the `BlockstackSession` can
- be used to manage the user's data.
- 
-In the [simple example](/example), the both sign-in and data management happens in the same activity. 
+To sign-in a user with Blockstack your app should use `BlockstackSignIn.redirectUserToSignIn` and 
+`BlockstackSession.handlePendingAuthResponse`. After the auth response is handled, 
+use `BlockstackSession` to manage the user's data.  
+
+In the [simple example](/example), both sign-in and data management happens in the same activity. 
 However, applications usually have a separate activity to handle user sign-in. 
 
 In the [multi activity example](/example-multi-activities) a sign-in flow with two separate activities
