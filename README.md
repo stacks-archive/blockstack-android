@@ -10,16 +10,26 @@ This repository contains a pre-release for Android developers:
 
 - the Blockstack Android SDK ([`/blockstack-sdk`](blockstack-sdk/))
 - tools that assist development ([`/tools`](tools/))
-- a tutorial that teaches you [how to use the SDK](docs/tutorial.md)
 
 
 All of the material in this is a pre-release, if you encounter an issue please
 feel free to log it [on this
 repository](https://github.com/blockstack/blockstack-android/issues).
 
+## Upgrade to 0.5.0
+Apps using SDK version below 0.5.0 need to make following changes:
+
+- Use `BlockstackSignIn.redirectUserToSignIn` instead of `BlockstackSession.redirectUserToSignIn`.
+- Replace result handling in callbacks of `BlockstackSession.getFile` by directly handling the result.
+- Handle `IllegalStateException` exception when calling `BlockstackSession.loadUserData` while 
+the user is not signed in.
+- Handle `Result.error` as type `ResultError`, not as type `String`.
+
+For a complete list of changes with the 0.5.0 upgrade, see [this commit](https://github.com/blockstack/blockstack-android/commit/ca88a12fa5e4fd028caef5d54253c6cb1fbd94b0).
+
 ## Get started
 
-Use the [detailed tutorial](docs/tutorial.md) and to build your first Blockstack
+Use the [detailed tutorial](https://docs.blockstack.org/android/tutorial.html) and to build your first Blockstack
 Android application with React. You can also work through three example apps in
 module ([`/example`](examples/)),
 ([`/example-multi-activity`](example-multi-activity/)) and ([`/example-service`](example-service/)).
@@ -36,10 +46,21 @@ module ([`/example`](examples/)),
 ```
 
 ## Handling Blockstack sessions
-The current implementation of the Blockstack Android SDK uses the j2v8 engine and blockstack.js. 
+`BlockstackSession`s use a session store to persist their state. 
+
+The default implementation of `ISessionStore` uses the default shared preferences. If an apps needs 
+to use two `BlockstackSession`s then both should use the same session store instance. Failure to use 
+the same session store instance can cause situations where a user is logged out of one session 
+while still being logged into the other.
+
 
 ### Redirect with app links
-The example applications and tutorial uses a custom url scheme to handle the redirect from the sign-in process. In production, the redirect should be handled by [app links](https://developer.android.com/studio/write/app-link-indexing) such that no other apps could hijack the custom url scheme. (There is no security risk, it is just a bad user experience if an app chooser pops up and the user has to choose how to finish the sign-in.)
+The example applications and tutorial uses a custom url scheme to handle the redirect 
+from the sign-in process. While suitable for samples, do not use this scheme in a production app.
+
+In production, handle the redirect with [app links](https://developer.android.com/studio/write/app-link-indexing) 
+such that no other apps could hijack the custom url scheme. Hijacking in this manner is not a security risk; It 
+is simply a bad user experience if an app chooser pops up and the user has to choose how to finish the sign-in.
 
 Replace the custom scheme intent filter with the intent filter with your domain/host name like this:
 ```
@@ -59,30 +80,22 @@ Note, when using app links you do not need a web server anymore that redirects t
 All you need to host is a `manifest.json` file for the app details and the assetlinks.json file for the app links.
 
 ### Thread Handling
-The j2v8 engine requires that calls to the Blockstack session are made from only one thread.
-
-The SDK comes with a default implementation of an `Executor` that manages thread switching. 
-By default, network threads are done in the background, calls to the Blockstack session are done
-on the main thread.
-
-If the Blockstack session is not created on the main thread then a custom implementation of `Excecutor`
-needs to be provided in the constructor of the Blockstack session. See the [service example](/example-service) for some code.   
-
-It is also possible to manually switch threads buy using `.releaseThreadLock` and `.aquireThreadLock`.
-These methods allow to make calls to the Blockstack session on a different thread. The thread lock
-needs to be released on the current thread of the session. Then the new thread can acquire the thread lock.
+The Android SDK uses Kotlin's Coroutines. Network requests are using the [`Dispatchers.IO` dispatcher](https://developer.android.com/kotlin/coroutines#main-safety).
 
 ### Sign-In Flow
-The most basic way to sign-in a user with Blockstack is to use `redirectUserToSignIn`, 
-`handlePendingAuthResponse` and all subsequent method calls in the same activity. This is shown in the 
-[simple example](/example). However, applications usually have a separate screen to handle user sessions. 
+To sign-in a user with Blockstack your app should use `BlockstackSignIn.redirectUserToSignIn` and 
+`BlockstackSession.handlePendingAuthResponse`. After the auth response is handled, 
+use `BlockstackSession` to manage the user's data.  
+
+In the [simple example](/example), both sign-in and data management happens in the same activity. 
+However, applications usually have a separate activity to handle user sign-in. 
 
 In the [multi activity example](/example-multi-activities) a sign-in flow with two separate activities
 is implemented, one for the main activity and one for the account handling.
 The account handling activity updates the session data and the main activity
-uses the same session store to retrieve the session data. The default
-session store is using the default `SharedPreferences`, therefore, the 
-session data is shared between all activities of the same app.
+uses the same session store to retrieve the session data. The
+`SessionStore is using the default `SharedPreferences`, therefore, the 
+session data is shared between the two activities of the app.
 
 
 ### Document Provider
@@ -98,8 +111,7 @@ The Android documentation provides a details guide how to build a
 
 
 ## API Reference Documentation
-Please see [generated documenatation](https://124-124568327-gh.circle-artifacts.com/0/javadoc/blockstack-sdk/index.html)
-on the project's circle CI.
+Please see [generated documenatation](https://blockstack.github.io/blockstack-android/index.html).
 
 ## Regulatory Notes
 
