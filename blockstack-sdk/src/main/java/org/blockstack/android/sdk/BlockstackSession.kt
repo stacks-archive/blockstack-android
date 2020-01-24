@@ -93,6 +93,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         val appPrivateKey = tokenPayload.getString("private_key")
         val coreSessionToken = tokenPayload.optString("core_token")
         val userData = authResponseToUserData(tokenPayload, nameLookupUrl, appPrivateKey, coreSessionToken, authResponse)
+        sessionStore.updateUserData(userData)
         return Result(userData)
     }
 
