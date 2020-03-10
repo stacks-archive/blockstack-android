@@ -259,8 +259,8 @@ class Network(private val blockstackAPIUrl: String,
 
         val historyList = if (resp.code() == 404) {
             throw  Error("Account not found")
-        } else if (resp.code() != 200) {
-            throw  Error("Bad response status: ${resp.code()}")
+        } else if (!resp.isSuccessful()) {
+            return Result(null, ResultError(ErrorCode.NetworkError, "Unable to get account history page: ${resp.code()}", resp.code().toString()))
         } else {
             val jsonString = resp.body()!!.string()
             if (jsonString.startsWith("{")) {
@@ -305,7 +305,7 @@ class Network(private val blockstackAPIUrl: String,
                     msg = "$msg - ${errorObject.getString("error")}"
                 }
             }
-            return Result(null, ResultError(ErrorCode.UnknownError, msg))
+            return Result(null, ResultError(ErrorCode.NetworkError, msg, resp.code().toString()))
         } else {
             val jsonString = resp.body()!!.string()
             if (jsonString.startsWith("{")) {
@@ -368,7 +368,14 @@ class Network(private val blockstackAPIUrl: String,
      */
     suspend fun getAccountBalance(address: String, tokenType: String): Result<BigInteger> {
         val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/${tokenType}/balance")
-        return resp.resumeWithJsonObject { it ->
+        if (!resp.isSuccessful) {
+            return resp.resumeWithJsonObject {
+                val error = it.exceptionOrNull()
+                Result(null, ResultError(ErrorCode.NetworkError, "failed to fetch account balance for ${address}/${tokenType}: ${error?.message
+                        ?: "Invalid request"}", resp.code().toString()))
+            }
+        }
+        return resp.resumeWithJsonObject {
             val tokenBalance = it.getOrNull()
             if (tokenBalance != null) {
                 val balance = tokenBalance.optString("balance") ?: "0"

@@ -29,7 +29,7 @@ open class ResultError(
      * converts object to code:message string
      */
     override fun toString(): String {
-        return "$code:$message"
+        return "$code:$message" + (":$parameter"?:"")
     }
 
     companion object {
@@ -104,6 +104,10 @@ enum class ErrorCode(val code: String) {
      * User could not be redirected to sign in
      */
     RedirectFailed("redirect_failed_error"),
+    /**
+     * Network error
+     */
+    NetworkError("network_error"),
     /**
      * Other error than the one above
      */
