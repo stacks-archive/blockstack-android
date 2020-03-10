@@ -37,7 +37,7 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
      */
     suspend fun makeAuthRequest(transitPrivateKey: String, expiresAt: Long = Date().time + 3600 * 24 * 7, extraParams: Map<String, Any>? = null): String {
 
-        val domainName = appConfig.appDomain.toString()
+        val domainName = appConfig.appDomain.getOrigin()
         val manifestUrl = "${domainName}${appConfig.manifestPath}"
         val redirectUrl = "${domainName}${appConfig.redirectPath}"
         val transitKeyPair = PrivateKey(transitPrivateKey).toECKeyPair()

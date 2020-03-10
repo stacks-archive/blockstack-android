@@ -711,3 +711,12 @@ private fun nextYear(): Date {
     return calendar.time
 }
 
+
+fun URI.getOrigin(): String {
+    return if (this.port != -1) {
+        "${this.scheme}://${this.host}:${this.port}"
+    } else {
+        "${this.scheme}://${this.host}"
+    }
+}
+
