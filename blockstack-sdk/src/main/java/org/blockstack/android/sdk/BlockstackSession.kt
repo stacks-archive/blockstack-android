@@ -220,7 +220,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 val response = callFactory.newCall(getRequest).execute()
 
                 if (!response.isSuccessful) {
-                    return@withContext Result(null, ResultError(ErrorCode.UnknownError, "Error when loading from Gaia hub, status:" + response.code()))
+                    return@withContext Result(null, ResultError(ErrorCode.NetworkError, "Error when loading from Gaia hub, status:" + response.code(), response.code().toString()))
                 }
                 val contentType = response.header("Content-Type")
 
@@ -368,12 +368,18 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         return withContext(Dispatchers.IO) {
             try {
                 val response = hub.uploadToGaiaHub(path, requestContent, gaiaHubConfiguration, contentType)
+                if (!response.isSuccessful) {
+                    return@withContext Result(null, ResultError(ErrorCode.NetworkError, "upload to gaia failed: ${response.code()}", response.code().toString()))
+                }
                 val responseText = response.body()?.string()
                 if (responseText !== null) {
                     if (!options.shouldEncrypt() && options.shouldSign()) {
                         val signedContent = signContent(requestContent.toByteArray(), getSignKey(options))
                         try {
-                            hub.uploadToGaiaHub("$path$SIGNATURE_FILE_EXTENSION", signedContent.toJSONByteString(), gaiaHubConfig!!, "application/json")
+                            val sigResponse = hub.uploadToGaiaHub("$path$SIGNATURE_FILE_EXTENSION", signedContent.toJSONByteString(), gaiaHubConfig!!, "application/json")
+                            if (!sigResponse.isSuccessful) {
+                                return@withContext Result(null, ResultError(ErrorCode.NetworkError, "failed to upload putFile signature $responseText", sigResponse.code().toString()))
+                            }
                         } catch (e: Exception) {
                             return@withContext Result(null, ResultError(ErrorCode.UnknownError, "invalid response from putFile signature $responseText"))
                         }
@@ -423,11 +429,20 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
 
     suspend fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions()): Result<out Unit> {
         try {
-            hub.deleteFromGaiaHub(path, options.gaiaHubConfig ?: gaiaHubConfig!!)
-            return Result(Unit)
+            val response = hub.deleteFromGaiaHub(path, options.gaiaHubConfig ?: gaiaHubConfig!!)
+            if (response != null) {
+                if (response.isSuccessful) {
+                    return Result(Unit)
+                } else {
+                    return Result(null, ResultError(ErrorCode.NetworkError,
+                            "failed to delete $path", response.code().toString()))
+                }
+            } else {
+                return Result(null, ResultError(ErrorCode.UnknownError, "failed to delete $path"))
+            }
         } catch (e: Exception) {
-            return Result(null, ResultError(ErrorCode.UnknownError, e.message
-                    ?: e.toString()))
+            return Result(null, ResultError(ErrorCode.UnknownError,
+                    "failed to delete $path: ${e.message ?: e.toString()}"))
         }
     }
 
@@ -455,7 +470,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun getFileUrl(path: String, options: GetFileOptions): Result<String> {
 
-        val readUrl: String?
+        val readUrl: String
         if (options.username != null) {
             readUrl = blockstack.getUserAppFileUrl(path, options.username,
                     options.app ?: appConfig?.appDomain.toString(),
@@ -465,11 +480,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
             readUrl = hub.getFullReadUrl(path, gaiaHubConfig)
         }
 
-        if (readUrl == null) {
-            return Result(null, ResultError(ErrorCode.UnknownError, "Missing readURL"))
-        } else {
-            return Result(readUrl)
-        }
+        return Result(readUrl)
     }
 
     suspend fun listFilesLoop(gaiaHubConfig: GaiaHubConfig? = null, callback: (Result<String>) -> Boolean, page: String?, callCount: Int, fileCount: Int): Int {

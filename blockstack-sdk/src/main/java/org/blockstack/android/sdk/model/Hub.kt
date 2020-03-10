@@ -114,12 +114,7 @@ class Hub(val callFactory: Call.Factory = OkHttpClient()) {
         val putRequest = buildPutRequest(filename, content, contentType, gaiaHubConfig)
 
         return withContext(Dispatchers.IO) {
-            val response = callFactory.newCall(putRequest).execute()
-
-            if (!response.isSuccessful) {
-                throw IOException("Error when uploading to Gaia hub")
-            }
-            response
+            callFactory.newCall(putRequest).execute()
         }
     }
 
@@ -151,16 +146,11 @@ class Hub(val callFactory: Call.Factory = OkHttpClient()) {
     }
 
 
-    suspend fun deleteFromGaiaHub(filename: String, gaiaHubConfig: GaiaHubConfig) {
+    suspend fun deleteFromGaiaHub(filename: String, gaiaHubConfig: GaiaHubConfig): Response? {
         val deleteRequest = buildDeleteRequest(filename, gaiaHubConfig)
 
         return withContext(Dispatchers.IO) {
-            val response = callFactory.newCall(deleteRequest).execute()
-            if (response.isSuccessful) {
-                return@withContext
-            } else {
-                throw IOException("Failed to delete file: ${response.code()}")
-            }
+            return@withContext callFactory.newCall(deleteRequest).execute()
         }
     }
 
