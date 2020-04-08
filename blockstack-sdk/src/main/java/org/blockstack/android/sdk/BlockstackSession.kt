@@ -231,7 +231,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                     val cipherObject = if (options.verify) {
                         val expectedAddress = if (options.username != null) {
                             getGaiaAddress(options.app
-                                    ?: appConfig!!.appDomain.toString(), options.username)
+                                    ?: appConfig!!.appDomain.getOrigin(), options.username)
                         } else {
                             gaiaHubConfig!!.address
                         }
@@ -473,7 +473,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         val readUrl: String
         if (options.username != null) {
             readUrl = blockstack.getUserAppFileUrl(path, options.username,
-                    options.app ?: appConfig?.appDomain.toString(),
+                    options.app ?: appConfig!!.appDomain.getOrigin(),
                     options.zoneFileLookupURL?.toString())
         } else {
             val gaiaHubConfig = getOrSetLocalGaiaHubConnection()

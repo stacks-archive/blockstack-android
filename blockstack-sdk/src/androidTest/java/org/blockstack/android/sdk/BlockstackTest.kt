@@ -13,6 +13,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.net.URI
 
 
 private val PRIVATE_KEY = "a5c61c6ca7b3e7e55edee68566aeab22e4da26baa285c7bd10e8d2218aa3b229"
@@ -69,6 +70,15 @@ class BlockstackTest {
         val result = blockstack.encryptContent(message, CryptoOptions(publicKey = PUBLIC_KEY))
         val plainText = blockstack.decryptContent(result.value!!.json.toString(), false, CryptoOptions(privateKey = PRIVATE_KEY))
         assertThat(plainText.value as String, `is`(message))
+    }
+
+    @Test
+    fun testOriginOrUri() {
+        assertThat(URI("https://blockstack.org:443/wiki").getOrigin(), `is`("https://blockstack.org:443"))
+        assertThat(URI("https://blockstack.org:443").getOrigin(), `is`("https://blockstack.org:443"))
+        assertThat(URI("https://blockstack.org").getOrigin(), `is`("https://blockstack.org"))
+        assertThat(URI("https://user@blockstack.org").getOrigin(), `is`("https://blockstack.org"))
+        assertThat(URI("blockstack://blockstack.id").getOrigin(), `is`("blockstack://blockstack.id"))
     }
 }
 

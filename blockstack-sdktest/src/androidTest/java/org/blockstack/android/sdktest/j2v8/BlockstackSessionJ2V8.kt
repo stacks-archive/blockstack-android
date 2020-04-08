@@ -247,10 +247,10 @@ class BlockstackSessionJ2V8(context: Context? = null, private val config: Blocks
         }
         val v8params = V8Array(v8)
                 .push(transitPrivateKey)
-                .push("${config.appDomain}${config.redirectPath}")
-                .push("${config.appDomain}${config.manifestPath}")
+                .push("${config.appDomain.getOrigin()}${config.redirectPath}")
+                .push("${config.appDomain.getOrigin()}${config.manifestPath}")
                 .push(Scope.scopesArrayToJSONString(config.scopes))
-                .push(config.appDomain.toString())
+                .push(config.appDomain.getOrigin())
                 .push(expiresAt)
                 .push(v8ExtraParams)
         val result = v8userSession.executeStringFunction("makeAuthRequest", v8params)

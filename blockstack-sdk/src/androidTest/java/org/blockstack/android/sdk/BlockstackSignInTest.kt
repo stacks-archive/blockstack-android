@@ -87,6 +87,17 @@ class BlockstackSignInTest {
     }
 
     @Test
+    fun testAppsNodeWithTrailingSlash() {
+        val account = BlockstackAccount(null, keys, identity.salt)
+        val appsNode = account.getAppsNode()
+
+        val origin = "https://amazing.app:443/"
+        val appNode = appsNode.getAppNode(origin)
+        val expectedAppNodeAddress = "1A9NEhnXq5jDp9BRT4DrwadRP5jbBK896X"
+        assertThat(appNode.toBtcAddress(), CoreMatchers.`is`(expectedAppNodeAddress))
+    }
+
+    @Test
     fun generateAndStoreTransitKeyReturnsTheCorrectKey() {
         val key = signIn.generateAndStoreTransitKey()
         val storedKey = sessionStore.sessionData.json.getString("transitKey")
@@ -106,7 +117,7 @@ class BlockstackSignInTest {
         val token = Blockstack().decodeToken(authRequest)
         val payload = token.second
         assertThat(payload, `is`(notNullValue()))
-        assertThat(payload.optString("domain_name"), `is`(config.appDomain.toString()))
+        assertThat(payload.optString("domain_name"), `is`(config.appDomain.getOrigin()))
         assertThat(payload.optBoolean("solicitGaiaHubUrl"), `is`(true))
     }
 
@@ -135,7 +146,7 @@ class BlockstackSignInTest {
 
 
     @Test
-    fun testVerifyAuthResponse() {
+    fun testVerifyAuthRequest() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
             BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
