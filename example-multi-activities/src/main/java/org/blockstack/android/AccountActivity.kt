@@ -36,7 +36,7 @@ class AccountActivity : AppCompatActivity() {
         signOutButton.isEnabled = false
 
         val sessionStore = SessionStoreProvider.getInstance(this)
-        blockstackSignIn = BlockstackSignIn(sessionStore, defaultConfig)
+        blockstackSignIn = BlockstackSignIn(sessionStore, defaultConfig, defaultAppDetails)
         _blockstackSession = BlockstackSession(sessionStore, defaultConfig)
 
         if (intent?.action == Intent.ACTION_VIEW) {

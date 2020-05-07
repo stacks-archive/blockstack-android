@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
         signOutButton.isEnabled = false
 
         val sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(this))
-        blockstackSignIn = BlockstackSignIn(sessionStore, defaultConfig)
+        blockstackSignIn = BlockstackSignIn(sessionStore, defaultConfig, defaultAppDetails)
         _blockstackSession = BlockstackSession(sessionStore, defaultConfig)
 
         val signedIn = _blockstackSession?.isUserSignedIn()

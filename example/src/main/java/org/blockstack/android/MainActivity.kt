@@ -53,10 +53,12 @@ class MainActivity : AppCompatActivity() {
                 "/manifest.json",
                 arrayOf(BaseScope.StoreWrite.scope))
 
+        val appDetails = AppDetails(getString(R.string.app_name), "https://helloblockstack.com/icon-192x192.png")
+
         val sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(this))
         blockstack = Blockstack()
         _blockstackSession = BlockstackSession(sessionStore, config, blockstack = blockstack)
-        blockstackSignIn = BlockstackSignIn(sessionStore, config)
+        blockstackSignIn = BlockstackSignIn(sessionStore, config, appDetails)
         network = Network("https://core.blockstack.org")
         signInButton.isEnabled = true
         getUserAppFileUrlButton.isEnabled = true
@@ -81,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         signInButtonWithGaia.setOnClickListener { _: View ->
             val key = blockstackSignIn.generateAndStoreTransitKey()
             lifecycleScope.launch(Dispatchers.Main) {
-                val authRequest = blockstackSignIn.makeAuthRequest(key, Date(System.currentTimeMillis() + 3600000).time, mapOf(Pair("solicitGaiaHubUrl", true)))
+                val authRequest = blockstackSignIn.makeAuthRequest(key, Date(System.currentTimeMillis() + 3600000).time, extraParams = mapOf(Pair("solicitGaiaHubUrl", true)))
                 blockstackSignIn.redirectToSignInWithAuthRequest(this@MainActivity, authRequest)
             }
         }

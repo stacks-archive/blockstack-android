@@ -19,7 +19,9 @@ import org.kethereum.extensions.toHexStringNoPrefix
 import org.kethereum.model.PrivateKey
 import java.util.*
 
-class BlockstackSignIn(private val sessionStore: ISessionStore, private val appConfig: BlockstackConfig) {
+data class AppDetails(val name: String, val icon: String)
+
+class BlockstackSignIn(private val sessionStore: ISessionStore, private val appConfig: BlockstackConfig, private val appDetails: AppDetails? = null) {
 
 
     /**
@@ -35,7 +37,7 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
      * @param extraParams key, value pairs that are transferred with the auth request,
      * only Boolean and String values are supported
      */
-    suspend fun makeAuthRequest(transitPrivateKey: String, expiresAt: Long = Date().time + 3600 * 24 * 7, extraParams: Map<String, Any>? = null): String {
+    suspend fun makeAuthRequest(transitPrivateKey: String, expiresAt: Long = Date().time + 3600 * 24 * 7, sendToSignIn: Boolean = false, extraParams: Map<String, Any>? = null): String {
 
         val domainName = appConfig.appDomain.getOrigin()
         val manifestUrl = "${domainName}${appConfig.manifestPath}"
@@ -55,17 +57,21 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
                 "version" to "1.3.1",
                 "do_not_include_profile" to true,
                 "supports_hub_url" to true,
-                "scopes" to appConfig.scopes.map { it.name }
+                "scopes" to appConfig.scopes.map { it.name },
+                "sendToSignIn" to sendToSignIn
         )
+        if (appDetails != null) {
+            payload["appDetails"] = mapOf("name" to appDetails.name, "icon" to appDetails.icon)
+        }
         if (extraParams != null) {
             payload.putAll(extraParams)
         }
         return JWTTools().createJWT(payload, issuerDID, KPSigner(transitPrivateKey), algorithm = JwtHeader.ES256K)
     }
 
-    suspend fun redirectUserToSignIn(context: Context) {
+    suspend fun redirectUserToSignIn(context: Context, sendToSignIn: Boolean = false) {
         val transitPrivateKey = generateAndStoreTransitKey()
-        val authRequest = makeAuthRequest(transitPrivateKey)
+        val authRequest = makeAuthRequest(transitPrivateKey, sendToSignIn = sendToSignIn)
         redirectToSignInWithAuthRequest(context, authRequest, this.appConfig.authenticatorUrl)
     }
 
@@ -79,9 +85,10 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
      * @param blockstackIDHost The ID of the Blockstack Browser application.
      *
      */
-    suspend fun redirectToSignInWithAuthRequest(context: Context, authRequest: String, blockstackIDHost: String? = null) {
+    suspend fun redirectToSignInWithAuthRequest(context: Context, authRequest: String, blockstackIDHost: String? = null, sendToSignIn: Boolean = false) {
         val hostUrl = blockstackIDHost ?: DEFAULT_BLOCKSTACK_ID_HOST
-        val httpsURI = "${hostUrl}?authRequest=${authRequest}"
+        val path = if (sendToSignIn) "sign-in" else "sign-up"
+        val httpsURI = "${hostUrl}/#/${path}?authRequest=${authRequest}"
         openUrl(context, httpsURI)
     }
 
