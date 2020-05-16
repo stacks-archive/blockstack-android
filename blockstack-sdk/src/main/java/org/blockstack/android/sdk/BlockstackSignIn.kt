@@ -58,7 +58,8 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
                 "do_not_include_profile" to true,
                 "supports_hub_url" to true,
                 "scopes" to appConfig.scopes.map { it.name },
-                "sendToSignIn" to sendToSignIn
+                "sendToSignIn" to sendToSignIn,
+                "client" to "android"
         )
         if (appDetails != null) {
             payload["appDetails"] = mapOf("name" to appDetails.name, "icon" to appDetails.icon)
