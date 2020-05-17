@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
+import org.blockstack.android.sdk.ui.ConnectDialogFragment
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.net.URL
@@ -76,7 +77,7 @@ class MainActivity : AppCompatActivity() {
 
         signInButton.setOnClickListener { _: View ->
             lifecycleScope.launch {
-                blockstackSignIn.redirectUserToSignIn(this@MainActivity)
+                ConnectDialogFragment.newInstance(10).show(supportFragmentManager, "connectDialog")
             }
         }
 

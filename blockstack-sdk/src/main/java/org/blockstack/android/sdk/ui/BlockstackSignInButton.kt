@@ -1,5 +1,6 @@
 package org.blockstack.android.sdk.ui
 
+import android.app.Activity
 import android.content.Context
 import android.content.res.ColorStateList
 import android.util.AttributeSet
@@ -8,6 +9,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
+import androidx.fragment.app.FragmentActivity
 import org.blockstack.android.sdk.R
 
 
@@ -104,6 +106,7 @@ class BlockstackSignInButton : AppCompatButton {
         // Set background of button
         setButtonBackground()
     }
+
 
     /**
      * Set the text size to standard as mentioned in guidelines.

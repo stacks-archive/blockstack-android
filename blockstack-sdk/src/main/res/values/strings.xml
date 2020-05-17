@@ -1,3 +1,6 @@
 <resources>
-    <string name="org_blockstack_login">Sign in with Blockstack</string>
+    <string name="org_blockstack_login">Get started</string>
+    <string name="connect_dialog_title">%1$s guarantees your privacy by encrypting everything</string>
+    <string name="connect_dialog_restore">I have already a Secret Key</string>
+    <string name="connect_dialog_help">How it works</string>
 </resources>
