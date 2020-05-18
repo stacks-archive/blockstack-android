@@ -22,7 +22,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
-import org.blockstack.android.sdk.ui.ConnectDialogFragment
+import org.blockstack.android.sdk.ui.ConnectBottemSheetDialogFragment
+import org.blockstack.android.sdk.ui.SignInProvider
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.net.URL
@@ -31,7 +32,7 @@ import java.util.*
 private const val username = "dev_android_sdk.id.blockstack"
 
 @SuppressLint("SetTextI18n")
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SignInProvider {
     private lateinit var network: Network
     private lateinit var blockstack: Blockstack
     private lateinit var blockstackSignIn: BlockstackSignIn
@@ -77,7 +78,7 @@ class MainActivity : AppCompatActivity() {
 
         signInButton.setOnClickListener { _: View ->
             lifecycleScope.launch {
-                ConnectDialogFragment.newInstance(10).show(supportFragmentManager, "connectDialog")
+                ConnectBottemSheetDialogFragment.newInstance().show(supportFragmentManager, "connectDialog")
             }
         }
 
@@ -387,6 +388,10 @@ class MainActivity : AppCompatActivity() {
         } else {
             throw IllegalStateException("No session.")
         }
+    }
+
+    override fun provideBlockstackSignIn(): BlockstackSignIn {
+        return blockstackSignIn
     }
 
 }

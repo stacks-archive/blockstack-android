@@ -3,6 +3,12 @@
     package="org.blockstack.android.sdk">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <application></application>
+
+    <application>
+        <activity
+            android:name=".ui.ConnectHelpActivity"
+            android:label="@string/title_activity_connect_help"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+    </application>
 
 </manifest>
