@@ -1,10 +1,10 @@
 package org.blockstack.android
 
 import android.content.Context
-import androidx.preference.PreferenceManager
 import org.blockstack.android.sdk.AppDetails
 import org.blockstack.android.sdk.BaseScope
 import org.blockstack.android.sdk.SessionStore
+import org.blockstack.android.sdk.getBlockstackSharedPreferences
 import org.blockstack.android.sdk.model.toBlockstackConfig
 
 val defaultConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(
@@ -17,7 +17,7 @@ class SessionStoreProvider {
         fun getInstance(context: Context): SessionStore {
             var sessionStore = instance
             if (sessionStore == null) {
-                sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context))
+                sessionStore = SessionStore(context.getBlockstackSharedPreferences())
                 instance = sessionStore
             }
             return sessionStore

@@ -7,7 +7,6 @@ import com.colendi.ecies.Encryption
 import com.colendi.ecies.Encryption.getHMAC
 import org.blockstack.android.sdk.model.CipherObject
 import org.blockstack.android.sdk.model.CryptoOptions
-import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
 import org.bouncycastle.util.encoders.Hex
 import org.hamcrest.MatcherAssert.assertThat

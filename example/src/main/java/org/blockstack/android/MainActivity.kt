@@ -22,8 +22,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
-import org.blockstack.android.sdk.ui.ConnectBottemSheetDialogFragment
 import org.blockstack.android.sdk.ui.SignInProvider
+import org.blockstack.android.sdk.ui.showBlockstackConnect
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.net.URL
@@ -77,9 +77,7 @@ class MainActivity : AppCompatActivity(), SignInProvider {
 
 
         signInButton.setOnClickListener { _: View ->
-            lifecycleScope.launch {
-                ConnectBottemSheetDialogFragment.newInstance().show(supportFragmentManager, "connectDialog")
-            }
+            showBlockstackConnect()
         }
 
         signInButtonWithGaia.setOnClickListener { _: View ->

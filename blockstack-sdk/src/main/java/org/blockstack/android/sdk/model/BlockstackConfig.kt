@@ -1,5 +1,6 @@
 package org.blockstack.android.sdk.model
 
+import org.blockstack.android.sdk.BaseScope
 import org.blockstack.android.sdk.Scope
 import java.net.URI
 
@@ -33,7 +34,7 @@ data class BlockstackConfig(
  * @param redirectPath the path of the redirection url that is appended to the app domain, needs leading slash, defaults to '/redirect'
  * @param manifestPath the path of the manifest url that is appended to the app domain, needs leading slash, defaults to `/manifest.json'
  */
-fun String.toBlockstackConfig(scopes: Array<Scope>, redirectPath: String = "/redirect", manifestPath: String = "/manifest.json"): BlockstackConfig =
+fun String.toBlockstackConfig(scopes: Array<Scope> = arrayOf(BaseScope.StoreWrite.scope), redirectPath: String = "/redirect", manifestPath: String = "/manifest.json"): BlockstackConfig =
         BlockstackConfig(
                 URI(this),
                 redirectPath,

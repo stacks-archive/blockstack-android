@@ -73,7 +73,7 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
     suspend fun redirectUserToSignIn(context: Context, sendToSignIn: Boolean = false) {
         val transitPrivateKey = generateAndStoreTransitKey()
         val authRequest = makeAuthRequest(transitPrivateKey, sendToSignIn = sendToSignIn)
-        redirectToSignInWithAuthRequest(context, authRequest, this.appConfig.authenticatorUrl)
+        redirectToSignInWithAuthRequest(context, authRequest, this.appConfig.authenticatorUrl, sendToSignIn = sendToSignIn)
     }
 
     /**

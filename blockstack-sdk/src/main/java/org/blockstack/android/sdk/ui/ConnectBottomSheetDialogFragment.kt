@@ -1,10 +1,12 @@
 package org.blockstack.android.sdk.ui
 
+import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.coroutineScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -36,7 +38,7 @@ class ConnectBottemSheetDialogFragment : BottomSheetDialogFragment() {
             dialog.connect_dialog_app_icon.setImageResource(applicationInfo.icon)
             dialog.connect_dialog_get_started.setOnClickListener {
                 lifecycle.coroutineScope.launch(Dispatchers.IO) {
-                    blockstackSignIn?.redirectUserToSignIn(this@apply)
+                    blockstackSignIn?.redirectUserToSignIn(this@apply, sendToSignIn = false)
                     this@ConnectBottemSheetDialogFragment.dismiss()
                 }
             }
@@ -79,4 +81,9 @@ class ConnectBottemSheetDialogFragment : BottomSheetDialogFragment() {
 interface SignInProvider {
     fun provideBlockstackSignIn(): BlockstackSignIn
 
+}
+
+fun AppCompatActivity.showBlockstackConnect() {
+    ConnectBottemSheetDialogFragment.newInstance()
+            .show(supportFragmentManager, "connectDialog")
 }
