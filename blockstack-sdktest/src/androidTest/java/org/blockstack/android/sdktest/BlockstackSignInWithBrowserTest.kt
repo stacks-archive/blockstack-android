@@ -41,11 +41,11 @@ class BlockstackSessionLoginWithBrowserTest {
             signIn.redirectUserToSignIn(rule.activity)
             delay(500)
             InstrumentationRegistry.getInstrumentation().uiAutomation
-                    .performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+                    .performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
         }
         intended(allOf(hasAction(Intent.ACTION_VIEW),
                 hasData(allOf(
-                        hasHost("browser.blockstack.org"),
+                        hasHost("app.blockstack.org"),
                         hasParamWithName("authRequest")
                 ))))
     }

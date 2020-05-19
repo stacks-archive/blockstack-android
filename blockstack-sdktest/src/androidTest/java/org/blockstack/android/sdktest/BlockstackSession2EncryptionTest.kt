@@ -8,8 +8,8 @@ import org.blockstack.android.sdk.Blockstack
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.model.toBlockstackConfig
-import org.blockstack.android.sdktest.test.TestActivity
 import org.blockstack.android.sdktest.j2v8.BlockstackSessionJ2V8
+import org.blockstack.android.sdktest.test.TestActivity
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
@@ -64,7 +64,6 @@ class BlockstackSession2EncryptionTest {
         val plainText = blockstack.decryptContent(result.value!!.json.toString(), false, CryptoOptions(privateKey = PRIVATE_KEY))
         assertThat(plainText.value as String, `is`(message))
     }
-
 
 
     @Test

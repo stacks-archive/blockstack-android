@@ -87,7 +87,7 @@ class BlockstackSession2AuthTest {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequestJ2V8 = sessionJ2V8.makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         val token = JWTTools().decodeRaw(authRequestJ2V8)
         val token2 = JWTTools().decodeRaw(authRequest)
@@ -99,7 +99,7 @@ class BlockstackSession2AuthTest {
     fun testMakeAuthResponseThenHandlePendingLoginJ2V8() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)

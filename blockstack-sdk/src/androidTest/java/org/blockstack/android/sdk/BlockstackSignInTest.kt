@@ -36,6 +36,7 @@ class BlockstackSignInTest {
     private lateinit var blockstack: Blockstack
     private lateinit var appConfig: BlockstackConfig
     private lateinit var keys: ExtendedKey
+
     @get:Rule
     val rule = ActivityTestRule(TestActivity::class.java)
 
@@ -110,7 +111,7 @@ class BlockstackSignInTest {
     fun makeAuthRequestReturnsValidRequestToken() {
         val key = signIn.generateAndStoreTransitKey()
         val authRequest = runBlocking {
-            signIn.makeAuthRequest(key, Date(System.currentTimeMillis() + 3600000).time, mapOf("solicitGaiaHubUrl" to true))
+            signIn.makeAuthRequest(key, Date(System.currentTimeMillis() + 3600000).time, false, mapOf("solicitGaiaHubUrl" to true))
         }
         assertThat(authRequest, Matchers.startsWith("ey"))
 
@@ -126,7 +127,7 @@ class BlockstackSignInTest {
     fun testMakeAuthResponse2HandlePendingLogin2() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
@@ -149,7 +150,7 @@ class BlockstackSignInTest {
     fun testVerifyAuthRequest() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
 
         val result = runBlocking {
@@ -163,7 +164,7 @@ class BlockstackSignInTest {
     fun testVerifyAuthResponseWithoutUsername() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
@@ -180,7 +181,7 @@ class BlockstackSignInTest {
     fun testVerifyAuthResponseWithUsername() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount("public_profile_for_testing.id.blockstack", keys, identity.salt)
@@ -196,7 +197,7 @@ class BlockstackSignInTest {
     fun testVerifyAuthResponseWithWrongUsernameWithImage() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount("friedger.id", keys, identity.salt)
@@ -213,7 +214,7 @@ class BlockstackSignInTest {
     fun testVerifyAuthResponseWithWrongUsername() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         runBlocking {
             val account = BlockstackAccount("invalid$$.id.blockstack", keys, identity.salt)
