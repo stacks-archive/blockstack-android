@@ -33,7 +33,6 @@ class SessionStore(private val prefs: SharedPreferences) : ISessionStore {
     override var sessionData: SessionData
         get() = sessionDataObject
         set(value) {
-            Log.d(TAG, "set session data in store " + value.json.toString())
             sessionDataObject = value
             prefs.edit().putString(BLOCKSTACK_SESSION, value.json.toString()).apply()
         }
