@@ -38,7 +38,7 @@ class NetworkTest {
     fun setup() {
         network = Network("https://core.blockstack.org")
         session = BlockstackSession(
-                appConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
+                appConfig = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStoreforIntegrationTests(rule), blockstack = Blockstack())
     }
 

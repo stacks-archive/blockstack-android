@@ -4,7 +4,7 @@ import org.blockstack.android.sdk.AppDetails
 import org.blockstack.android.sdk.BaseScope.StoreWrite
 import org.blockstack.android.sdk.model.toBlockstackConfig
 
-val defaultConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(
+val defaultConfig = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(
         arrayOf(StoreWrite.scope))
 
 val defaultAppDetails = AppDetails("Hello Blockstack", "https://helloblockstack.com/icon-192x192.png")

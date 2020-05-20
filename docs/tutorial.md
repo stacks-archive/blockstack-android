@@ -534,7 +534,7 @@ Now that you have created your initial project and verified it running in an emu
         setContentView(R.layout.activity_main)
       
         val scopes = arrayOf(Scope.StoreWrite)
-	    val config = "https://flamboyant-darwin-d11c17.netlify.com"
+	    val config = "https://flamboyant-darwin-d11c17.netlify.app"
                         .toBlockstackConfig(scopes)
 
         _blockstackSession = BlockstackSession(this, config)
@@ -641,7 +641,7 @@ Now that you have created your initial project and verified it running in an emu
             signInButton.isEnabled = false
 
             val scopes = arrayOf(Scope.StoreWrite)
-	        val config = "https://flamboyant-darwin-d11c17.netlify.com"
+	        val config = "https://flamboyant-darwin-d11c17.netlify.app"
                         .toBlockstackConfig(scopes)
 
             _blockstackSession = BlockstackSession(this, config)

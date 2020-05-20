@@ -7,7 +7,7 @@ import org.blockstack.android.sdk.SessionStore
 import org.blockstack.android.sdk.getBlockstackSharedPreferences
 import org.blockstack.android.sdk.model.toBlockstackConfig
 
-val defaultConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(
+val defaultConfig = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(
         arrayOf(BaseScope.StoreWrite.scope, BaseScope.Email.scope))
 val defaultAppDetails = AppDetails("Blockstack Demo Multi Activities", "https://helloblockstack.com/icon-192x192.png")
 

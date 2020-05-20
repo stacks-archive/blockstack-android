@@ -62,7 +62,7 @@ class BlockstackSession2AuthTest {
         keys = identity.identityKeys.generateChildKey(BIP44Element(true, 0))
         privateKey = keys.keyPair.privateKey.key.toHexStringNoPrefix()
 
-        appConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray())
+        appConfig = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray())
         sessionJ2V8 = BlockstackSessionJ2V8(rule.activity,
                 appConfig,
                 sessionStore = sessionStore,

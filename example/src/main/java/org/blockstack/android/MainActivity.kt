@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity(), SignInProvider {
         setSupportActionBar(toolbar)
 
         val config = BlockstackConfig(
-                URI("https://flamboyant-darwin-d11c17.netlify.com"),
+                URI("https://flamboyant-darwin-d11c17.netlify.app"),
                 "/redirect",
                 "/manifest.json",
                 arrayOf(BaseScope.StoreWrite.scope))
@@ -206,7 +206,7 @@ class MainActivity : AppCompatActivity(), SignInProvider {
 
                 val options = GetFileOptions(username = username,
                         zoneFileLookupURL = zoneFileLookupUrl,
-                        app = "https://flamboyant-darwin-d11c17.netlify.com",
+                        app = "https://flamboyant-darwin-d11c17.netlify.app",
                         decrypt = false)
                 val contentResult = blockstackSession().getFile(textFileName, options)
                 if (contentResult.hasValue) {
@@ -239,7 +239,7 @@ class MainActivity : AppCompatActivity(), SignInProvider {
             getUserAppFileUrlText.text = "Getting url ..."
             val zoneFileLookupUrl = "https://core.blockstack.org/v1/names"
             lifecycleScope.launch(Dispatchers.IO) {
-                val it = blockstack.getUserAppFileUrl(textFileName, username, "https://flamboyant-darwin-d11c17.netlify.com", zoneFileLookupUrl)
+                val it = blockstack.getUserAppFileUrl(textFileName, username, "https://flamboyant-darwin-d11c17.netlify.app", zoneFileLookupUrl)
                 withContext(Dispatchers.Main) {
                     getUserAppFileUrlText.text = it
                 }

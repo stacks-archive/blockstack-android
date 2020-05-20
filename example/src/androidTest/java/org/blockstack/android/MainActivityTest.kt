@@ -66,7 +66,7 @@ class MainActivityTest {
         val account = BlockstackAccount(null, keys, identity.salt)
         val payload = JSONObject()
                 .put("public_keys", JSONArray(arrayOf(transitKeyPair.toHexPublicKey64())))
-                .put("domain_name", "flamboyant-darwin-d11c17.netlify.com")
+                .put("domain_name", "flamboyant-darwin-d11c17.netlify.app")
 
         val authResponse = runBlocking {
             blockstack.makeAuthResponse(payload, account, arrayOf(BaseScope.StoreWrite.scope))

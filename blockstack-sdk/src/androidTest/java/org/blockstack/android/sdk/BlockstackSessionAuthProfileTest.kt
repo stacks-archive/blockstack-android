@@ -35,7 +35,7 @@ class BlockstackSessionAuthProfileTest {
 
     @Before
     fun setup() {
-        config = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray())
+        config = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray())
         sessionStore = sessionStoreforIntegrationTests(rule)
         session = BlockstackSession(sessionStore,
                 config, blockstack = Blockstack())

@@ -47,7 +47,7 @@ class BlockstackSignInTest {
 
     @Before
     fun setup() {
-        config = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray())
+        config = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray())
         sessionStore = sessionStoreforIntegrationTests(rule)
         signIn = BlockstackSignIn(
                 sessionStore, config)
@@ -57,7 +57,7 @@ class BlockstackSignInTest {
         identity = BlockstackIdentity(words.toSeed().toKey("m/888'/0'"))
         keys = identity.identityKeys.generateChildKey(BIP44Element(true, 0))
         val privateKey = keys.keyPair.privateKey.key.toHexStringNoPrefix()
-        appConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray())
+        appConfig = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray())
         blockstack = Blockstack()
         session = BlockstackSession(sessionStore, callFactory = callFactory, appConfig = appConfig, blockstack = blockstack)
     }
@@ -142,7 +142,7 @@ class BlockstackSignInTest {
         }
 
         assertThat(result?.json?.getString("decentralizedID"), CoreMatchers.`is`("did:btc-addr:1JeTQ5cQjsD57YGcsVFhwT7iuQUXJR6BSk"))
-        assertThat(result?.json?.getString("appPrivateKey"), CoreMatchers.`is`("a8025a881da1074b012995beef7e7ccb42fea2ec66e62367c8d73734033ee33b"))
+        assertThat(result?.json?.getString("appPrivateKey"), CoreMatchers.`is`("6b52c9c23cb75d5e420441929a473fa49772575520f583e3e03d2919ac663a3a"))
     }
 
 
@@ -231,7 +231,7 @@ class BlockstackSignInTest {
     fun testVerifyAuthUnencryptedAuthResponse() {
         val authResponse = runBlocking {
             val account = BlockstackAccount("public_profile_for_testing.id.blockstack", keys, identity.salt)
-            blockstack.makeAuthResponseUnencrypted(account, "https://flamboyant-darwin-d11c17.netlify.com", emptyArray())
+            blockstack.makeAuthResponseUnencrypted(account, "https://flamboyant-darwin-d11c17.netlify.app", emptyArray())
         }
         assertThat(authResponse, CoreMatchers.`is`(CoreMatchers.notNullValue()))
         val result = runBlocking {

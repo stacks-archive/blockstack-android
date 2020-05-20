@@ -38,7 +38,7 @@ class BlockstackSession2EncryptionTest {
         val executor = IntegrationTestExecutor(rule)
         val callFactory = OkHttpClient()
         sessionJ2V8 = BlockstackSessionJ2V8(rule.activity,
-                "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
+                "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStore,
                 executor = executor,
                 callFactory = callFactory)
