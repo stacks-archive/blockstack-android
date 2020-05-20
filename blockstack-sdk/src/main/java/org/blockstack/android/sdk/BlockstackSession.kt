@@ -66,6 +66,11 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
             return Result(null, ResultError(ErrorCode.LoginFailedError, "invalid auth response"))
         }
         val appPrivateKey = decrypt(tokenPayload.getString("private_key"), transitKey)
+
+        if (appPrivateKey == null) {
+            return Result(null, ResultError(ErrorCode.LoginFailedError, "auth response used different transient key"))
+        }
+
         val coreSessionToken = decrypt(tokenPayload.optString("core_token"), transitKey)
 
         val userData = authResponseToUserData(tokenPayload, nameLookupUrl, appPrivateKey, coreSessionToken, authResponse)
@@ -146,7 +151,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         }
         return blockstack.decryptContent(cipherObjectHex.hexToByteArray().toString(Charsets.UTF_8), false,
                 CryptoOptions(privateKey = privateKey)
-        ).value as String
+        ).value as String?
     }
 
     /**
@@ -566,7 +571,6 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     }
 
     fun validateProofs(profile: Profile, ownerAddress: String, optString: String?): Result<ArrayList<Proof>> {
-        TODO("not implemented")
         return Result(null, ResultError(ErrorCode.UnknownError, "Not implemented"))
     }
 

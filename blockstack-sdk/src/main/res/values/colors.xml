@@ -5,5 +5,10 @@
     <color name="org_blockstack_purple_80">#564061</color>
     <color name="org_blockstack_purple_50_logos_types">#95889c</color>
     <color name="org_blockstack_purple_25">#cac3cd</color>
-    <color name="connect_blue">#3700ff</color>
+    <color name="org_blockstack_connect_blue">#3700ff</color>
+    <color name="org_blockstack_connect_blue_80">#0000C4</color>
+    <color name="org_blockstack_connect_blue_90">#00008C</color>
+    <color name="org_blockstack_connect_blue_2tone">#2D2D2D</color>
+    <color name="org_blockstack_connect_blue_gray">#808080</color>
+
 </resources>

@@ -29,7 +29,7 @@ open class ResultError(
      * converts object to code:message string
      */
     override fun toString(): String {
-        return "$code:$message" + (":$parameter"?:"")
+        return "$code:$message" + (":${parameter?:""}")
     }
 
     companion object {

@@ -120,9 +120,6 @@ class BlockstackSignInButton : AppCompatButton {
      * The selector handles the background color when button is clicked.
      */
     private fun setButtonBackground() {
-        setCompoundDrawablesWithIntrinsicBounds(
-                AppCompatResources.getDrawable(context, R.drawable.org_blockstack_logo), null, null, null)
-
         if (mBackgroundTint == null) {
             mBackgroundTint = ContextCompat.getColorStateList(context, R.color.org_blockstack_tint)
         }

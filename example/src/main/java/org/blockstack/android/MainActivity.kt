@@ -7,9 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -57,7 +55,7 @@ class MainActivity : AppCompatActivity(), SignInProvider {
 
         val appDetails = AppDetails(getString(R.string.app_name), "https://helloblockstack.com/icon-192x192.png")
 
-        val sessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(this))
+        val sessionStore = SessionStore(getBlockstackSharedPreferences())
         blockstack = Blockstack()
         _blockstackSession = BlockstackSession(sessionStore, config, blockstack = blockstack)
         blockstackSignIn = BlockstackSignIn(sessionStore, config, appDetails)
@@ -76,11 +74,11 @@ class MainActivity : AppCompatActivity(), SignInProvider {
         listFilesButton.isEnabled = false
 
 
-        signInButton.setOnClickListener { _: View ->
+        signInButton.setOnClickListener {
             showBlockstackConnect()
         }
 
-        signInButtonWithGaia.setOnClickListener { _: View ->
+        signInButtonWithGaia.setOnClickListener {
             val key = blockstackSignIn.generateAndStoreTransitKey()
             lifecycleScope.launch(Dispatchers.Main) {
                 val authRequest = blockstackSignIn.makeAuthRequest(key, Date(System.currentTimeMillis() + 3600000).time, extraParams = mapOf(Pair("solicitGaiaHubUrl", true)))

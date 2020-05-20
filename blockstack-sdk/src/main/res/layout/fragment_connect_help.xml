@@ -27,7 +27,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
-            android:background="@color/connect_blue"
+            android:background="@color/org_blockstack_connect_blue"
             android:text="@string/org_blockstack_login"
             android:textColor="@android:color/white"
             app:layout_constraintBottom_toBottomOf="parent"
