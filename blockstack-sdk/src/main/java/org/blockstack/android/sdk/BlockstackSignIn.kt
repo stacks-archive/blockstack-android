@@ -17,6 +17,7 @@ import org.kethereum.crypto.CryptoAPI
 import org.kethereum.crypto.toECKeyPair
 import org.kethereum.extensions.toHexStringNoPrefix
 import org.kethereum.model.PrivateKey
+import org.komputing.khex.model.HexString
 import java.util.*
 
 data class AppDetails(val name: String, val icon: String)
@@ -42,7 +43,7 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
         val domainName = appConfig.appDomain.getOrigin()
         val manifestUrl = "${domainName}${appConfig.manifestPath}"
         val redirectUrl = "${domainName}${appConfig.redirectPath}"
-        val transitKeyPair = PrivateKey(transitPrivateKey).toECKeyPair()
+        val transitKeyPair = PrivateKey(HexString(transitPrivateKey)).toECKeyPair()
         val btcAddress = transitKeyPair.toBtcAddress()
         val issuerDID = "did:btc-addr:${btcAddress}"
         val payload = mutableMapOf(

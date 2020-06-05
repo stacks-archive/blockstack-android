@@ -1,5 +1,6 @@
 package org.blockstack.android.sdk.ecies
 
+import me.uport.sdk.core.hexToByteArray
 import me.uport.sdk.signer.getUncompressedPublicKeyWithPrefix
 import org.blockstack.android.sdk.model.SignatureObject
 import org.blockstack.android.sdk.model.SignedCipherObject
@@ -13,12 +14,13 @@ import org.bouncycastle.crypto.signers.HMacDSAKCalculator
 import org.kethereum.crypto.signMessageHash
 import org.kethereum.crypto.toECKeyPair
 import org.kethereum.extensions.hexToBigInteger
-import org.kethereum.hashes.sha256
 import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PrivateKey
 import org.kethereum.model.SignatureData
+import org.komputing.khash.sha256.extensions.sha256
 import org.komputing.khex.extensions.hexToByteArray
 import org.komputing.khex.extensions.toNoPrefixHexString
+import org.komputing.khex.model.HexString
 import java.math.BigInteger
 import java.security.InvalidParameterException
 import kotlin.experimental.and
@@ -37,7 +39,7 @@ fun signContent(content: Any, privateKey: String): SignatureObject {
     } else {
         (content as String).toByteArray()
     }
-    val keyPair = PrivateKey(privateKey.hexToBigInteger()).toECKeyPair()
+    val keyPair = PrivateKey(HexString(privateKey)).toECKeyPair()
     val sigData = signMessageHash(contentBuffer.sha256(), keyPair, false)
 
     val signatureString = sigData.toDER()

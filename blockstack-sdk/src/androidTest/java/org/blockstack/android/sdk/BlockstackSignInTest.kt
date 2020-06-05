@@ -20,8 +20,8 @@ import org.kethereum.bip32.model.ExtendedKey
 import org.kethereum.bip32.toKey
 import org.kethereum.bip39.model.MnemonicWords
 import org.kethereum.bip39.toSeed
-import org.kethereum.bip44.BIP44Element
 import org.kethereum.extensions.toHexStringNoPrefix
+import org.komputing.kbip44.BIP44Element
 import java.security.InvalidParameterException
 import java.util.*
 

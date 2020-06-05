@@ -12,8 +12,8 @@ import org.blockstack.android.sdk.model.network.NameInfo
 import org.blockstack.android.sdk.model.network.NamespaceInfo
 import org.json.JSONArray
 import org.json.JSONObject
-import org.kethereum.hashes.Sha256
-import org.kethereum.hashes.ripemd160
+import org.komputing.khash.ripemd160.extensions.digestRipemd160
+import org.komputing.khash.sha256.Sha256
 import org.komputing.khex.extensions.toNoPrefixHexString
 import java.math.BigInteger
 
@@ -205,7 +205,7 @@ class Network(private val blockstackAPIUrl: String,
             val body = resp.body()!!.string()
 
             val sha256 = Sha256.digest(body.toByteArray())
-            val h = sha256.ripemd160().toNoPrefixHexString()
+            val h = sha256.digestRipemd160().toNoPrefixHexString()
             if (h != zonefileHash) {
                 return Result(null, ResultError(ErrorCode.UnknownError, "Zone file contents hash to ${h}, not ${zonefileHash}"))
             }

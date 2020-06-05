@@ -5,7 +5,7 @@ import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.io.IOException
+import me.uport.sdk.core.hexToByteArray
 import okhttp3.*
 import okio.ByteString
 import org.blockstack.android.sdk.ecies.signContent
@@ -15,11 +15,13 @@ import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONObject
 import org.kethereum.crypto.toECKeyPair
-import org.kethereum.hashes.sha256
 import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PrivateKey
 import org.kethereum.model.PublicKey
+import org.komputing.khash.sha256.extensions.sha256
 import org.komputing.khex.extensions.hexToByteArray
+import org.komputing.khex.model.HexString
+import java.io.IOException
 import java.math.BigInteger
 import java.security.InvalidParameterException
 import java.util.*
@@ -271,7 +273,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                             } else {
                                 result as ByteArray
                             }.sha256()
-                            val keyPair = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey(signatureObject.publicKey))
+                            val keyPair = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey(HexString(signatureObject.publicKey)))
                             if (!keyPair.verify(resultHash, signatureObject.signature)) {
                                 return@withContext Result(null, ResultError(ErrorCode.SignatureVerificationError, "Failed to verify signature: Invalid signature for file: $path"))
                             } else {
@@ -340,7 +342,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
 
             val enc = Encryption()
             val publicKey = options.encryptionKey
-                    ?: PrivateKey(appPrivateKey!!).toECKeyPair().toHexPublicKey64()
+                    ?: PrivateKey(HexString(appPrivateKey!!)).toECKeyPair().toHexPublicKey64()
             val contentByteArray = if (content is String) {
                 content.toByteArray()
             } else {
@@ -423,7 +425,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
 
         val contentHash = signedCipherObject.signature.toByteArray().sha256()
 
-        val keyPair = ECKeyPair(PrivateKey(BigInteger.ZERO), PublicKey(signedCipherObject.publicKey))
+        val keyPair = ECKeyPair(PrivateKey(BigInteger.ZERO), PublicKey(HexString(signedCipherObject.publicKey)))
         if (keyPair.verify(contentHash, signedCipherObject.signature)) {
             return CipherObject(JSONObject(signedCipherObject.signature))
         } else {
@@ -577,7 +579,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     fun encryptContent(content: Any, options: CryptoOptions): Result<CipherObject> {
         val updatedOptions =
                 if (options.publicKey == null) {
-                    val appPrivateKeyPair = PrivateKey(appPrivateKey!!).toECKeyPair()
+                    val appPrivateKeyPair = PrivateKey(HexString(appPrivateKey!!)).toECKeyPair()
                     val publicKey = appPrivateKeyPair.toHexPublicKey64()
                     CryptoOptions(publicKey = publicKey)
                 } else {

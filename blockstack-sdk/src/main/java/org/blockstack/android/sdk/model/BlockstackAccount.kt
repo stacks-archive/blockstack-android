@@ -5,9 +5,9 @@ import org.blockstack.android.sdk.toBtcAddress
 import org.json.JSONObject
 import org.kethereum.bip32.generateChildKey
 import org.kethereum.bip32.model.ExtendedKey
-import org.kethereum.bip44.BIP44Element
 import org.kethereum.extensions.toHexStringNoPrefix
-import org.kethereum.hashes.Sha256
+import org.komputing.kbip44.BIP44Element
+import org.komputing.khash.sha256.Sha256
 import org.komputing.khex.extensions.toNoPrefixHexString
 import java.net.URI
 

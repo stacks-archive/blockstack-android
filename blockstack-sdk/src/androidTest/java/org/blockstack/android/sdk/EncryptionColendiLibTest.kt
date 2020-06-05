@@ -5,6 +5,7 @@ import androidx.test.rule.ActivityTestRule
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
 import com.colendi.ecies.Encryption.getHMAC
+import me.uport.sdk.core.hexToByteArray
 import org.blockstack.android.sdk.model.CipherObject
 import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.test.TestActivity
