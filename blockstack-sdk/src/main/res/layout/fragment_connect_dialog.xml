@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:paddingBottom="8dp">
 
     <ImageView
@@ -14,6 +13,7 @@
         app:layout_constraintBottom_toTopOf="@id/connect_dialog_title"
         app:layout_constraintEnd_toStartOf="@id/connect_dialog_link_icon"
         app:layout_constraintStart_toStartOf="parent"
+        android:importantForAccessibility="no"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
@@ -24,16 +24,20 @@
         app:layout_constraintBottom_toTopOf="@id/connect_dialog_title"
         app:layout_constraintEnd_toStartOf="@id/connect_dialog_connect_icon"
         app:layout_constraintStart_toEndOf="@id/connect_dialog_app_icon"
+        android:importantForAccessibility="no"
         app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:id="@+id/connect_dialog_connect_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="8dp"
         android:src="@drawable/ic_secret_key"
+        android:importantForAccessibility="no"
         app:layout_constraintBottom_toTopOf="@id/connect_dialog_title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/connect_dialog_link_icon"
+        android:tint="@color/org_blockstack_connect_blue"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -49,13 +53,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/connect_dialog_connect_icon" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/connect_dialog_get_started"
+        style="?blockstackMainButtonStyle"
         android:layout_margin="8dp"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textColor="@android:color/white"
-        android:background="@color/org_blockstack_connect_blue"
         android:text="@string/org_blockstack_login"
         app:layout_constraintBottom_toTopOf="@id/barrier"
         app:layout_constraintEnd_toEndOf="parent"
@@ -68,24 +72,22 @@
         android:layout_height="wrap_content"
         app:barrierDirection="top" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/connect_dialog_restore"
-        style="@style/Widget.AppCompat.Button.Borderless"
+        style="?blockstackBottomButtonStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textColor="@color/org_blockstack_connect_blue"
         android:text="@string/connect_dialog_restore"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/connect_dialog_help"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/barrier" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/connect_dialog_help"
-        style="@style/Widget.AppCompat.Button.Borderless"
+        style="?blockstackBottomButtonStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textColor="@color/org_blockstack_connect_blue"
         android:text="@string/connect_dialog_help"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

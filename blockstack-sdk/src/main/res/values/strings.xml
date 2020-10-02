@@ -3,6 +3,7 @@
     <string name="connect_dialog_title" tools:ignore="MissingTranslation">%1$s guarantees your privacy by encrypting everything</string>
     <string name="connect_dialog_restore" tools:ignore="MissingTranslation"> I have already a Secret Key</string>
     <string name="connect_dialog_help" tools:ignore="MissingTranslation">How it works</string>
+    <string name="title_activity_connect" tools:ignore="MissingTranslation">Blockstack Connect</string>
     <string name="title_activity_connect_help" tools:ignore="MissingTranslation">How it works</string>
     <string name="connect_help" tools:ignore="MissingTranslation"><big><b>The app keeps everything you do private with Blockstack\'s Secret Key technology</b></big>\nNormally, apps keep your data for them to use. When you have a Secret Key, you no longer have to trust the app with your data because the app won\'t have access.
 \n\n<b>What is Blockstack?</b>\nBlockstack is the open-source technology that generates your Secret Key. There\'s no company that owns or controls Blockstack, it is independent. Go to blockstack.org

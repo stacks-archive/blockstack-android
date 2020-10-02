@@ -1,5 +1,7 @@
 package org.blockstack.android.sdk
 
+import me.uport.sdk.core.hexToBigInteger
+import me.uport.sdk.core.hexToByteArray
 import org.blockstack.android.sdk.ecies.fromDER
 import org.blockstack.android.sdk.ecies.signContent
 import org.blockstack.android.sdk.ecies.toDER
@@ -9,12 +11,10 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import org.kethereum.crypto.signMessageHash
 import org.kethereum.crypto.toECKeyPair
-import org.kethereum.extensions.hexToBigInteger
-import org.kethereum.extensions.toHexStringNoPrefix
-import org.kethereum.hashes.sha256
 import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PrivateKey
 import org.kethereum.model.PublicKey
+import org.komputing.khash.sha256.extensions.sha256
 import org.komputing.khex.extensions.toNoPrefixHexString
 import java.math.BigInteger
 
@@ -76,14 +76,14 @@ class SignatureTest {
     @Test
     fun testVerifyWorks() {
         val signature = signMessageHash(contentHash, keyPair, false).toDER()
-        val isValid = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey(PUBLIC_KEY)).verify(contentHash, signature)
+        val isValid = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey(PUBLIC_KEY.hexToByteArray())).verify(contentHash, signature)
         assertThat(isValid, `is`(true))
     }
 
     @Test
     fun testVerifyFails() {
         val signature = signMessageHash(contentHash, keyPair, false).toDER()
-        val keyPair2 = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey("02413d7c51118104cfe1b41e540b6c2acaaf91f1e2e22316df7448fb6070d582ec"))
+        val keyPair2 = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey("02413d7c51118104cfe1b41e540b6c2acaaf91f1e2e22316df7448fb6070d582ec".hexToByteArray()))
         val isValid = keyPair2.verify(contentHash, signature)
         assertThat(isValid, `is`(false))
     }
@@ -102,7 +102,7 @@ class SignatureTest {
         val privateKey = "89f92476f13f5b173e53926ad7d6e22baf78c6b1dcdf200c38dc73d2bf47d43b"
         val message = "Hello Test"
         val signedContent = signContent(message, privateKey)
-        val keyPair = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey(signedContent.publicKey))
+        val keyPair = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey(signedContent.publicKey.hexToByteArray()))
         val isValid = keyPair.verify(message.toByteArray().sha256(), signedContent.signature)
         assertThat(isValid, `is`(true))
     }

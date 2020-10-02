@@ -1,13 +1,21 @@
 <resources>
 
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light" />
+    <!-- Refactor to Blockstack so it doesn't show on both-->
+    <style name="Theme.Blockstack" parent="Theme.MaterialComponents.Light">
+        <item name="blockstackMainButtonStyle">@style/Widget.MaterialComponents.Button</item>
+        <item name="blockstackBottomButtonStyle">@style/Widget.Blockstack.Button.TextButton</item>
+    </style>
 
-    <style name="AppTheme.NoActionBar">
+    <style name="Theme.Blockstack.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.Blockstack.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="Theme.Blockstack.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="Widget.Blockstack.Button.TextButton" parent="Widget.MaterialComponents.Button.TextButton" />
+
+
 </resources>

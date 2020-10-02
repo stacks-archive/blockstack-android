@@ -8,7 +8,12 @@
         <activity
             android:name=".ui.ConnectHelpActivity"
             android:label="@string/title_activity_connect_help"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/Theme.Blockstack.NoActionBar" />
+
+        <activity
+            android:name=".ui.ConnectActivity"
+            android:label="@string/title_activity_connect"
+            android:theme="@style/Theme.Blockstack.NoActionBar" />
     </application>
 
 </manifest>

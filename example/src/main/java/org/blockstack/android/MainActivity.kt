@@ -14,14 +14,10 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
 import org.blockstack.android.sdk.ui.SignInProvider
-import org.blockstack.android.sdk.ui.showBlockstackConnect
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.net.URL
@@ -29,6 +25,8 @@ import java.util.*
 
 private const val username = "dev_android_sdk.id.blockstack"
 
+@FlowPreview
+@ExperimentalCoroutinesApi
 @SuppressLint("SetTextI18n")
 class MainActivity : AppCompatActivity(), SignInProvider {
     private lateinit var network: Network
@@ -75,7 +73,13 @@ class MainActivity : AppCompatActivity(), SignInProvider {
 
 
         signInButton.setOnClickListener {
-            showBlockstackConnect()
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                BlockstackConnect
+                    .config(config, sessionStore)
+                    .connect(this@MainActivity)
+            }
+
         }
 
         signInButtonWithGaia.setOnClickListener {
@@ -96,14 +100,14 @@ class MainActivity : AppCompatActivity(), SignInProvider {
         }
          */
 
-        getStringFileButton.setOnClickListener { _ ->
+        getStringFileButton.setOnClickListener {
             fileContentsTextView.text = "Downloading..."
             val options = GetFileOptions(decrypt = false)
             lifecycleScope.launch(Dispatchers.IO) {
                 val contentResult = blockstackSession().getFile(textFileName, options)
                 if (contentResult.hasValue) {
                     val content = contentResult.value!!
-                    Log.d(TAG, "File contents: ${content}")
+                    Log.d(TAG, "File contents: $content")
                     runOnUiThread {
                         fileContentsTextView.text = content as String
                     }
@@ -133,7 +137,7 @@ class MainActivity : AppCompatActivity(), SignInProvider {
             }
         }
 
-        putStringFileButton.setOnClickListener { _ ->
+        putStringFileButton.setOnClickListener {
             readURLTextView.text = "Uploading..."
             val options = PutFileOptions(encrypt = false)
             lifecycleScope.launch(Dispatchers.IO) {
@@ -141,9 +145,9 @@ class MainActivity : AppCompatActivity(), SignInProvider {
                 val readURLResult = blockstackSession().putFile(textFileName, "Hello Android!", options)
                 if (readURLResult.hasValue) {
                     val readURL = readURLResult.value!!
-                    Log.d(TAG, "File stored at: ${readURL}")
+                    Log.d(TAG, "File stored at: $readURL")
                     runOnUiThread {
-                        readURLTextView.text = "File stored at: ${readURL}"
+                        readURLTextView.text = "File stored at: $readURL"
                     }
                 } else {
                     Toast.makeText(this@MainActivity, "error: ${readURLResult.error}", Toast.LENGTH_SHORT).show()
@@ -152,7 +156,7 @@ class MainActivity : AppCompatActivity(), SignInProvider {
             }
         }
 
-        putImageFileButton.setOnClickListener { _ ->
+        putImageFileButton.setOnClickListener {
             imageFileTextView.text = "Uploading..."
 
             val drawable: BitmapDrawable = ContextCompat.getDrawable(this, R.drawable.blockstackteam) as BitmapDrawable
@@ -168,9 +172,9 @@ class MainActivity : AppCompatActivity(), SignInProvider {
                 val readURLResult = blockstackSession().putFile(imageFileName, bitMapData, options)
                 if (readURLResult.hasValue) {
                     val readURL = readURLResult.value!!
-                    Log.d(TAG, "File stored at: ${readURL}")
+                    Log.d(TAG, "File stored at: $readURL")
                     runOnUiThread {
-                        imageFileTextView.text = "File stored at: ${readURL}"
+                        imageFileTextView.text = "File stored at: $readURL"
                     }
                 } else {
                     Toast.makeText(this@MainActivity, "error: ${readURLResult.error}", Toast.LENGTH_SHORT).show()
@@ -287,10 +291,14 @@ class MainActivity : AppCompatActivity(), SignInProvider {
 
         if (intent?.action == Intent.ACTION_VIEW) {
             lifecycleScope.launch(Dispatchers.Main) {
-                handleAuthResponse(intent)
+                val response = BlockstackConnect.handleAuthResponse(intent)
+                if (response.value != null) {
+                    runOnUiThread {
+                        onSignIn(response.value!!)
+                    }
+                }
             }
         }
-
         /*
         if (blockstackSession().isUserSignedIn()) {
             val userData = blockstackSession().loadUserData()
@@ -352,13 +360,13 @@ class MainActivity : AppCompatActivity(), SignInProvider {
 
     private suspend fun handleAuthResponse(intent: Intent) {
         val response = intent.data?.query
-        Log.d(TAG, "response ${response}")
+        Log.d(TAG, "response $response")
         if (response != null) {
             val authResponseTokens = response.split('=')
 
             if (authResponseTokens.size > 1) {
                 val authResponse = authResponseTokens[1]
-                Log.d(TAG, "authResponse: ${authResponse}")
+                Log.d(TAG, "authResponse: $authResponse")
                 withContext(Dispatchers.IO) {
                     val userDataResult = blockstackSession().handlePendingSignIn(authResponse)
                     if (userDataResult.hasValue) {
@@ -377,7 +385,7 @@ class MainActivity : AppCompatActivity(), SignInProvider {
         }
     }
 
-    fun blockstackSession(): BlockstackSession {
+    private fun blockstackSession(): BlockstackSession {
         val session = _blockstackSession
         if (session != null) {
             return session
