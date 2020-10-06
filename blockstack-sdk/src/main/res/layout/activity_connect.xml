@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_width="match_parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="8dp"
+            android:paddingBottom="8dp"
+            app:navigationIcon="@drawable/ic_close">
+
+            <LinearLayout
+                android:id="@+id/connect_icons"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="64dp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:id="@+id/connect_app_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no" />
+
+                <ImageView
+                    android:id="@+id/connect_link_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="-8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginRight="-8dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_link" />
+
+                <ImageView
+                    android:id="@+id/connect_connect_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_secret_key"
+                    android:tint="?colorPrimary" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/connect_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="64dp"
+                android:text="@string/connect_dialog_title"
+                android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/connect_icons"
+                tools:ignore="RtlHardcoded" />
+
+            <View
+                android:id="@+id/secret_key_divider"
+                style="?blockstackDivider"
+                android:layout_marginTop="32dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/connect_title" />
+
+            <ImageView
+                android:id="@+id/connect_secret_key_desc_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:importantForAccessibility="no"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:src="@drawable/ic_lock"
+                android:tint="?colorPrimary"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/connect_secret_key_desc_title" />
+
+            <TextView
+                android:id="@+id/connect_secret_key_desc_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginRight="16dp"
+                android:gravity="top"
+                android:text="@string/connect_activity_encryption_desc"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/connect_secret_key_desc_icon"
+                app:layout_constraintTop_toBottomOf="@id/secret_key_divider" />
+
+            <View
+                android:id="@+id/tracking_divider"
+                style="?blockstackDivider"
+                android:layout_marginTop="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/connect_secret_key_desc_title" />
+
+            <ImageView
+                android:id="@+id/connect_tracking_desc_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:importantForAccessibility="no"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:src="@drawable/ic_track"
+                android:tint="?colorPrimary"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/connect_tracking_desc_title" />
+
+            <TextView
+                android:id="@+id/connect_tracking_desc_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:gravity="top"
+                android:text="@string/connect_activity_tracking_desc"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/connect_tracking_desc_icon"
+                app:layout_constraintTop_toBottomOf="@+id/tracking_divider" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+
+    <com.google.android.material.button.MaterialButton
+        style="?blockstackMainButtonStyle"
+        android:id="@+id/connect_get_secret_key"
+        android:layout_height="50dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="32dp"
+        android:layout_width="match_parent"
+        android:text="@string/org_blockstack_login"
+        android:textColor="@android:color/white" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+    <com.google.android.material.button.MaterialButton
+        style="?blockstackBottomButtonStyle"
+        android:id="@+id/connect_sign_in"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="16dp"
+        android:text="@string/connect_dialog_restore" />
+
+    <com.google.android.material.button.MaterialButton
+        style="?blockstackBottomButtonStyle"
+        android:id="@+id/connect_how_it_works"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="4dp"
+        android:text="@string/connect_dialog_help" />
+
+    </LinearLayout>
+
+</LinearLayout>

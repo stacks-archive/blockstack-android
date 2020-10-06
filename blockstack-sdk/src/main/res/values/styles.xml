@@ -3,7 +3,7 @@
     <!-- Refactor to Blockstack so it doesn't show on both-->
     <style name="Theme.Blockstack" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="colorPrimary">@color/org_blockstack_connect_blue</item>
-        <item name="blockstackMainButtonStyle">@style/Widget.MaterialComponents.Button</item>
+        <item name="blockstackMainButtonStyle">@style/Widget.Blockstack.Button</item>
         <item name="blockstackBottomButtonStyle">@style/Widget.Blockstack.Button.TextButton</item>
         <item name="blockstackDivider">@style/Theme.Blockstack.divider</item>
     </style>
@@ -12,12 +12,18 @@
 
     <style name="Theme.Blockstack.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <style name="Widget.Blockstack.Button.TextButton" parent="Widget.MaterialComponents.Button.TextButton" />
-
     <style name="Theme.Blockstack.divider">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>
         <item name="android:background">?android:attr/listDivider</item>
+    </style>
+
+    <style name="Widget.Blockstack.Button" parent="@style/Widget.MaterialComponents.Button">
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.Blockstack.Button.TextButton" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="textAllCaps">false</item>
     </style>
 
 

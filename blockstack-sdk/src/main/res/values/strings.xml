@@ -13,4 +13,6 @@ to learn more.
 \n\n<b>What is a Secret Key?</b>\nYour Secret Key unlocks your data. It\'s created independently from the app to make sure that the app doesn\'t have it. An open-source protocol called Blockstack generates your Secret Key when you sign up. Nobody but you will have your Secret Key, to make sure that only you have access to your data.
 \n\n<b>When will I need my Secret Key?</b>\nYou\'ll need your Secret Key to prove it\'s you when you use the app on a new device, such as a new phone or laptop. After that, your Secret Key will stay active to keep you safe and private in the apps you use on that device.
     </string>
+    <string name="connect_activity_encryption_desc" translatable="false">You\'ll get a Secret Key that automatically encrypts everything you do</string>
+    <string name="connect_activity_tracking_desc" translatable="false">%1$s won\'t be able to see, access, or track your activity</string>
 </resources>

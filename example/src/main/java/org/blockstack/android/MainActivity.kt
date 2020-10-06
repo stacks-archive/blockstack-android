@@ -17,7 +17,6 @@ import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.*
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
-import org.blockstack.android.sdk.ui.SignInProvider
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.net.URL
@@ -28,7 +27,7 @@ private const val username = "dev_android_sdk.id.blockstack"
 @FlowPreview
 @ExperimentalCoroutinesApi
 @SuppressLint("SetTextI18n")
-class MainActivity : AppCompatActivity(), SignInProvider {
+class MainActivity : AppCompatActivity() {
     private lateinit var network: Network
     private lateinit var blockstack: Blockstack
     private lateinit var blockstackSignIn: BlockstackSignIn
@@ -388,10 +387,6 @@ class MainActivity : AppCompatActivity(), SignInProvider {
         } else {
             throw IllegalStateException("No session.")
         }
-    }
-
-    override fun provideBlockstackSignIn(): BlockstackSignIn {
-        return blockstackSignIn
     }
 
 }

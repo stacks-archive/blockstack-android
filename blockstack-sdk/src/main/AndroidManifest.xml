@@ -6,7 +6,7 @@
 
     <application>
         <activity
-            android:name=".ui.ConnectHelpActivity"
+            android:name=".ui.ConnectHowItWorksActivity"
             android:label="@string/title_activity_connect_help"
             android:parentActivityName=".ui.ConnectActivity"
             android:theme="@style/Theme.Blockstack" />

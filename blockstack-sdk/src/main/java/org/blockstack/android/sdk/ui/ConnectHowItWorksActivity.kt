@@ -7,17 +7,15 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
-import kotlinx.android.synthetic.main.activity_connect_help.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.android.synthetic.main.activity_connect_how_it_works.*
 import org.blockstack.android.sdk.BlockstackSignIn
 import org.blockstack.android.sdk.R
 
-class ConnectHelpActivity : AppCompatActivity() {
+class ConnectHowItWorksActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_connect_help)
+        setContentView(R.layout.activity_connect_how_it_works)
 
         button_get_started.setOnClickListener {
             setResult(RESULT_OK)
