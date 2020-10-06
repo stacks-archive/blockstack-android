@@ -73,13 +73,9 @@ class MainActivity : AppCompatActivity(), SignInProvider {
 
 
         signInButton.setOnClickListener {
-
-            lifecycleScope.launch(Dispatchers.IO) {
                 BlockstackConnect
-                    .config(config, sessionStore)
+                    .config(config, sessionStore, appDetails)
                     .connect(this@MainActivity)
-            }
-
         }
 
         signInButtonWithGaia.setOnClickListener {

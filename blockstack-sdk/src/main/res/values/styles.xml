@@ -1,14 +1,11 @@
 <resources>
 
     <!-- Refactor to Blockstack so it doesn't show on both-->
-    <style name="Theme.Blockstack" parent="Theme.MaterialComponents.Light">
+    <style name="Theme.Blockstack" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <item name="colorPrimary">@color/org_blockstack_connect_blue</item>
         <item name="blockstackMainButtonStyle">@style/Widget.MaterialComponents.Button</item>
         <item name="blockstackBottomButtonStyle">@style/Widget.Blockstack.Button.TextButton</item>
-    </style>
-
-    <style name="Theme.Blockstack.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
+        <item name="blockstackDivider">@style/Theme.Blockstack.divider</item>
     </style>
 
     <style name="Theme.Blockstack.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
@@ -16,6 +13,12 @@
     <style name="Theme.Blockstack.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="Widget.Blockstack.Button.TextButton" parent="Widget.MaterialComponents.Button.TextButton" />
+
+    <style name="Theme.Blockstack.divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">?android:attr/listDivider</item>
+    </style>
 
 
 </resources>

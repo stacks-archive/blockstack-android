@@ -8,12 +8,13 @@
         <activity
             android:name=".ui.ConnectHelpActivity"
             android:label="@string/title_activity_connect_help"
-            android:theme="@style/Theme.Blockstack.NoActionBar" />
+            android:parentActivityName=".ui.ConnectActivity"
+            android:theme="@style/Theme.Blockstack" />
 
         <activity
             android:name=".ui.ConnectActivity"
             android:label="@string/title_activity_connect"
-            android:theme="@style/Theme.Blockstack.NoActionBar" />
+            android:theme="@style/Theme.Blockstack" />
     </application>
 
 </manifest>

@@ -1,99 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="8dp">
+    android:layout_margin="8dp"
+    android:paddingBottom="8dp"
+    app:navigationIcon="@drawable/ic_close">
 
-    <ImageView
-        android:id="@+id/connect_dialog_app_icon"
+    <LinearLayout
+        android:id="@+id/connect_icons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="8dp"
-        app:layout_constraintBottom_toTopOf="@id/connect_dialog_title"
-        app:layout_constraintEnd_toStartOf="@id/connect_dialog_link_icon"
-        app:layout_constraintStart_toStartOf="parent"
-        android:importantForAccessibility="no"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/connect_dialog_link_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_link"
-        app:layout_constraintBottom_toTopOf="@id/connect_dialog_title"
-        app:layout_constraintEnd_toStartOf="@id/connect_dialog_connect_icon"
-        app:layout_constraintStart_toEndOf="@id/connect_dialog_app_icon"
-        android:importantForAccessibility="no"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/connect_dialog_connect_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:src="@drawable/ic_secret_key"
-        android:importantForAccessibility="no"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@id/connect_dialog_title"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/connect_dialog_link_icon"
-        android:tint="@color/org_blockstack_connect_blue"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/connect_dialog_app_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no" />
+
+        <ImageView
+            android:id="@+id/connect_dialog_link_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="-8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="-8dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_link" />
+
+        <ImageView
+            android:id="@+id/connect_dialog_connect_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_secret_key"
+            android:tint="?colorPrimary" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/connect_dialog_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="48dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
         android:textStyle="bold"
-        android:textAlignment="center"
-        app:layout_constraintBottom_toTopOf="@id/connect_dialog_get_started"
+        android:layout_margin="16dp"
+        app:layout_constraintBottom_toTopOf="@id/secret_key_divider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/connect_dialog_connect_icon" />
+        tools:ignore="RtlHardcoded" />
+
+    <!-- Center View -->
+    <View
+        android:id="@+id/secret_key_divider"
+        style="?blockstackDivider"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/connect_dialog_secret_key_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:importantForAccessibility="no"
+        android:paddingLeft="16dp"
+        android:paddingTop="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="16dp"
+        android:src="@drawable/ic_lock"
+        android:tint="?colorPrimary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/secret_key_divider" />
+
+    <TextView
+        android:id="@+id/connect_dialog_secret_key_title"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:gravity="center_vertical"
+        android:text="You'll get a Secret Key that automatically encrypts everything you do"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        app:layout_constraintBottom_toBottomOf="@id/connect_dialog_secret_key_icon"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/connect_dialog_secret_key_icon"
+        app:layout_constraintTop_toTopOf="@id/connect_dialog_secret_key_icon" />
+
+    <View
+        android:id="@+id/tracking_divider"
+        style="?blockstackDivider"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/connect_dialog_secret_key_icon" />
+
+    <ImageView
+        android:id="@+id/connect_dialog_tracking_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:importantForAccessibility="no"
+        android:paddingLeft="16dp"
+        android:paddingTop="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="16dp"
+        android:src="@drawable/ic_track"
+        android:tint="?colorPrimary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tracking_divider" />
+
+    <TextView
+        android:id="@+id/connect_dialog_tracking_title"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:gravity="center_vertical"
+        android:text="The App won't be able to see, access, or track your activity"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        app:layout_constraintBottom_toBottomOf="@id/connect_dialog_tracking_icon"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/connect_dialog_tracking_icon"
+        app:layout_constraintTop_toTopOf="@id/connect_dialog_tracking_icon" />
+
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/connect_dialog_get_started"
         style="?blockstackMainButtonStyle"
-        android:layout_margin="8dp"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/white"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:text="@string/org_blockstack_login"
-        app:layout_constraintBottom_toTopOf="@id/barrier"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toTopOf="@id/connect_dialog_restore"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/connect_dialog_title" />
-
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/barrier"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="top" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/connect_dialog_restore"
         style="?blockstackBottomButtonStyle"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/connect_dialog_restore"
+        android:layout_marginStart="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/connect_dialog_help"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/barrier" />
+        app:layout_constraintStart_toStartOf="parent"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/connect_dialog_help"
         style="?blockstackBottomButtonStyle"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/connect_dialog_help"
+        android:layout_marginStart="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/connect_dialog_restore"
-        app:layout_constraintTop_toTopOf="@+id/barrier" />
-
+        app:layout_constraintStart_toEndOf="@id/connect_dialog_restore" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
