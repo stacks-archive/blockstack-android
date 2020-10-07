@@ -14,16 +14,12 @@ import kotlinx.coroutines.launch
 import org.blockstack.android.sdk.BlockstackConnect
 import org.blockstack.android.sdk.R
 
-class ConnectActivity : AppCompatActivity() {
-
-    private val LAUNCH_HOW_IT_WORKS_ACTIVITY = 1
+class BlockstackConnectActivity : AppCompatActivity() {
 
     @FlowPreview
     @ExperimentalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_connect)
-
         //Action Bar Close Icon & Title
         supportActionBar?.setDisplayShowTitleEnabled(false)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -33,6 +29,8 @@ class ConnectActivity : AppCompatActivity() {
         setTheme(savedInstanceState?.getInt(
                 EXTRA_CUSTOM_THEME,
                 R.style.Theme_Blockstack) ?: R.style.Theme_Blockstack)
+
+        setContentView(R.layout.activity_connect)
 
         //App customization
         // Icon
@@ -45,20 +43,20 @@ class ConnectActivity : AppCompatActivity() {
         //Button Listeners
         connect_get_secret_key.setOnClickListener {
             lifecycle.coroutineScope.launch(Dispatchers.IO) {
-                BlockstackConnect.redirectUserToSignIn(this@ConnectActivity, sendToSignIn = false)
-                this@ConnectActivity.finish()
+                BlockstackConnect.redirectUserToSignIn(this@BlockstackConnectActivity, sendToSignIn = false)
+                this@BlockstackConnectActivity.finish()
             }
         }
 
         connect_sign_in.setOnClickListener {
             lifecycle.coroutineScope.launch(Dispatchers.IO) {
-                BlockstackConnect.redirectUserToSignIn(this@ConnectActivity, sendToSignIn = true)
-                this@ConnectActivity.finish()
+                BlockstackConnect.redirectUserToSignIn(this@BlockstackConnectActivity, sendToSignIn = true)
+                this@BlockstackConnectActivity.finish()
             }
         }
 
         connect_how_it_works.setOnClickListener {
-            startActivityForResult(Intent(this, ConnectHowItWorksActivity::class.java), LAUNCH_HOW_IT_WORKS_ACTIVITY)
+            startActivityForResult(Intent(this, ConnectHowItWorksActivity::class.java), REQUEST_HOW_IT_WORKS)
         }
 
     }
@@ -68,10 +66,10 @@ class ConnectActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         //Intercept Get Started click from ConnectHowItWorks
-        if (resultCode == RESULT_OK && requestCode == LAUNCH_HOW_IT_WORKS_ACTIVITY) {
-            lifecycle.coroutineScope.launch(Dispatchers.IO) {
-                BlockstackConnect.redirectUserToSignIn(this@ConnectActivity, sendToSignIn = false)
-                this@ConnectActivity.finish()
+        if (resultCode == RESULT_OK && requestCode == REQUEST_HOW_IT_WORKS) {
+            lifecycle.coroutineScope.launch(Dispatchers.Default) {
+                BlockstackConnect.redirectUserToSignIn(this@BlockstackConnectActivity, sendToSignIn = false)
+                this@BlockstackConnectActivity.finish()
             }
         }
     }
@@ -82,13 +80,12 @@ class ConnectActivity : AppCompatActivity() {
     }
 
     companion object {
-
+        private val REQUEST_HOW_IT_WORKS = 1
         val EXTRA_CUSTOM_THEME = "styleResCustomTheme"
 
         fun getIntent(context : Context, @StyleRes theme : Int? = null) : Intent{
-            val intent = Intent(context, ConnectActivity::class.java)
-            intent.putExtra(EXTRA_CUSTOM_THEME, theme)
-            return intent
+            val intent = Intent(context, BlockstackConnectActivity::class.java)
+            return intent.putExtra(EXTRA_CUSTOM_THEME, theme)
         }
     }
 

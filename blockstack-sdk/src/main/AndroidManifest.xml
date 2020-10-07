@@ -8,11 +8,11 @@
         <activity
             android:name=".ui.ConnectHowItWorksActivity"
             android:label="@string/title_activity_connect_help"
-            android:parentActivityName=".ui.ConnectActivity"
+            android:parentActivityName=".ui.BlockstackConnectActivity"
             android:theme="@style/Theme.Blockstack" />
 
         <activity
-            android:name=".ui.ConnectActivity"
+            android:name=".ui.BlockstackConnectActivity"
             android:label="@string/title_activity_connect"
             android:theme="@style/Theme.Blockstack" />
     </application>

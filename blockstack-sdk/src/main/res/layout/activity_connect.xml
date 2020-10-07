@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -16,8 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="8dp"
-            android:paddingBottom="8dp"
-            app:navigationIcon="@drawable/ic_close">
+            android:paddingBottom="8dp">
 
             <LinearLayout
                 android:id="@+id/connect_icons"
@@ -54,7 +52,7 @@
                     android:layout_gravity="center"
                     android:importantForAccessibility="no"
                     android:src="@drawable/ic_secret_key"
-                    android:tint="?colorPrimary" />
+                    app:tint="?colorPrimary" />
 
             </LinearLayout>
 
@@ -69,8 +67,7 @@
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/connect_icons"
-                tools:ignore="RtlHardcoded" />
+                app:layout_constraintTop_toBottomOf="@id/connect_icons" />
 
             <View
                 android:id="@+id/secret_key_divider"
@@ -89,9 +86,9 @@
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
                 android:src="@drawable/ic_lock"
-                android:tint="?colorPrimary"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@id/connect_secret_key_desc_title" />
+                app:layout_constraintTop_toTopOf="@id/connect_secret_key_desc_title"
+                app:tint="?colorPrimary" />
 
             <TextView
                 android:id="@+id/connect_secret_key_desc_title"
@@ -123,9 +120,9 @@
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
                 android:src="@drawable/ic_track"
-                android:tint="?colorPrimary"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@id/connect_tracking_desc_title" />
+                app:layout_constraintTop_toTopOf="@id/connect_tracking_desc_title"
+                app:tint="?colorPrimary" />
 
             <TextView
                 android:id="@+id/connect_tracking_desc_title"
@@ -148,7 +145,7 @@
     <com.google.android.material.button.MaterialButton
         style="?blockstackMainButtonStyle"
         android:id="@+id/connect_get_secret_key"
-        android:layout_height="50dp"
+        android:layout_height="56dp"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginTop="32dp"
@@ -177,7 +174,6 @@
         android:layout_width="match_parent"
         android:layout_weight="1"
         android:layout_marginEnd="16dp"
-        android:layout_marginStart="4dp"
         android:layout_marginBottom="16dp"
         android:text="@string/connect_dialog_help" />
 
