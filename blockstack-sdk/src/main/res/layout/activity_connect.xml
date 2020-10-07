@@ -23,7 +23,7 @@
                 android:id="@+id/connect_icons"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="64dp"
+                android:layout_margin="48dp"
                 android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -63,7 +63,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="64dp"
+                android:layout_marginTop="48dp"
                 android:text="@string/connect_dialog_title"
                 android:textAppearance="@style/TextAppearance.AppCompat.Headline"
                 android:textStyle="bold"
@@ -167,6 +167,7 @@
         android:layout_width="match_parent"
         android:layout_weight="1"
         android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
         android:text="@string/connect_dialog_restore" />
 
     <com.google.android.material.button.MaterialButton
@@ -177,6 +178,7 @@
         android:layout_weight="1"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="4dp"
+        android:layout_marginBottom="16dp"
         android:text="@string/connect_dialog_help" />
 
     </LinearLayout>

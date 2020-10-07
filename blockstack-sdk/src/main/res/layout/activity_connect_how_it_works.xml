@@ -35,6 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:background="@color/org_blockstack_connect_blue"
+        android:textAllCaps="false"
         android:text="@string/org_blockstack_get_started"
         android:textColor="@android:color/white" />
 
