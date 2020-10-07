@@ -1,7 +1,9 @@
 package org.blockstack.android.sdk.ui
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.coroutineScope
 import kotlinx.android.synthetic.main.activity_connect.*
@@ -29,7 +31,7 @@ class ConnectActivity : AppCompatActivity() {
 
         //Check if BlockstackConnect Config has a custom theme
         setTheme(savedInstanceState?.getInt(
-                BlockstackConnect.CUSTOM_THEME,
+                EXTRA_CUSTOM_THEME,
                 R.style.Theme_Blockstack) ?: R.style.Theme_Blockstack)
 
         //App customization
@@ -77,6 +79,17 @@ class ConnectActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         finish() //Action Bar Close instead of Navigate up
         return false
+    }
+
+    companion object {
+
+        val EXTRA_CUSTOM_THEME = "styleResCustomTheme"
+
+        fun getIntent(context : Context, @StyleRes theme : Int? = null) : Intent{
+            val intent = Intent(context, ConnectActivity::class.java)
+            intent.putExtra(EXTRA_CUSTOM_THEME, theme)
+            return intent
+        }
     }
 
 }

@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unrelease
 ### Added
 - additional parameters `sendToSignIn`, `appDetails` for `BlockstackSignIn`
-- `ConnectBottemSheetDialogFragment` and `SignInProvider` to show user on-boarding
 - `Context.getBlockstackSharedPreferences` to be used for `SessionStore`
-- `AppCompatActivity.showBlockstackConnect` for simplified integration
+- `ConnectActivty` and `ConnectHowItWorksActivity` to show user on-boarding
+- `BlockstackConnect` for simplified integration
 ### Changed
 - use app.blockstack.org (connect) instead of browser.blockstack.org for sign in.
  

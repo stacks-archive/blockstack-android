@@ -1,10 +1,10 @@
 package org.blockstack.android.sdk
 
+import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat.startActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -19,32 +19,27 @@ import java.lang.Exception
 object BlockstackConnect {
 
     private val TAG = BlockstackConnect::class.java.simpleName
-    val CUSTOM_THEME = "styleResCustomTheme"
-
-    @StyleRes
-    private var theme: Int = R.style.Theme_Blockstack
 
     private var blockstackSession: BlockstackSession? = null
     private var blockstackSignIn: BlockstackSignIn? = null
 
+    @StyleRes private var theme : Int? = null
 
-    fun config(blockstackConfig: BlockstackConfig, sessionStore: ISessionStore, appDetails: AppDetails? = null, @StyleRes style: Int = theme): BlockstackConnect {
+
+    fun config(blockstackConfig: BlockstackConfig, sessionStore: ISessionStore, appDetails: AppDetails? = null, @StyleRes theme: Int? = null): BlockstackConnect {
         blockstackSession = BlockstackSession(sessionStore, blockstackConfig)
         blockstackSignIn = BlockstackSignIn(sessionStore, blockstackConfig, appDetails)
-        theme = style
+        this.theme = theme
         return this
     }
 
-    fun connect(context: AppCompatActivity) {
+    fun connect(context: Context) {
         if (blockstackSignIn == null) {
             throw BlockstackConnectInvalidConfiguration(
                     "Cannot establish connection without a valid configuration"
             )
         }
-
-        val intent = Intent(context, ConnectActivity::class.java)
-        intent.putExtra(CUSTOM_THEME, theme)
-        startActivity(context, intent, null)
+        context.startActivity(ConnectActivity.getIntent(context, theme))
     }
 
     suspend fun handleAuthResponse(intent: Intent): Result<UserData> {
