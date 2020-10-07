@@ -1,6 +1,5 @@
 <resources>
 
-    <!-- Refactor to Blockstack so it doesn't show on both-->
     <style name="Theme.Blockstack" parent="Theme.MaterialComponents.Light">
         <item name="colorPrimary">@color/org_blockstack_connect_blue</item>
         <item name="blockstackMainButtonStyle">@style/Widget.Blockstack.Button</item>
