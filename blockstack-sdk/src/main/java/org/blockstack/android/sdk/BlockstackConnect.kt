@@ -14,8 +14,6 @@ import org.blockstack.android.sdk.model.UserData
 import org.blockstack.android.sdk.ui.BlockstackConnectActivity
 import java.lang.Exception
 
-@FlowPreview
-@ExperimentalCoroutinesApi
 object BlockstackConnect {
 
     private val TAG = BlockstackConnect::class.java.simpleName
