@@ -67,7 +67,7 @@ class BlockstackConnectActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         //Intercept Get Started click from ConnectHowItWorks
         if (resultCode == RESULT_OK && requestCode == REQUEST_HOW_IT_WORKS) {
-            lifecycle.coroutineScope.launch(Dispatchers.Default) {
+            lifecycle.coroutineScope.launch {
                 BlockstackConnect.redirectUserToSignIn(this@BlockstackConnectActivity, sendToSignIn = false)
                 this@BlockstackConnectActivity.finish()
             }

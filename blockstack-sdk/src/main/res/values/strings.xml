@@ -15,4 +15,5 @@ to learn more.
     </string>
     <string name="connect_activity_encryption_desc" translatable="false">You\'ll get a Secret Key that automatically encrypts everything you do</string>
     <string name="connect_activity_tracking_desc" translatable="false">%1$s won\'t be able to see, access, or track your activity</string>
+    <string name="powered_by" translatable="false">Powered By</string>
 </resources>

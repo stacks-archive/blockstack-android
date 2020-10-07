@@ -24,8 +24,6 @@ import java.util.*
 
 private const val username = "dev_android_sdk.id.blockstack"
 
-@FlowPreview
-@ExperimentalCoroutinesApi
 @SuppressLint("SetTextI18n")
 class MainActivity : AppCompatActivity() {
     private lateinit var network: Network

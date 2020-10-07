@@ -12,32 +12,25 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/textview_help"
+            style="?textAppearanceBody1"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:text="@string/connect_help" />
 
-            <TextView
-                android:id="@+id/textview_help"
-                style="@style/TextAppearance.AppCompat.Body1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/connect_help"
-                />
-
-        </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
+        style="?blockstackMainButtonStyle"
         android:id="@+id/button_get_started"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:background="@color/org_blockstack_connect_blue"
-        android:textAllCaps="false"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:text="@string/org_blockstack_get_started"
-        android:textColor="@android:color/white" />
+        android:textAllCaps="false" />
 
     <LinearLayout
         android:id="@+id/power_by_blockstack"
@@ -47,22 +40,22 @@
         android:orientation="horizontal">
 
         <TextView
+            style="?textAppearanceSubtitle2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@style/TextAppearance.AppCompat.Medium"
-            android:text="Powered By "
-            tools:ignore="HardcodedText" />
+            android:text="@string/powered_by" />
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="4dp"
             android:src="@drawable/org_blockstack_black_logo" />
 
         <TextView
+            style="?textAppearanceSubtitle2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@style/TextAppearance.AppCompat.Medium"
-            android:text=" Blockstack"
+            android:text="Blockstack"
             tools:ignore="HardcodedText" />
 
     </LinearLayout>
