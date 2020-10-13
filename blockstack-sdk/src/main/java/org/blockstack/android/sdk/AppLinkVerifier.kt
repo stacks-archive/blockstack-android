@@ -68,7 +68,7 @@ class AppLinkVerifier(private val context: Context, private val config: Blocksta
         val fingerprints = arrayListOf<String>()
 
         val responseString = URL("https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=${config.appDomain}&relation=delegate_permission/common.handle_all_urls").readText()
-        val normalizedAppDomain = "${config.appDomain}."
+        val normalizedAppDomain = "${config.appDomain.getOrigin()}."
         val response = JSONObject(responseString)
         val statements = response.optJSONArray("statements")
         if (statements != null) {

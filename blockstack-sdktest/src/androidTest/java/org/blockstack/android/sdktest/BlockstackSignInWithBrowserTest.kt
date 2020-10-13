@@ -3,10 +3,8 @@ package org.blockstack.android.sdktest
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
 import androidx.test.espresso.intent.Intents.intended
-import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
-import androidx.test.espresso.intent.matcher.IntentMatchers.hasData
+import androidx.test.espresso.intent.matcher.IntentMatchers.*
 import androidx.test.espresso.intent.matcher.UriMatchers.hasHost
-import androidx.test.espresso.intent.matcher.UriMatchers.hasParamWithName
 import androidx.test.espresso.intent.rule.IntentsTestRule
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.delay
@@ -16,6 +14,7 @@ import org.blockstack.android.sdk.SessionStore
 import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdktest.test.TestActivity
 import org.hamcrest.Matchers.allOf
+import org.hamcrest.Matchers.containsString
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,7 +31,7 @@ class BlockstackSessionLoginWithBrowserTest {
     @Before
     fun setup() {
         sessionStore = sessionStoreforIntegrationTests(rule)
-        signIn = BlockstackSignIn(sessionStore, "https://example.com".toBlockstackConfig(emptyArray()))
+        signIn = BlockstackSignIn(sessionStore, "https://example.com".toBlockstackConfig(kotlin.emptyArray()))
     }
 
     @Test
@@ -41,12 +40,12 @@ class BlockstackSessionLoginWithBrowserTest {
             signIn.redirectUserToSignIn(rule.activity)
             delay(500)
             InstrumentationRegistry.getInstrumentation().uiAutomation
-                    .performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+                    .performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
         }
         intended(allOf(hasAction(Intent.ACTION_VIEW),
-                hasData(allOf(
-                        hasHost("browser.blockstack.org"),
-                        hasParamWithName("authRequest")
-                ))))
+                hasData(
+                        hasHost("app.blockstack.org")),
+                hasDataString(containsString("authResponse="))
+        ))
     }
 }

@@ -5,9 +5,9 @@ import androidx.test.rule.ActivityTestRule
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
 import com.colendi.ecies.Encryption.getHMAC
+import me.uport.sdk.core.hexToByteArray
 import org.blockstack.android.sdk.model.CipherObject
 import org.blockstack.android.sdk.model.CryptoOptions
-import org.blockstack.android.sdk.model.toBlockstackConfig
 import org.blockstack.android.sdk.test.TestActivity
 import org.bouncycastle.util.encoders.Hex
 import org.hamcrest.MatcherAssert.assertThat
@@ -16,7 +16,6 @@ import org.json.JSONObject
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.komputing.khex.extensions.hexToByteArray
 import java.security.MessageDigest
 
 private val PRIVATE_KEY = "a5c61c6ca7b3e7e55edee68566aeab22e4da26baa285c7bd10e8d2218aa3b229"
@@ -32,16 +31,13 @@ class EncryptionColendiLibTest {
     fun testEncryptDecryptWorks() {
         val encryption = Encryption()
 
-        val privateKey = "a5c61c6ca7b3e7e55edee68566aeab22e4da26baa285c7bd10e8d2218aa3b229"
-        val publicKey = "027d28f9951ce46538951e3697c62588a87f1f1f295de4a14fdd4c780fc52cfe69"
         val message = "Colendi"
 
-
-        val encryptedResult = encryption.encryptWithPublicKey(message.toByteArray(), publicKey)
+        val encryptedResult = encryption.encryptWithPublicKey(message.toByteArray(), PUBLIC_KEY)
 
         val formData = EncryptedResultForm()
 
-        formData.privateKey = privateKey
+        formData.privateKey = PRIVATE_KEY
         formData.ciphertext = encryptedResult.ciphertext
         formData.ephemPublicKey = encryptedResult.ephemPublicKey
         formData.iv = encryptedResult.iv
@@ -55,16 +51,13 @@ class EncryptionColendiLibTest {
     fun testEncryptColendiDescryptBlockstackJS() {
         val encryption = Encryption()
 
-        val privateKey = "a5c61c6ca7b3e7e55edee68566aeab22e4da26baa285c7bd10e8d2218aa3b229"
-        val publicKey = "027d28f9951ce46538951e3697c62588a87f1f1f295de4a14fdd4c780fc52cfe69"
         val message = "Colendi"
 
-
-        val encryptedResult = encryption.encryptWithPublicKey(message.toByteArray(), publicKey)
+        val encryptedResult = encryption.encryptWithPublicKey(message.toByteArray(), PUBLIC_KEY)
 
         val result = Blockstack()
                 .decryptContent(CipherObject(encryptedResult.iv, encryptedResult.ephemPublicKey, encryptedResult.ciphertext, encryptedResult.mac, true).json.toString(), false,
-                        CryptoOptions(publicKey, privateKey))
+                        CryptoOptions(PUBLIC_KEY, PRIVATE_KEY))
         assertThat(result.value as String, `is`(message))
 
     }
@@ -74,10 +67,7 @@ class EncryptionColendiLibTest {
     fun testEncryptBlockstackJSDescryptColendi() {
         val encryption = Encryption()
 
-        val privateKey = "a5c61c6ca7b3e7e55edee68566aeab22e4da26baa285c7bd10e8d2218aa3b229"
-        val publicKey = "027d28f9951ce46538951e3697c62588a87f1f1f295de4a14fdd4c780fc52cfe69"
         val message = "all work and no play makes jack a dull boy"
-
 
         val cipherObject = JSONObject("{cipherText : \"c77fded9b2013ed08409b5f6a69f53e78d4ef0ec1cca6380d6b0aa8bd927c454135dd1a5c54adc0f3e0aa9748fec3fb5\",\n" +
                 "    ephemeralPK: \"02df2bc402b134631b2afaa31316392e3ded63728cd588e4f8bc152b39f8a6deb4\",\n" +
@@ -88,7 +78,7 @@ class EncryptionColendiLibTest {
 
         val encryptedResult = CipherObject(cipherObject)
 
-        val result = encryption.decryptWithPrivateKey(EncryptedResultForm(encryptedResult.ephemeralPK, encryptedResult.iv, encryptedResult.mac, encryptedResult.cipherText, privateKey))
+        val result = encryption.decryptWithPrivateKey(EncryptedResultForm(encryptedResult.ephemeralPK, encryptedResult.iv, encryptedResult.mac, encryptedResult.cipherText, PRIVATE_KEY))
 
         assertThat(String(result), `is`(message))
 
@@ -96,10 +86,8 @@ class EncryptionColendiLibTest {
 
     @Test
     fun testDecryptAes256CDReturnsCorrectValue() {
-        val publicKey = "027d28f9951ce46538951e3697c62588a87f1f1f295de4a14fdd4c780fc52cfe69"
-
         val cipher = "c5a777b2daac1c7f50f2007af02f517d"
-        val plainText = Encryption.decryptAES256CBC(cipher.hexToByteArray(), publicKey.slice(0..63), byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6))
+        val plainText = Encryption.decryptAES256CBC(cipher.hexToByteArray(), PUBLIC_KEY.slice(0..63), byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6))
         assertThat(String(plainText), `is`("abc"))
 
     }
@@ -125,6 +113,6 @@ class EncryptionColendiLibTest {
     }
 
     companion object {
-        val TAG = EncryptionColendiLibTest.javaClass.simpleName
+        val TAG = EncryptionColendiLibTest::class.simpleName
     }
 }

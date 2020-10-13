@@ -10,12 +10,12 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import kotlinx.serialization.json.JsonException
 import me.uport.sdk.core.decodeBase64
+import me.uport.sdk.core.hexToByteArray
 import me.uport.sdk.core.toBase64UrlSafe
 import me.uport.sdk.jwt.*
 import me.uport.sdk.jwt.model.ArbitraryMapSerializer
 import me.uport.sdk.jwt.model.JwtHeader
 import me.uport.sdk.signer.KPSigner
-import me.uport.sdk.universaldid.UniversalDID
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -27,17 +27,17 @@ import org.json.JSONObject
 import org.kethereum.crypto.CryptoAPI
 import org.kethereum.crypto.getCompressedPublicKey
 import org.kethereum.crypto.toECKeyPair
-import org.kethereum.encodings.encodeToBase58String
 import org.kethereum.extensions.toBytesPadded
 import org.kethereum.extensions.toHexStringNoPrefix
-import org.kethereum.hashes.ripemd160
-import org.kethereum.hashes.sha256
 import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PUBLIC_KEY_SIZE
 import org.kethereum.model.PrivateKey
 import org.kethereum.model.PublicKey
-import org.komputing.khex.extensions.hexToByteArray
+import org.komputing.kbase58.encodeToBase58String
+import org.komputing.khash.ripemd160.extensions.digestRipemd160
+import org.komputing.khash.sha256.extensions.sha256
 import org.komputing.khex.extensions.toNoPrefixHexString
+import org.komputing.khex.model.HexString
 import java.net.URI
 import java.net.URL
 import java.security.InvalidParameterException
@@ -50,7 +50,6 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
 
     init {
         btcAddrResolver = BitAddrResolver(callFactory)
-        UniversalDID.registerResolver(btcAddrResolver)
     }
 
 
@@ -283,7 +282,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
 
     private suspend fun doSignaturesMatchPublicKeys(token: String, payload: JSONObject): Boolean {
         try {
-            JWTTools().verify(token, false) // throws an exception if invalid
+            JWTTools().verify(token, btcAddrResolver, false) // throws an exception if invalid
             return true
         } catch (e: InvalidJWTException) {
             return false
@@ -417,7 +416,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
     fun getPublicKeyFromPrivate(privateKey: String): String? {
-        return PrivateKey(privateKey).toECKeyPair().toHexPublicKey64()
+        return PrivateKey(HexString(privateKey)).toECKeyPair().toHexPublicKey64()
     }
 
     fun makeECPrivateKey(): String? {
@@ -437,7 +436,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      * @result the URL of the app index file or null if it fails
      */
     suspend fun getAppBucketUrl(gaiaHubUrl: String, privateKey: String): String? {
-        val challengeSigner = PrivateKey(privateKey).toECKeyPair()
+        val challengeSigner = PrivateKey(HexString(privateKey)).toECKeyPair()
         val response = fetchPrivate("${gaiaHubUrl}/hub_info")
         val responseJSON = response.json()
         if (responseJSON != null) {
@@ -460,7 +459,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      */
     suspend fun getUserAppFileUrl(path: String, username: String, appOrigin: String, zoneFileLookupURL: String?): String {
         val profile = lookupProfile(username, zoneFileLookupURL?.let { URL(it) })
-        var bucketUrl: String = "NO_URL"
+        var bucketUrl = "NO_URL"
         if (profile.json.has("apps")) {
             val apps = profile.json.getJSONObject("apps")
             if (apps.has(appOrigin)) {
@@ -666,7 +665,7 @@ private fun JSONArray.toMap(): Array<Any?> {
 
 fun String.toBtcAddress(): String {
     val sha256 = this.hexToByteArray().sha256()
-    val hash160 = sha256.ripemd160()
+    val hash160 = sha256.digestRipemd160()
     val extended = "00${hash160.toNoPrefixHexString()}"
     val checksum = checksum(extended)
     val address = (extended + checksum).hexToByteArray().encodeToBase58String()
@@ -697,7 +696,7 @@ fun PublicKey.toBtcAddress(): String {
     val point = org.kethereum.crypto.CURVE.decodePoint(ret)
     val compressedPublicKey = point.encoded(true).toNoPrefixHexString()
     val sha256 = compressedPublicKey.hexToByteArray().sha256()
-    val hash160 = sha256.ripemd160()
+    val hash160 = sha256.digestRipemd160()
     val extended = "00${hash160.toNoPrefixHexString()}"
     val checksum = checksum(extended)
     val address = (extended + checksum).hexToByteArray().encodeToBase58String()
@@ -709,5 +708,14 @@ private fun nextYear(): Date {
     val calendar = GregorianCalendar.getInstance()
     calendar.set(Calendar.YEAR, calendar.get(Calendar.YEAR) + 1)
     return calendar.time
+}
+
+
+fun URI.getOrigin(): String {
+    return if (this.port != -1) {
+        "${this.scheme}://${this.host}:${this.port}"
+    } else {
+        "${this.scheme}://${this.host}"
+    }
 }
 

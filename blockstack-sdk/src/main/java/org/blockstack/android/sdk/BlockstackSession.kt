@@ -5,7 +5,7 @@ import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.io.IOException
+import me.uport.sdk.core.hexToByteArray
 import okhttp3.*
 import okio.ByteString
 import org.blockstack.android.sdk.ecies.signContent
@@ -15,11 +15,13 @@ import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONObject
 import org.kethereum.crypto.toECKeyPair
-import org.kethereum.hashes.sha256
 import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PrivateKey
 import org.kethereum.model.PublicKey
+import org.komputing.khash.sha256.extensions.sha256
 import org.komputing.khex.extensions.hexToByteArray
+import org.komputing.khex.model.HexString
+import java.io.IOException
 import java.math.BigInteger
 import java.security.InvalidParameterException
 import java.util.*
@@ -66,6 +68,11 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
             return Result(null, ResultError(ErrorCode.LoginFailedError, "invalid auth response"))
         }
         val appPrivateKey = decrypt(tokenPayload.getString("private_key"), transitKey)
+
+        if (appPrivateKey == null) {
+            return Result(null, ResultError(ErrorCode.LoginFailedError, "auth response used different transient key"))
+        }
+
         val coreSessionToken = decrypt(tokenPayload.optString("core_token"), transitKey)
 
         val userData = authResponseToUserData(tokenPayload, nameLookupUrl, appPrivateKey, coreSessionToken, authResponse)
@@ -93,6 +100,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         val appPrivateKey = tokenPayload.getString("private_key")
         val coreSessionToken = tokenPayload.optString("core_token")
         val userData = authResponseToUserData(tokenPayload, nameLookupUrl, appPrivateKey, coreSessionToken, authResponse)
+        sessionStore.updateUserData(userData)
         return Result(userData)
     }
 
@@ -145,7 +153,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         }
         return blockstack.decryptContent(cipherObjectHex.hexToByteArray().toString(Charsets.UTF_8), false,
                 CryptoOptions(privateKey = privateKey)
-        ).value as String
+        ).value as String?
     }
 
     /**
@@ -219,7 +227,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 val response = callFactory.newCall(getRequest).execute()
 
                 if (!response.isSuccessful) {
-                    return@withContext Result(null, ResultError(ErrorCode.UnknownError, "Error when loading from Gaia hub, status:" + response.code()))
+                    return@withContext Result(null, ResultError(ErrorCode.NetworkError, "Error when loading from Gaia hub, status:" + response.code(), response.code().toString()))
                 }
                 val contentType = response.header("Content-Type")
 
@@ -230,7 +238,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                     val cipherObject = if (options.verify) {
                         val expectedAddress = if (options.username != null) {
                             getGaiaAddress(options.app
-                                    ?: appConfig!!.appDomain.toString(), options.username)
+                                    ?: appConfig!!.appDomain.getOrigin(), options.username)
                         } else {
                             gaiaHubConfig!!.address
                         }
@@ -265,7 +273,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                             } else {
                                 result as ByteArray
                             }.sha256()
-                            val keyPair = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey(signatureObject.publicKey))
+                            val keyPair = ECKeyPair(PrivateKey(0.toBigInteger()), PublicKey(HexString(signatureObject.publicKey)))
                             if (!keyPair.verify(resultHash, signatureObject.signature)) {
                                 return@withContext Result(null, ResultError(ErrorCode.SignatureVerificationError, "Failed to verify signature: Invalid signature for file: $path"))
                             } else {
@@ -334,7 +342,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
 
             val enc = Encryption()
             val publicKey = options.encryptionKey
-                    ?: PrivateKey(appPrivateKey!!).toECKeyPair().toHexPublicKey64()
+                    ?: PrivateKey(HexString(appPrivateKey!!)).toECKeyPair().toHexPublicKey64()
             val contentByteArray = if (content is String) {
                 content.toByteArray()
             } else {
@@ -367,12 +375,18 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         return withContext(Dispatchers.IO) {
             try {
                 val response = hub.uploadToGaiaHub(path, requestContent, gaiaHubConfiguration, contentType)
+                if (!response.isSuccessful) {
+                    return@withContext Result(null, ResultError(ErrorCode.NetworkError, "upload to gaia failed: ${response.code()}", response.code().toString()))
+                }
                 val responseText = response.body()?.string()
                 if (responseText !== null) {
                     if (!options.shouldEncrypt() && options.shouldSign()) {
                         val signedContent = signContent(requestContent.toByteArray(), getSignKey(options))
                         try {
-                            hub.uploadToGaiaHub("$path$SIGNATURE_FILE_EXTENSION", signedContent.toJSONByteString(), gaiaHubConfig!!, "application/json")
+                            val sigResponse = hub.uploadToGaiaHub("$path$SIGNATURE_FILE_EXTENSION", signedContent.toJSONByteString(), gaiaHubConfig!!, "application/json")
+                            if (!sigResponse.isSuccessful) {
+                                return@withContext Result(null, ResultError(ErrorCode.NetworkError, "failed to upload putFile signature $responseText", sigResponse.code().toString()))
+                            }
                         } catch (e: Exception) {
                             return@withContext Result(null, ResultError(ErrorCode.UnknownError, "invalid response from putFile signature $responseText"))
                         }
@@ -411,7 +425,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
 
         val contentHash = signedCipherObject.signature.toByteArray().sha256()
 
-        val keyPair = ECKeyPair(PrivateKey(BigInteger.ZERO), PublicKey(signedCipherObject.publicKey))
+        val keyPair = ECKeyPair(PrivateKey(BigInteger.ZERO), PublicKey(HexString(signedCipherObject.publicKey)))
         if (keyPair.verify(contentHash, signedCipherObject.signature)) {
             return CipherObject(JSONObject(signedCipherObject.signature))
         } else {
@@ -422,11 +436,20 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
 
     suspend fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions()): Result<out Unit> {
         try {
-            hub.deleteFromGaiaHub(path, options.gaiaHubConfig ?: gaiaHubConfig!!)
-            return Result(Unit)
+            val response = hub.deleteFromGaiaHub(path, options.gaiaHubConfig ?: gaiaHubConfig!!)
+            if (response != null) {
+                if (response.isSuccessful) {
+                    return Result(Unit)
+                } else {
+                    return Result(null, ResultError(ErrorCode.NetworkError,
+                            "failed to delete $path", response.code().toString()))
+                }
+            } else {
+                return Result(null, ResultError(ErrorCode.UnknownError, "failed to delete $path"))
+            }
         } catch (e: Exception) {
-            return Result(null, ResultError(ErrorCode.UnknownError, e.message
-                    ?: e.toString()))
+            return Result(null, ResultError(ErrorCode.UnknownError,
+                    "failed to delete $path: ${e.message ?: e.toString()}"))
         }
     }
 
@@ -454,21 +477,17 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun getFileUrl(path: String, options: GetFileOptions): Result<String> {
 
-        val readUrl: String?
+        val readUrl: String
         if (options.username != null) {
             readUrl = blockstack.getUserAppFileUrl(path, options.username,
-                    options.app ?: appConfig?.appDomain.toString(),
+                    options.app ?: appConfig!!.appDomain.getOrigin(),
                     options.zoneFileLookupURL?.toString())
         } else {
             val gaiaHubConfig = getOrSetLocalGaiaHubConnection()
             readUrl = hub.getFullReadUrl(path, gaiaHubConfig)
         }
 
-        if (readUrl == null) {
-            return Result(null, ResultError(ErrorCode.UnknownError, "Missing readURL"))
-        } else {
-            return Result(readUrl)
-        }
+        return Result(readUrl)
     }
 
     suspend fun listFilesLoop(gaiaHubConfig: GaiaHubConfig? = null, callback: (Result<String>) -> Boolean, page: String?, callCount: Int, fileCount: Int): Int {
@@ -554,14 +573,13 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     }
 
     fun validateProofs(profile: Profile, ownerAddress: String, optString: String?): Result<ArrayList<Proof>> {
-        TODO("not implemented")
         return Result(null, ResultError(ErrorCode.UnknownError, "Not implemented"))
     }
 
     fun encryptContent(content: Any, options: CryptoOptions): Result<CipherObject> {
         val updatedOptions =
                 if (options.publicKey == null) {
-                    val appPrivateKeyPair = PrivateKey(appPrivateKey!!).toECKeyPair()
+                    val appPrivateKeyPair = PrivateKey(HexString(appPrivateKey!!)).toECKeyPair()
                     val publicKey = appPrivateKeyPair.toHexPublicKey64()
                     CryptoOptions(publicKey = publicKey)
                 } else {

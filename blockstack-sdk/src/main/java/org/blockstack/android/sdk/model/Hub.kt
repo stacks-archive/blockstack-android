@@ -3,7 +3,6 @@ package org.blockstack.android.sdk.model
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import me.uport.sdk.core.toBase64UrlSafe
@@ -21,6 +20,7 @@ import org.kethereum.crypto.SecureRandomUtils
 import org.kethereum.crypto.toECKeyPair
 import org.kethereum.model.PrivateKey
 import org.komputing.khex.extensions.toNoPrefixHexString
+import org.komputing.khex.model.HexString
 
 data class AuthScope(val scope: String, val domain: String) {
     companion object {
@@ -51,7 +51,7 @@ class Hub(val callFactory: Call.Factory = OkHttpClient()) {
 
         val readURL = hubInfo.getString("read_url_prefix")
         val token = makeV1GaiaAuthToken(hubInfo, challengeSignerHex, gaiaHubUrl, associationToken, scopes)
-        val address = PrivateKey(challengeSignerHex).toECKeyPair().toBtcAddress()
+        val address = PrivateKey(HexString(challengeSignerHex)).toECKeyPair().toBtcAddress()
 
         return GaiaHubConfig(readURL, address, token, gaiaHubUrl)
 
@@ -78,7 +78,7 @@ class Hub(val callFactory: Call.Factory = OkHttpClient()) {
             Integer.parseInt(it, 10) >= 1
         }
 
-        val iss = PrivateKey(signerKeyHex).toECKeyPair().toHexPublicKey64()
+        val iss = PrivateKey(HexString(signerKeyHex)).toECKeyPair().toHexPublicKey64()
 
         if (!handlesV1Auth) {
             throw NotImplementedError("only v1 auth supported, please upgrade your gaia server")
@@ -114,12 +114,7 @@ class Hub(val callFactory: Call.Factory = OkHttpClient()) {
         val putRequest = buildPutRequest(filename, content, contentType, gaiaHubConfig)
 
         return withContext(Dispatchers.IO) {
-            val response = callFactory.newCall(putRequest).execute()
-
-            if (!response.isSuccessful) {
-                throw IOException("Error when uploading to Gaia hub")
-            }
-            response
+            callFactory.newCall(putRequest).execute()
         }
     }
 
@@ -151,16 +146,11 @@ class Hub(val callFactory: Call.Factory = OkHttpClient()) {
     }
 
 
-    suspend fun deleteFromGaiaHub(filename: String, gaiaHubConfig: GaiaHubConfig) {
+    suspend fun deleteFromGaiaHub(filename: String, gaiaHubConfig: GaiaHubConfig): Response? {
         val deleteRequest = buildDeleteRequest(filename, gaiaHubConfig)
 
         return withContext(Dispatchers.IO) {
-            val response = callFactory.newCall(deleteRequest).execute()
-            if (response.isSuccessful) {
-                return@withContext
-            } else {
-                throw IOException("Failed to delete file: ${response.code()}")
-            }
+            return@withContext callFactory.newCall(deleteRequest).execute()
         }
     }
 

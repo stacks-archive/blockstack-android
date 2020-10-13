@@ -37,7 +37,7 @@ class BlockstackSessionStorageOfflineTest {
         }
 
         session = BlockstackSession(
-                appConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
+                appConfig = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStoreforIntegrationTests(rule),
                 callFactory = callFactory, blockstack = Blockstack())
         runBlocking {

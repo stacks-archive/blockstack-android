@@ -10,21 +10,20 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NavUtils
 import androidx.lifecycle.lifecycleScope
-import androidx.preference.PreferenceManager
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.content_account.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.blockstack.android.sdk.BlockstackConnect
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.BlockstackSignIn
-import org.blockstack.android.sdk.SessionStore
 
 
 class AccountActivity : AppCompatActivity() {
-    private lateinit var blockstackSignIn: BlockstackSignIn
     private val TAG = AccountActivity::class.java.simpleName
 
-    private var _blockstackSession: BlockstackSession? = null
+    private lateinit var blockstackSignIn: BlockstackSignIn
+    private lateinit var blockstackSession: BlockstackSession
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,21 +35,20 @@ class AccountActivity : AppCompatActivity() {
         signOutButton.isEnabled = false
 
         val sessionStore = SessionStoreProvider.getInstance(this)
-        blockstackSignIn = BlockstackSignIn(sessionStore, defaultConfig)
-        _blockstackSession = BlockstackSession(sessionStore, defaultConfig)
+        blockstackSignIn = BlockstackSignIn(sessionStore, defaultConfig, defaultAppDetails)
+        blockstackSession = BlockstackSession(sessionStore, defaultConfig)
 
         if (intent?.action == Intent.ACTION_VIEW) {
             handleAuthResponse(intent)
         }
         onLoaded()
         signInButton.setOnClickListener {
-            lifecycleScope.launch(Dispatchers.IO) {
-                blockstackSignIn.redirectUserToSignIn(this@AccountActivity)
-            }
+            BlockstackConnect.config(defaultConfig, sessionStore, defaultAppDetails)
+                    .connect(this)
         }
 
         signOutButton.setOnClickListener { _ ->
-            blockstackSession().signUserOut()
+            blockstackSession.signUserOut()
             Log.d(TAG, "signed out!")
             finish()
         }
@@ -59,7 +57,7 @@ class AccountActivity : AppCompatActivity() {
     private fun onLoaded() {
         signInButton.isEnabled = true
         signOutButton.isEnabled = true
-        val signedIn = blockstackSession().isUserSignedIn()
+        val signedIn = blockstackSession.isUserSignedIn()
         if (signedIn) {
             signInButton.visibility = View.GONE
             signOutButton.visibility = View.VISIBLE
@@ -71,7 +69,7 @@ class AccountActivity : AppCompatActivity() {
     }
 
     private fun onSignIn() {
-        blockstackSession().loadUserData()
+        blockstackSession.loadUserData()
         finish()
     }
 
@@ -95,16 +93,16 @@ class AccountActivity : AppCompatActivity() {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: ${authResponse}")
                 lifecycleScope.launch(Dispatchers.IO) {
-                    val it = blockstackSession().handlePendingSignIn(authResponse)
-                        if (it.hasErrors) {
-                            runOnUiThread {
-                                Toast.makeText(this@AccountActivity, "error: ${it.error}", Toast.LENGTH_SHORT).show()
-                            }
-                        } else {
-                            Log.d(TAG, "signed in!")
-                            runOnUiThread {
-                                onSignIn()
-                            }
+                    val it = blockstackSession.handlePendingSignIn(authResponse)
+                    if (it.hasErrors) {
+                        runOnUiThread {
+                            Toast.makeText(this@AccountActivity, "error: ${it.error}", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Log.d(TAG, "signed in!")
+                        runOnUiThread {
+                            onSignIn()
+                        }
                     }
                 }
             }
@@ -119,14 +117,6 @@ class AccountActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    fun blockstackSession(): BlockstackSession {
-        val session = _blockstackSession
-        if (session != null) {
-            return session
-        } else {
-            throw IllegalStateException("No session.")
-        }
-    }
 }
 
 

@@ -1,13 +1,15 @@
 package org.blockstack.android.sdk.model
 
+import org.blockstack.android.sdk.getOrigin
 import org.blockstack.android.sdk.toBtcAddress
 import org.json.JSONObject
 import org.kethereum.bip32.generateChildKey
 import org.kethereum.bip32.model.ExtendedKey
-import org.kethereum.bip44.BIP44Element
 import org.kethereum.extensions.toHexStringNoPrefix
-import org.kethereum.hashes.Sha256
+import org.komputing.kbip44.BIP44Element
+import org.komputing.khash.sha256.Sha256
 import org.komputing.khex.extensions.toNoPrefixHexString
+import java.net.URI
 
 data class BlockstackAccount(val username: String?, val keys: ExtendedKey, val salt: String, val metaData: MetaData = MetaData()) {
 
@@ -44,12 +46,12 @@ data class AppNode(val keys: ExtendedKey) {
 data class AppsNode(val keys: ExtendedKey, val salt: String) {
 
     fun getAppNode(origin: String): AppNode {
-        val hash = Sha256.digest("$origin$salt".toByteArray()).toNoPrefixHexString()
+        val normalizedOrigin = URI(origin).getOrigin()
+        val hash = Sha256.digest("$normalizedOrigin$salt".toByteArray()).toNoPrefixHexString()
         val appIndex = hashCode(hash)
         return AppNode(keys.generateChildKey(BIP44Element(true, appIndex)))
     }
 }
-
 
 fun BlockstackAccount.toUserData(): UserData {
     val identityAddress = this.keys.keyPair.toBtcAddress()

@@ -21,7 +21,7 @@ class AppLinkVerifierTest {
 
     @Before
     fun setup() {
-        appLinkVerifier = AppLinkVerifier(rule.activity, "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(arrayOf()))
+        appLinkVerifier = AppLinkVerifier(rule.activity, "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(arrayOf()))
     }
 
     @Test
@@ -35,7 +35,7 @@ class AppLinkVerifierTest {
 
     @Test
     fun testValidFingerprints() {
-        val betaAppLinkVerifier = AppLinkVerifier(rule.activity, "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(arrayOf()))
+        val betaAppLinkVerifier = AppLinkVerifier(rule.activity, "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(arrayOf()))
         val warning = betaAppLinkVerifier.verify()
         assertThat(warning, isEmptyOrNullString())
     }

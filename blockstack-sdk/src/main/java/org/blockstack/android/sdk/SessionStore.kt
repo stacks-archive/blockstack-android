@@ -1,5 +1,6 @@
 package org.blockstack.android.sdk
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import org.blockstack.android.sdk.model.SessionData
@@ -32,7 +33,6 @@ class SessionStore(private val prefs: SharedPreferences) : ISessionStore {
     override var sessionData: SessionData
         get() = sessionDataObject
         set(value) {
-            Log.d(TAG, "set session data in store " + value.json.toString())
             sessionDataObject = value
             prefs.edit().putString(BLOCKSTACK_SESSION, value.json.toString()).apply()
         }
@@ -46,5 +46,7 @@ class SessionStore(private val prefs: SharedPreferences) : ISessionStore {
         sessionDataObject.json.put("userData", userData.json)
         prefs.edit().putString(BLOCKSTACK_SESSION, sessionDataObject.json.toString()).apply()
     }
-
 }
+
+fun Context.getBlockstackSharedPreferences(): SharedPreferences =
+        getSharedPreferences("${packageName}_blockstack_prefs", Context.MODE_PRIVATE)

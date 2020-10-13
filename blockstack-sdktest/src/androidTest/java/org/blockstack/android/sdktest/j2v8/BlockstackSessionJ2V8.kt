@@ -20,7 +20,6 @@ import okhttp3.*
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 import java.net.URL
 import java.security.InvalidParameterException
@@ -47,15 +46,15 @@ private val DEFAULT_BETA_BLOCKSTACK_HOST: String = "https://beta.browser.blockst
  * @param betaMode flag indicating whether the beta version of the hosted blockstack browser should be used. Defaults to false.
  */
 class BlockstackSessionJ2V8(context: Context? = null, private val config: BlockstackConfig,
-                        /**
-                         * url of the name lookup service, defaults to core.blockstack.org/v1/names
-                         */
-                        val nameLookupUrl: String = "https://core.blockstack.org/v1/names/",
-                        private val sessionStore: ISessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context)),
-                        private val executor: Executor = AndroidExecutor(context!!),
-                        scriptRepo: ScriptRepo = if (context != null) AndroidScriptRepo(context) else throw InvalidParameterException("context or scriptRepo required"),
-                        private val betaMode: Boolean = false,
-                        private val callFactory: Call.Factory = OkHttpClient()
+                            /**
+                             * url of the name lookup service, defaults to core.blockstack.org/v1/names
+                             */
+                            val nameLookupUrl: String = "https://core.blockstack.org/v1/names/",
+                            private val sessionStore: ISessionStore = SessionStore(PreferenceManager.getDefaultSharedPreferences(context)),
+                            private val executor: Executor = AndroidExecutor(context!!),
+                            scriptRepo: ScriptRepo = if (context != null) AndroidScriptRepo(context) else throw InvalidParameterException("context or scriptRepo required"),
+                            private val betaMode: Boolean = false,
+                            private val callFactory: Call.Factory = OkHttpClient()
 ) {
 
     private val TAG = BlockstackSessionJ2V8::class.simpleName
@@ -247,10 +246,10 @@ class BlockstackSessionJ2V8(context: Context? = null, private val config: Blocks
         }
         val v8params = V8Array(v8)
                 .push(transitPrivateKey)
-                .push("${config.appDomain}${config.redirectPath}")
-                .push("${config.appDomain}${config.manifestPath}")
+                .push("${config.appDomain.getOrigin()}${config.redirectPath}")
+                .push("${config.appDomain.getOrigin()}${config.manifestPath}")
                 .push(Scope.scopesArrayToJSONString(config.scopes))
-                .push(config.appDomain.toString())
+                .push(config.appDomain.getOrigin())
                 .push(expiresAt)
                 .push(v8ExtraParams)
         val result = v8userSession.executeStringFunction("makeAuthRequest", v8params)
@@ -1124,11 +1123,11 @@ interface ScriptRepo {
  * @param context can also be the application context
  */
 class AndroidScriptRepo(private val context: Context) : ScriptRepo {
-    override fun globals() = context.resources.openRawResource(R.raw.org_blockstack_globals).bufferedReader().use { it.readText() }
-    override fun blockstack() = context.resources.openRawResource(R.raw.org_blockstack_blockstack).bufferedReader().use { it.readText() }
-    override fun base64() = context.resources.openRawResource(R.raw.org_blockstack_base64).bufferedReader().use { it.readText() }
-    override fun zoneFile() = context.resources.openRawResource(R.raw.org_blockstack_zone_file).bufferedReader().use { it.readText() }
-    override fun blockstackAndroid() = context.resources.openRawResource(R.raw.org_blockstack_blockstack_android).bufferedReader().use { it.readText() }
+    override fun globals() = context.resources.openRawResource(org.blockstack.android.sdktest.R.raw.org_blockstack_globals).bufferedReader().use { it.readText() }
+    override fun blockstack() = context.resources.openRawResource(org.blockstack.android.sdktest.R.raw.org_blockstack_blockstack).bufferedReader().use { it.readText() }
+    override fun base64() = context.resources.openRawResource(org.blockstack.android.sdktest.R.raw.org_blockstack_base64).bufferedReader().use { it.readText() }
+    override fun zoneFile() = context.resources.openRawResource(org.blockstack.android.sdktest.R.raw.org_blockstack_zone_file).bufferedReader().use { it.readText() }
+    override fun blockstackAndroid() = context.resources.openRawResource(org.blockstack.android.sdktest.R.raw.org_blockstack_blockstack_android).bufferedReader().use { it.readText() }
 }
 
 private fun Response.toJSONString(): String {
@@ -1136,7 +1135,7 @@ private fun Response.toJSONString(): String {
     headers().names().forEach { headersJson.put(it.toLowerCase(), header(it)) }
     val bodyEncoded: Boolean
     val bodyJson: String
-    if (headersJson.optString("content-type")?.contentEquals("application/octet-stream") == true) {
+    if (headersJson.optString("content-type").contentEquals("application/octet-stream") == true) {
         bodyEncoded = true
         val bytes = body()?.bytes()
         if (bytes != null) {

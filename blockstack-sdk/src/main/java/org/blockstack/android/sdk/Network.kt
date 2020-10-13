@@ -12,8 +12,8 @@ import org.blockstack.android.sdk.model.network.NameInfo
 import org.blockstack.android.sdk.model.network.NamespaceInfo
 import org.json.JSONArray
 import org.json.JSONObject
-import org.kethereum.hashes.Sha256
-import org.kethereum.hashes.ripemd160
+import org.komputing.khash.ripemd160.extensions.digestRipemd160
+import org.komputing.khash.sha256.Sha256
 import org.komputing.khex.extensions.toNoPrefixHexString
 import java.math.BigInteger
 
@@ -205,7 +205,7 @@ class Network(private val blockstackAPIUrl: String,
             val body = resp.body()!!.string()
 
             val sha256 = Sha256.digest(body.toByteArray())
-            val h = sha256.ripemd160().toNoPrefixHexString()
+            val h = sha256.digestRipemd160().toNoPrefixHexString()
             if (h != zonefileHash) {
                 return Result(null, ResultError(ErrorCode.UnknownError, "Zone file contents hash to ${h}, not ${zonefileHash}"))
             }
@@ -259,8 +259,8 @@ class Network(private val blockstackAPIUrl: String,
 
         val historyList = if (resp.code() == 404) {
             throw  Error("Account not found")
-        } else if (resp.code() != 200) {
-            throw  Error("Bad response status: ${resp.code()}")
+        } else if (!resp.isSuccessful()) {
+            return Result(null, ResultError(ErrorCode.NetworkError, "Unable to get account history page: ${resp.code()}", resp.code().toString()))
         } else {
             val jsonString = resp.body()!!.string()
             if (jsonString.startsWith("{")) {
@@ -305,7 +305,7 @@ class Network(private val blockstackAPIUrl: String,
                     msg = "$msg - ${errorObject.getString("error")}"
                 }
             }
-            return Result(null, ResultError(ErrorCode.UnknownError, msg))
+            return Result(null, ResultError(ErrorCode.NetworkError, msg, resp.code().toString()))
         } else {
             val jsonString = resp.body()!!.string()
             if (jsonString.startsWith("{")) {
@@ -368,7 +368,14 @@ class Network(private val blockstackAPIUrl: String,
      */
     suspend fun getAccountBalance(address: String, tokenType: String): Result<BigInteger> {
         val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/${tokenType}/balance")
-        return resp.resumeWithJsonObject { it ->
+        if (!resp.isSuccessful) {
+            return resp.resumeWithJsonObject {
+                val error = it.exceptionOrNull()
+                Result(null, ResultError(ErrorCode.NetworkError, "failed to fetch account balance for ${address}/${tokenType}: ${error?.message
+                        ?: "Invalid request"}", resp.code().toString()))
+            }
+        }
+        return resp.resumeWithJsonObject {
             val tokenBalance = it.getOrNull()
             if (tokenBalance != null) {
                 val balance = tokenBalance.optString("balance") ?: "0"

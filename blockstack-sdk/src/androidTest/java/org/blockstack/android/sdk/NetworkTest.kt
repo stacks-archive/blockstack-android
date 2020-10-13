@@ -38,7 +38,7 @@ class NetworkTest {
     fun setup() {
         network = Network("https://core.blockstack.org")
         session = BlockstackSession(
-                appConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
+                appConfig = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStoreforIntegrationTests(rule), blockstack = Blockstack())
     }
 
@@ -340,7 +340,7 @@ class NetworkTest {
 
         Log.d("networktest", " " + result.error)
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("request failed: Invalid address"))
+        assertThat(result.error?.message, `is`("failed to fetch account balance for 1234567890/STACKS: request failed: Invalid address"))
     }
 
     @Test
@@ -351,7 +351,7 @@ class NetworkTest {
         }
 
         assertThat(result.hasValue, `is`(false))
-        assertThat(result.error?.message, `is`("request failed: Invalid token type"))
+        assertThat(result.error?.message, `is`("failed to fetch account balance for 1Akc4hagxfYfDq9suMp1wjjyC5RwxJ7D3H/BTC: request failed: Invalid token type"))
     }
 
     private suspend fun letCoreNodeAPIrecover() {

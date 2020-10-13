@@ -20,8 +20,8 @@ import org.kethereum.bip32.model.ExtendedKey
 import org.kethereum.bip32.toKey
 import org.kethereum.bip39.model.MnemonicWords
 import org.kethereum.bip39.toSeed
-import org.kethereum.bip44.BIP44Element
 import org.kethereum.extensions.toHexStringNoPrefix
+import org.komputing.kbip44.BIP44Element
 import java.security.InvalidParameterException
 import java.util.*
 
@@ -36,6 +36,7 @@ class BlockstackSignInTest {
     private lateinit var blockstack: Blockstack
     private lateinit var appConfig: BlockstackConfig
     private lateinit var keys: ExtendedKey
+
     @get:Rule
     val rule = ActivityTestRule(TestActivity::class.java)
 
@@ -46,7 +47,7 @@ class BlockstackSignInTest {
 
     @Before
     fun setup() {
-        config = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray())
+        config = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray())
         sessionStore = sessionStoreforIntegrationTests(rule)
         signIn = BlockstackSignIn(
                 sessionStore, config)
@@ -56,7 +57,7 @@ class BlockstackSignInTest {
         identity = BlockstackIdentity(words.toSeed().toKey("m/888'/0'"))
         keys = identity.identityKeys.generateChildKey(BIP44Element(true, 0))
         val privateKey = keys.keyPair.privateKey.key.toHexStringNoPrefix()
-        appConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray())
+        appConfig = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray())
         blockstack = Blockstack()
         session = BlockstackSession(sessionStore, callFactory = callFactory, appConfig = appConfig, blockstack = blockstack)
     }
@@ -87,6 +88,17 @@ class BlockstackSignInTest {
     }
 
     @Test
+    fun testAppsNodeWithTrailingSlash() {
+        val account = BlockstackAccount(null, keys, identity.salt)
+        val appsNode = account.getAppsNode()
+
+        val origin = "https://amazing.app:443/"
+        val appNode = appsNode.getAppNode(origin)
+        val expectedAppNodeAddress = "1A9NEhnXq5jDp9BRT4DrwadRP5jbBK896X"
+        assertThat(appNode.toBtcAddress(), CoreMatchers.`is`(expectedAppNodeAddress))
+    }
+
+    @Test
     fun generateAndStoreTransitKeyReturnsTheCorrectKey() {
         val key = signIn.generateAndStoreTransitKey()
         val storedKey = sessionStore.sessionData.json.getString("transitKey")
@@ -99,14 +111,14 @@ class BlockstackSignInTest {
     fun makeAuthRequestReturnsValidRequestToken() {
         val key = signIn.generateAndStoreTransitKey()
         val authRequest = runBlocking {
-            signIn.makeAuthRequest(key, Date(System.currentTimeMillis() + 3600000).time, mapOf("solicitGaiaHubUrl" to true))
+            signIn.makeAuthRequest(key, Date(System.currentTimeMillis() + 3600000).time, false, mapOf("solicitGaiaHubUrl" to true))
         }
         assertThat(authRequest, Matchers.startsWith("ey"))
 
         val token = Blockstack().decodeToken(authRequest)
         val payload = token.second
         assertThat(payload, `is`(notNullValue()))
-        assertThat(payload.optString("domain_name"), `is`(config.appDomain.toString()))
+        assertThat(payload.optString("domain_name"), `is`(config.appDomain.getOrigin()))
         assertThat(payload.optBoolean("solicitGaiaHubUrl"), `is`(true))
     }
 
@@ -115,7 +127,7 @@ class BlockstackSignInTest {
     fun testMakeAuthResponse2HandlePendingLogin2() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
@@ -130,15 +142,15 @@ class BlockstackSignInTest {
         }
 
         assertThat(result?.json?.getString("decentralizedID"), CoreMatchers.`is`("did:btc-addr:1JeTQ5cQjsD57YGcsVFhwT7iuQUXJR6BSk"))
-        assertThat(result?.json?.getString("appPrivateKey"), CoreMatchers.`is`("a8025a881da1074b012995beef7e7ccb42fea2ec66e62367c8d73734033ee33b"))
+        assertThat(result?.json?.getString("appPrivateKey"), CoreMatchers.`is`("6b52c9c23cb75d5e420441929a473fa49772575520f583e3e03d2919ac663a3a"))
     }
 
 
     @Test
-    fun testVerifyAuthResponse() {
+    fun testVerifyAuthRequest() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
 
         val result = runBlocking {
@@ -152,7 +164,7 @@ class BlockstackSignInTest {
     fun testVerifyAuthResponseWithoutUsername() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
@@ -169,7 +181,7 @@ class BlockstackSignInTest {
     fun testVerifyAuthResponseWithUsername() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount("public_profile_for_testing.id.blockstack", keys, identity.salt)
@@ -185,7 +197,7 @@ class BlockstackSignInTest {
     fun testVerifyAuthResponseWithWrongUsernameWithImage() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount("friedger.id", keys, identity.salt)
@@ -202,7 +214,7 @@ class BlockstackSignInTest {
     fun testVerifyAuthResponseWithWrongUsername() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         runBlocking {
             val account = BlockstackAccount("invalid$$.id.blockstack", keys, identity.salt)
@@ -219,7 +231,7 @@ class BlockstackSignInTest {
     fun testVerifyAuthUnencryptedAuthResponse() {
         val authResponse = runBlocking {
             val account = BlockstackAccount("public_profile_for_testing.id.blockstack", keys, identity.salt)
-            blockstack.makeAuthResponseUnencrypted(account, "https://flamboyant-darwin-d11c17.netlify.com", emptyArray())
+            blockstack.makeAuthResponseUnencrypted(account, "https://flamboyant-darwin-d11c17.netlify.app", emptyArray())
         }
         assertThat(authResponse, CoreMatchers.`is`(CoreMatchers.notNullValue()))
         val result = runBlocking {

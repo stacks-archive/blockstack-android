@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unrelease
+### Added
+- additional parameters `sendToSignIn`, `appDetails` for `BlockstackSignIn`
+- `Context.getBlockstackSharedPreferences` to be used for `SessionStore`
+- `ConnectActivty` and `ConnectHowItWorksActivity` to show user on-boarding
+- `BlockstackConnect` for simplified integration
+### Changed
+- use app.blockstack.org (connect) instead of browser.blockstack.org for sign in.
+ 
 ## [0.5.0] - 2019-10-12
 
 ### Added

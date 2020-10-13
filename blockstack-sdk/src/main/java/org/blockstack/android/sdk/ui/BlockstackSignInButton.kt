@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.util.AttributeSet
 import android.util.TypedValue
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -105,6 +104,7 @@ class BlockstackSignInButton : AppCompatButton {
         setButtonBackground()
     }
 
+
     /**
      * Set the text size to standard as mentioned in guidelines.
      */
@@ -117,9 +117,6 @@ class BlockstackSignInButton : AppCompatButton {
      * The selector handles the background color when button is clicked.
      */
     private fun setButtonBackground() {
-        setCompoundDrawablesWithIntrinsicBounds(
-                AppCompatResources.getDrawable(context, R.drawable.org_blockstack_logo), null, null, null)
-
         if (mBackgroundTint == null) {
             mBackgroundTint = ContextCompat.getColorStateList(context, R.color.org_blockstack_tint)
         }

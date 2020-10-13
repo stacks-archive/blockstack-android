@@ -25,8 +25,8 @@ import org.kethereum.bip32.model.ExtendedKey
 import org.kethereum.bip32.toKey
 import org.kethereum.bip39.model.MnemonicWords
 import org.kethereum.bip39.toSeed
-import org.kethereum.bip44.BIP44Element
 import org.kethereum.extensions.toHexStringNoPrefix
+import org.komputing.kbip44.BIP44Element
 import java.util.*
 import java.util.concurrent.CountDownLatch
 
@@ -62,7 +62,7 @@ class BlockstackSession2AuthTest {
         keys = identity.identityKeys.generateChildKey(BIP44Element(true, 0))
         privateKey = keys.keyPair.privateKey.key.toHexStringNoPrefix()
 
-        appConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray())
+        appConfig = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray())
         sessionJ2V8 = BlockstackSessionJ2V8(rule.activity,
                 appConfig,
                 sessionStore = sessionStore,
@@ -87,7 +87,7 @@ class BlockstackSession2AuthTest {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequestJ2V8 = sessionJ2V8.makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         val token = JWTTools().decodeRaw(authRequestJ2V8)
         val token2 = JWTTools().decodeRaw(authRequest)
@@ -99,7 +99,7 @@ class BlockstackSession2AuthTest {
     fun testMakeAuthResponseThenHandlePendingLoginJ2V8() {
         val expiresAt = Date().time + 3600 * 24 * 7
         val authRequest = runBlocking {
-            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, emptyMap())
+            BlockstackSignIn(sessionStore, appConfig).makeAuthRequest(TRANSIT_PRIVATE_KEY, expiresAt, false, emptyMap())
         }
         val authResponse = runBlocking {
             val account = BlockstackAccount(null, keys, identity.salt)
@@ -118,22 +118,22 @@ class BlockstackSession2AuthTest {
         }
         latch.await()
         assertThat(result?.json?.getString("decentralizedID"), `is`("did:btc-addr:$BTC_ADDRESS"))
-        assertThat(result?.json?.getString("appPrivateKey"), `is`("a8025a881da1074b012995beef7e7ccb42fea2ec66e62367c8d73734033ee33b"))
+        assertThat(result?.json?.getString("appPrivateKey"), `is`("6b52c9c23cb75d5e420441929a473fa49772575520f583e3e03d2919ac663a3a"))
         assertThat(result?.json?.getJSONObject("profile")?.toString(), `is`("{}"))
     }
 
     @Test
     fun makeAuthResponseJ2V8ThenHandleAuthResponse() {
         // generated using the Seed Words from BlockstackSignInTest and helloblockstack.com
-        val authResponseJ2V8 = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJqdGkiOiI3MjMyZTFjOC00ZDBjLTRmNzYtOTZlZi0wOGExZGM0MDk4ODkiLCJpYXQiOjE1NzU1NTIxOTYsImV4cCI6MTU3ODIzMDU5NiwiaXNzIjoiZGlkOmJ0Yy1hZGRyOjFKZVRRNWNRanNENTdZR2NzVkZod1Q3aXVRVVhKUjZCU2siLCJwcml2YXRlX2tleSI6IjdiMjI2OTc2MjIzYTIyNjEzMzYyMzI2MzYzMzMzOTM5MzI2NDM3MzUzNjMxMzk2NTYyNjEzMzYyMzU2NjM4Mzk2NjYyNjI2MjMzMzQzMjIyMmMyMjY1NzA2ODY1NmQ2NTcyNjE2YzUwNGIyMjNhMjIzMDMzNjQzNDM4NjIzMTYzNjIzMTM5MzYzNjM0MzQ2MTYyMzQzMjM0MzYzNjYzNjMzMDM5MzIzOTYxNjE2MzM4MzQzODMxMzE2MzM5Mzg2NjY2NjY2MzY1NjQ2NDM2NjQ2NTYxNjEzMjY0NjIzODM5NjEzODYxNjM2NjYyNjQzMTYxMzQyMjJjMjI2MzY5NzA2ODY1NzI1NDY1Nzg3NDIyM2EyMjMzNjQ2NjY2MzIzNzM0NjEzNzM2MzEzOTM5NjIzODY1MzIzMzYxNjQ2NDM2NjYzMjM0MzA2NjY0Mzc2MjM2MzkzODM4MzA2NTM5MzMzMzMyMzEzNDM2MzgzNjY1NjYzNTY0NjQzNDM4MzI2NTM2NjQ2MjMyNjEzMzMwNjYzOTM5NjY2NDM3MzAzMDYyNjQzMTMxNjEzNDM5NjUzNTM3NjQzNDMwMzEzMzYxNjI2NDMxMzMzOTY1MzczOTMwNjMzMzMwMzI2MTY1NjMzMDMyMzkzMzM1Mzk2MTY1MzAzMzYzMzM2MTMxMzAzNTYyMzYzNDYzMzAzNzMxNjIzODY2MzkzODMzNjMzNTYzMzkzNzM0MzE2MzYyMzAzODM3NjEzODMyMzc2MTYzNjEzMjM5NjI2NDYzNjEzNzY0NjMzNDM2MjIyYzIyNmQ2MTYzMjIzYTIyMzMzODMwNjEzMzY1Mzc2MTM0NjE2NjM0MzgzODM2MzU2MzM1MzQzNjMyNjQzMDYxNjQ2MjM5Mzg2MTM3NjE2NTYxMzY2NjYxNjEzMzYxMzczNDMzNjEzOTM1MzM2NjMzNjU2NTY1MzU2NDM1NjU2NTYyNjUzMDMzNjYzMzMxMzIyMjJjMjI3NzYxNzM1Mzc0NzI2OTZlNjcyMjNhNzQ3Mjc1NjU3ZCIsInB1YmxpY19rZXlzIjpbIjAzZTkzYWU2NWQ2Njc1MDYxYTE2N2MzNGI4MzIxYmVmODc1OTQ0NjhlOWIyZGQxOWMwNWE2N2E3YjRjYWVmYTAxNyJdLCJwcm9maWxlIjpudWxsLCJ1c2VybmFtZSI6InB1YmxpY19wcm9maWxlX2Zvcl90ZXN0aW5nLmlkLmJsb2Nrc3RhY2siLCJjb3JlX3Rva2VuIjpudWxsLCJlbWFpbCI6bnVsbCwicHJvZmlsZV91cmwiOiJodHRwczovL2dhaWEuYmxvY2tzdGFjay5vcmcvaHViLzFKZVRRNWNRanNENTdZR2NzVkZod1Q3aXVRVVhKUjZCU2svcHJvZmlsZS5qc29uIiwiaHViVXJsIjoiaHR0cHM6Ly9odWIuYmxvY2tzdGFjay5vcmciLCJibG9ja3N0YWNrQVBJVXJsIjoiaHR0cHM6Ly9jb3JlLmJsb2Nrc3RhY2sub3JnIiwiYXNzb2NpYXRpb25Ub2tlbiI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSkZVekkxTmtzaWZRLmV5SmphR2xzWkZSdlFYTnpiMk5wWVhSbElqb2lNRE13TkRNNE9USmlaVEkxTUdVeE1HSTNZakl4WXprNE9UWTVObVJrTkdJM05ESmhabVk1WmpOaE5EbGtaVEJtTjJNeVl6YzNPRGM1TVdNNVpURTJZMk5rSWl3aWFYTnpJam9pTURObE9UTmhaVFkxWkRZMk56VXdOakZoTVRZM1l6TTBZamd6TWpGaVpXWTROelU1TkRRMk9HVTVZakprWkRFNVl6QTFZVFkzWVRkaU5HTmhaV1poTURFM0lpd2laWGh3SWpveE5qQTNNRGc0TVRrMkxqQTRNU3dpYVdGMElqb3hOVGMxTlRVeU1UazJMakE0TVN3aWMyRnNkQ0k2SWpZek56TTVaR1ppWkRWaE5qa3laR0l3WlRrNU56aGxOems0WVRVeVlqazBJbjAuVHM2ZjY3Yl8za2pyYnVkY3QxV3N2Z3VGNWlUZmxjZTlCOFQ5OFNvVVlRSkxKQnFmQUw1a1hvajJuUjFhNmVLeFpwQ2N4a0QtMlBsTGtiVVZUUDMtNUEiLCJ2ZXJzaW9uIjoiMS4zLjEifQ.SHxzMMYX14D_pmHP_RvGvvpkyPDXgJR8kkSnjLJI-wo3vB__5zV784mWwVT7Dh9Ee6jnJ7-qLnz-vmjmpP5gYQ"
+        val authResponseJ2V8 = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJqdGkiOiIyMDQyYjg0NS02ZTI3LTQzMzEtYWUxZi04ODM2ODA5NjU4NGUiLCJpYXQiOjE2MDEyOTEzMzcsImV4cCI6MTYwMTI5MzkyOSwicHJpdmF0ZV9rZXkiOiI3YjIyNjk3NjIyM2EyMjY2MzgzODM2MzUzMDY1NjYzMjM2MzEzMTY2MzUzNDMyNjU2NjM2MzE2NDYzNjEzNTY1MzEzNTM4NjUzMTM0MzEyMjJjMjI2NTcwNjg2NTZkNjU3MjYxNmM1MDRiMjIzYTIyMzAzMzYxMzk2NTM2NjMzODY1MzIzNDM3MzU2MTMwMzU2MTY2NjU2NjM2MzUzOTMyMzAzOTY1Mzg2MTM0Mzk2NDYzMzEzNTMyNjQ2MzM1NjIzNzMwNjE2MTM1MzEzNTM3MzMzNzMyMzAzNTMzMzIzMTMzMzQzMDMwNjY2NDM1MzUzNTM2MjIyYzIyNjM2OTcwNjg2NTcyNTQ2NTc4NzQyMjNhMjI2MzMwNjEzNjMwNjEzMTMwMzczMjY1NjQ2NTYyNjIzNjMxMzc2NTM1MzE2MjM1NjY2NTYzMzczODY2MzkzODMyMzg2MzYzMzkzMzM2MzIzMTMwMzAzMDM1NjE2MzY2MzYzNTYzMzQzOTMwNjIzMTM0MzQzMzYyMzEzMjYxMzU2MTYyMzg2MjM2MzQzMjY1NjQzOTMxMzgzMjM3MzkzMTYzNjE2MTMxMzYzNTM5MzMzODY0MzA2MTYzNjU2MTYxMzE2MTYyMzkzMTY0NjI2MTM4Mzg2NjY0Mzc2NTMyNjUzMzYzNjY2NTM3MzYzMTY1NjQzMTMxNjI2NTMyMzczOTYxMzQ2NDM3NjM2NjY2NjQ2NTMzMzQ2MzM3MzkzNDM1MzE2MTM0MzczOTMzMzUzNjM5NjY2MzM5NjMzNDM4NjYzNDIyMmMyMjZkNjE2MzIyM2EyMjY0NjQ2MjYzMzgzODMzMzAzMTM0MzgzMjYyMzczMDYzMzAzNjYxNjM2MzM3MzgzMDM2NjQzNTM4MzIzMjY0NjU2MTMzMzQzMzM0MzIzMTMzMzQ2MzMwMzM2MjM1MzIzOTMyNjEzNDM3NjQ2MTM2MzM2NTMzNjMzMDM3MzczNDM5MjIyYzIyNzc2MTczNTM3NDcyNjk2ZTY3MjIzYTc0NzI3NTY1N2QiLCJwdWJsaWNfa2V5cyI6WyIwM2U5M2FlNjVkNjY3NTA2MWExNjdjMzRiODMyMWJlZjg3NTk0NDY4ZTliMmRkMTljMDVhNjdhN2I0Y2FlZmEwMTciXSwicHJvZmlsZSI6e30sInVzZXJuYW1lIjoiIiwiZW1haWwiOiIiLCJwcm9maWxlX3VybCI6bnVsbCwiaHViVXJsIjoiaHR0cHM6Ly9odWIuYmxvY2tzdGFjay5vcmciLCJibG9ja3N0YWNrQVBJVXJsIjoiaHR0cHM6Ly9jb3JlLmJsb2Nrc3RhY2sub3JnIiwiYXNzb2NpYXRpb25Ub2tlbiI6bnVsbCwidmVyc2lvbiI6IjEuMy4xIiwiaXNzIjoiZGlkOmJ0Yy1hZGRyOjFKZVRRNWNRanNENTdZR2NzVkZod1Q3aXVRVVhKUjZCU2sifQ.U3ixrAjOE8FEcW4xMw1ZqAdfdX_51CY8vfze5-cyiiFIJ1KNRXQ_SXV3NAyEqycDYdBir2JHFlvRFtYD-qIGYA"
         var result: UserData? = null
         runBlocking {
-            sessionStore.setTransitPrivateKey("6802f47449ba844d18c952cc5918b97146098f5709f7e8db89af889bb5a6ccf6")
+            sessionStore.setTransitPrivateKey("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
             val it = session.handlePendingSignIn(authResponseJ2V8)
             Log.d(TAG, it.error?.toString() + " " + it.value)
             result = it.value
         }
-        assertThat("token expired", blockstack.decodeToken(authResponseJ2V8).second.getLong("exp"), `is`(Matchers.greaterThan(Date().time / 1000)))
+        assertThat("token expired, recreate one for this test and update the transient private key", blockstack.decodeToken(authResponseJ2V8).second.getLong("exp"), `is`(Matchers.greaterThan(Date().time / 1000)))
         assertThat(result?.json?.getString("decentralizedID"), `is`("did:btc-addr:1JeTQ5cQjsD57YGcsVFhwT7iuQUXJR6BSk"))
         assertThat(result?.json?.getString("appPrivateKey"), `is`("d61fdcc94a70300b2caff490f95780410bb2f013375fc79cd01a338a82af0966"))
     }

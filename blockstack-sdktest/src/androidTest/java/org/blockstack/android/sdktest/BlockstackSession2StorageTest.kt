@@ -46,7 +46,7 @@ class BlockstackSession2StorageTest {
         val callFactory = OkHttpClient()
         hub = Hub(callFactory)
         sessionJ2V8 = BlockstackSessionJ2V8(rule.activity,
-                "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
+                "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStore,
                 executor = executor,
                 callFactory = callFactory)

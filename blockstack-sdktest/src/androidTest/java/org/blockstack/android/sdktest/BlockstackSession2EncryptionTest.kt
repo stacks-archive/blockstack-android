@@ -8,8 +8,8 @@ import org.blockstack.android.sdk.Blockstack
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.model.toBlockstackConfig
-import org.blockstack.android.sdktest.test.TestActivity
 import org.blockstack.android.sdktest.j2v8.BlockstackSessionJ2V8
+import org.blockstack.android.sdktest.test.TestActivity
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
@@ -38,7 +38,7 @@ class BlockstackSession2EncryptionTest {
         val executor = IntegrationTestExecutor(rule)
         val callFactory = OkHttpClient()
         sessionJ2V8 = BlockstackSessionJ2V8(rule.activity,
-                "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
+                "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStore,
                 executor = executor,
                 callFactory = callFactory)
@@ -64,7 +64,6 @@ class BlockstackSession2EncryptionTest {
         val plainText = blockstack.decryptContent(result.value!!.json.toString(), false, CryptoOptions(privateKey = PRIVATE_KEY))
         assertThat(plainText.value as String, `is`(message))
     }
-
 
 
     @Test

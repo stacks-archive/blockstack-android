@@ -4,4 +4,9 @@
         <attr name="android:text" />
         <attr name="backgroundTint" />
     </declare-styleable>
+
+    <attr name="blockstackMainButtonStyle" format="reference" />
+    <attr name="blockstackBottomButtonStyle" format="reference" />
+    <attr name="blockstackDivider" format="reference" />
+
 </resources>

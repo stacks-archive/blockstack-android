@@ -11,6 +11,7 @@ import org.blockstack.android.sdk.test.TestActivity
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
+import org.hamcrest.Matchers.greaterThanOrEqualTo
 import org.json.JSONObject
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -42,7 +43,7 @@ class BlockstackSessionStorageTest {
     fun setup() {
         blockstack = Blockstack()
         session = BlockstackSession(
-                appConfig = "https://flamboyant-darwin-d11c17.netlify.com".toBlockstackConfig(emptyArray()),
+                appConfig = "https://flamboyant-darwin-d11c17.netlify.app".toBlockstackConfig(emptyArray()),
                 sessionStore = sessionStoreforIntegrationTests(rule),
                 blockstack = blockstack)
         val gaiaHubConfig = runBlocking {
@@ -341,7 +342,8 @@ class BlockstackSessionStorageTest {
 
         }
 
-        assertThat(fileCount?.value, `is`(Matchers.greaterThanOrEqualTo(1)))
+
+        assertThat(fileCount?.value ?:-1, `is`(greaterThanOrEqualTo(1)))
     }
 
 

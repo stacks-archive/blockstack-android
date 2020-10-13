@@ -1,3 +1,20 @@
-<resources>
-    <string name="org_blockstack_login">Sign in with Blockstack</string>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="blockstack" translatable="false">Blockstack</string>
+    <string name="org_blockstack_login">Get your Secret Key</string>
+    <string name="org_blockstack_get_started" tools:ignore="MissingTranslation">Get Started</string>
+    <string name="connect_dialog_title" tools:ignore="MissingTranslation">%1$s guarantees your privacy by encrypting everything</string>
+    <string name="connect_dialog_restore" tools:ignore="MissingTranslation"> Sign in</string>
+    <string name="connect_dialog_help" tools:ignore="MissingTranslation">How it works</string>
+    <string name="title_activity_connect" tools:ignore="MissingTranslation">Blockstack Connect</string>
+    <string name="title_activity_connect_help" tools:ignore="MissingTranslation">How it works</string>
+    <string name="connect_help" tools:ignore="MissingTranslation"><big><b>The app keeps everything you do private with Blockstack\'s Secret Key technology</b></big>\nNormally, apps keep your data for them to use. When you have a Secret Key, you no longer have to trust the app with your data because the app won\'t have access.
+\n\n<b>What is Blockstack?</b>\nBlockstack is the open-source technology that generates your Secret Key. There\'s no company that owns or controls Blockstack, it is independent. Go to blockstack.org
+to learn more.
+\n\n<b>Encryption</b>\nEncryption is always on. It locks everything you do in the app into useless codes. Because of this, the app can\'t see or track your activity. Your data can only be unlocked with the key that you own. No one else has this key, not even the app, so no one else can unlock your data
+\n\n<b>What is a Secret Key?</b>\nYour Secret Key unlocks your data. It\'s created independently from the app to make sure that the app doesn\'t have it. An open-source protocol called Blockstack generates your Secret Key when you sign up. Nobody but you will have your Secret Key, to make sure that only you have access to your data.
+\n\n<b>When will I need my Secret Key?</b>\nYou\'ll need your Secret Key to prove it\'s you when you use the app on a new device, such as a new phone or laptop. After that, your Secret Key will stay active to keep you safe and private in the apps you use on that device.
+    </string>
+    <string name="connect_activity_encryption_desc" translatable="false">You\'ll get a Secret Key that automatically encrypts everything you do</string>
+    <string name="connect_activity_tracking_desc" translatable="false">%1$s won\'t be able to see, access, or track your activity</string>
+    <string name="powered_by" translatable="false">Powered By</string>
 </resources>
