@@ -459,7 +459,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      */
     suspend fun getUserAppFileUrl(path: String, username: String, appOrigin: String, zoneFileLookupURL: String?): String {
         val profile = lookupProfile(username, zoneFileLookupURL?.let { URL(it) })
-        var bucketUrl = "NO_URL"
+        var bucketUrl = NO_URL
         if (profile.json.has("apps")) {
             val apps = profile.json.getJSONObject("apps")
             if (apps.has(appOrigin)) {
@@ -588,6 +588,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
     }
 
     companion object {
+        const val NO_URL = "NO_URL"
         val TAG = Blockstack::class.java.simpleName
         fun verifyAuthResponse(authResponse: String): ResultError? {
             try {

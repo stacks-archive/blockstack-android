@@ -221,6 +221,9 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         Log.d(TAG, "getFile: path: $path options: $options")
         return withContext(Dispatchers.IO) {
             val urlResult = getFileUrl(path, options)
+            if (urlResult.hasErrors) {
+                return@withContext urlResult
+            }
             val getRequest = hub.buildGetRequest(urlResult.value!!)
 
             val exception = kotlin.runCatching {
@@ -477,17 +480,21 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun getFileUrl(path: String, options: GetFileOptions): Result<String> {
 
-        val readUrl: String
-        if (options.username != null) {
-            readUrl = blockstack.getUserAppFileUrl(path, options.username,
+        val readUrl: String = if (options.username != null) {
+            blockstack.getUserAppFileUrl(path, options.username,
                     options.app ?: appConfig!!.appDomain.getOrigin(),
                     options.zoneFileLookupURL?.toString())
+
         } else {
             val gaiaHubConfig = getOrSetLocalGaiaHubConnection()
-            readUrl = hub.getFullReadUrl(path, gaiaHubConfig)
+            hub.getFullReadUrl(path, gaiaHubConfig)
         }
 
-        return Result(readUrl)
+        return if (readUrl == Blockstack.NO_URL){
+            Result(value = null, error = ResultError(ErrorCode.MissingReadUrl, "${options.username} has not yet used the app"))
+        } else {
+            Result(readUrl)
+        }
     }
 
     suspend fun listFilesLoop(gaiaHubConfig: GaiaHubConfig? = null, callback: (Result<String>) -> Boolean, page: String?, callCount: Int, fileCount: Int): Int {

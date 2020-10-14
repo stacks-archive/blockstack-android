@@ -103,11 +103,19 @@ enum class ErrorCode(val code: String) {
     /**
      * User could not be redirected to sign in
      */
+
     RedirectFailed("redirect_failed_error"),
     /**
      * Network error
      */
     NetworkError("network_error"),
+
+    /**
+     * User does not provide a gaia bucket read url for shared data.
+     * Usually, this means that the user has not yet used the corresponding app.
+     */
+    MissingReadUrl("missing_read_url"),
+
     /**
      * Other error than the one above
      */
