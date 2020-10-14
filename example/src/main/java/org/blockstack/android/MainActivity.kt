@@ -14,7 +14,10 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
 import java.io.ByteArrayOutputStream
@@ -68,11 +71,11 @@ class MainActivity : AppCompatActivity() {
         getAppBucketUrlButton.isEnabled = false
         listFilesButton.isEnabled = false
 
+        BlockstackConnect
+                .config(config, sessionStore, appDetails)
 
         signInButton.setOnClickListener {
-                BlockstackConnect
-                    .config(config, sessionStore, appDetails)
-                    .connect(this@MainActivity)
+            BlockstackConnect.connect(this@MainActivity)
         }
 
         signInButtonWithGaia.setOnClickListener {
@@ -161,7 +164,7 @@ class MainActivity : AppCompatActivity() {
             val bitMapData = stream.toByteArray()
 
             val options = PutFileOptions(false)
-            lifecycleScope.launch(Dispatchers.Main) {
+            lifecycleScope.launch(Dispatchers.IO) {
                 val readURLResult = blockstackSession().putFile(imageFileName, bitMapData, options)
                 if (readURLResult.hasValue) {
                     val readURL = readURLResult.value!!
@@ -224,10 +227,13 @@ class MainActivity : AppCompatActivity() {
         getAppBucketUrlButton.setOnClickListener {
             getAppBucketUrlText.text = "Getting url ..."
             val userData = blockstackSession().loadUserData()
-            lifecycleScope.launch(Dispatchers.Main) {
-                getAppBucketUrlText.text =
-                        blockstack.getAppBucketUrl(userData.hubUrl, userData.appPrivateKey)
-                                ?: "error"
+            lifecycleScope.launch(Dispatchers.IO) {
+                val appBucketUrl = blockstack.getAppBucketUrl(userData.hubUrl, userData.appPrivateKey)
+                        ?: "error"
+                runOnUiThread {
+                    getAppBucketUrlText.text = appBucketUrl
+                }
+
             }
         }
 
@@ -246,13 +252,15 @@ class MainActivity : AppCompatActivity() {
 
         listFilesButton.setOnClickListener {
             listFilesText.text = "...."
-            lifecycleScope.launch(Dispatchers.Main) {
+            lifecycleScope.launch(Dispatchers.IO) {
                 val countResult = blockstackSession().listFiles { urlResult ->
-                    if (urlResult.hasValue) {
-                        if (listFilesText.text === "....") {
-                            listFilesText.text = urlResult.value
-                        } else {
-                            listFilesText.text = listFilesText.text.toString() + "\n" + urlResult.value
+                    runOnUiThread {
+                        if (urlResult.hasValue) {
+                            if (listFilesText.text === "....") {
+                                listFilesText.text = urlResult.value
+                            } else {
+                                listFilesText.text = listFilesText.text.toString() + "\n" + urlResult.value
+                            }
                         }
                     }
                     true
@@ -270,20 +278,22 @@ class MainActivity : AppCompatActivity() {
 
         getNameInfoButton.setOnClickListener { _ ->
             getNameInfoText.text = "Getting info ..."
-            lifecycleScope.launch(Dispatchers.Main) {
+            lifecycleScope.launch(Dispatchers.IO) {
                 val it = network.getNameInfo(username)
 
                 Log.d(TAG, it.value?.json.toString())
-                getNameInfoText.text = if (it.hasValue) {
-                    it.value?.json.toString()
-                } else {
-                    it.error?.message
+                runOnUiThread {
+                    getNameInfoText.text = if (it.hasValue) {
+                        it.value?.json.toString()
+                    } else {
+                        it.error?.message
+                    }
                 }
             }
         }
 
         if (intent?.action == Intent.ACTION_VIEW) {
-            lifecycleScope.launch(Dispatchers.Main) {
+            lifecycleScope.launch(Dispatchers.IO) {
                 val response = BlockstackConnect.handleAuthResponse(intent)
                 if (response.value != null) {
                     runOnUiThread {
