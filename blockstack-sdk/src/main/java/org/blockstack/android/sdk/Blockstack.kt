@@ -4,6 +4,7 @@ import android.util.Base64
 import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -44,7 +45,8 @@ import java.security.InvalidParameterException
 import java.text.SimpleDateFormat
 import java.util.*
 
-class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
+class Blockstack(private val callFactory: Call.Factory = OkHttpClient(),
+                 val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
 
     private var btcAddrResolver: BitAddrResolver
 
@@ -78,7 +80,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
         return makeAuthResponseToken(account, privateKeyPayload, scopes)
     }
 
-    private suspend fun makeAuthResponseToken(account: BlockstackAccount, privateKeyPayload: String?, scopes: Array<Scope>): String {
+    private suspend fun makeAuthResponseToken(account: BlockstackAccount, privateKeyPayload: String?, scopes: Array<Scope>): String = withContext(dispatcher) {
         val username = account.username
         val profile = if (username != null) {
             lookupProfile(username, null)
@@ -114,7 +116,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                 "did:btc-addr:${account.keys.keyPair.toBtcAddress()}"
 
         val jwt = JWTTools()
-        return jwt.createJWT(payload, issuerDID, signer, algorithm = JwtHeader.ES256K)
+        return@withContext jwt.createJWT(payload, issuerDID, signer, algorithm = JwtHeader.ES256K)
     }
 
     /**
@@ -126,16 +128,15 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      * blockstack.js [[getNameInfo]] function.
      * @returns {Promise} that resolves to a profile object
      */
-    suspend fun lookupProfile(username: String, zoneFileLookupURL: URL?): Profile {
+    suspend fun lookupProfile(username: String, zoneFileLookupURL: URL?): Profile = withContext(dispatcher){
 
         val request = buildLookupNameInfoRequest(username, zoneFileLookupURL?.toString())
-        val response = withContext(Dispatchers.IO) {
-            callFactory.newCall(request).execute()
-        }
+        val response = callFactory.newCall(request).execute()
+
         if (response.isSuccessful) {
             val nameInfo = JSONObject(response.body()!!.string())
             if (nameInfo.has("address") && nameInfo.has("zonefile")) {
-                return resolveZoneFileToProfile(nameInfo) ?: return Profile(JSONObject())
+                return@withContext resolveZoneFileToProfile(nameInfo) ?: return@withContext Profile(JSONObject())
 
             } else {
                 throw InvalidParameterException("name info does not contain address or zonefile property")
@@ -435,16 +436,16 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      * @param appPrivateKey (String) the app private key used to generate the app address
      * @result the URL of the app index file or null if it fails
      */
-    suspend fun getAppBucketUrl(gaiaHubUrl: String, privateKey: String): String? {
+    suspend fun getAppBucketUrl(gaiaHubUrl: String, privateKey: String): String? = withContext(dispatcher){
         val challengeSigner = PrivateKey(HexString(privateKey)).toECKeyPair()
         val response = fetchPrivate("${gaiaHubUrl}/hub_info")
         val responseJSON = response.json()
         if (responseJSON != null) {
             val readURL = responseJSON.getString("read_url_prefix")
             val address = challengeSigner.toBtcAddress()
-            return "${readURL}${address}/"
+            return@withContext "${readURL}${address}/"
         } else {
-            return null
+            return@withContext null
         }
     }
 
@@ -457,7 +458,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      *@param zoneFileLookupURL The URL to use for zonefile lookup. If false, this will use the blockstack.js's getNameInfo function instead.
      *@result the public read URL of the file or null on error
      */
-    suspend fun getUserAppFileUrl(path: String, username: String, appOrigin: String, zoneFileLookupURL: String?): String {
+    suspend fun getUserAppFileUrl(path: String, username: String, appOrigin: String, zoneFileLookupURL: String?): String = withContext(dispatcher){
         val profile = lookupProfile(username, zoneFileLookupURL?.let { URL(it) })
         var bucketUrl = "NO_URL"
         if (profile.json.has("apps")) {
@@ -468,16 +469,14 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                 bucketUrl = "${bucket}${path}"
             }
         }
-        return bucketUrl
+        return@withContext bucketUrl
     }
 
-    private suspend fun fetchPrivate(url: String): Response {
+    private suspend fun fetchPrivate(url: String): Response = withContext(dispatcher) {
         val request = Request.Builder().url(url)
                 .addHeader("Referrer-Policy", "no-referrer")
                 .build()
-        return withContext(Dispatchers.IO) {
-            callFactory.newCall(request).execute()
-        }
+        return@withContext callFactory.newCall(request).execute()
     }
 
     fun wrapProfileToken(token: String): ProfileTokenPair {
@@ -560,7 +559,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
      * @param expiresAt the time of expiration of the token, defaults to next year
      * @return the signed profile token
      */
-    suspend fun signProfileToken(profile: Profile, privateKey: String, subject: Entity, issuer: Entity, issuedAt: Date = Date(), expiresAt: Date = nextYear()): ProfileTokenPair {
+    suspend fun signProfileToken(profile: Profile, privateKey: String, subject: Entity, issuer: Entity, issuedAt: Date = Date(), expiresAt: Date = nextYear()): ProfileTokenPair = withContext(dispatcher) {
 
 
         val payload = mapOf(
@@ -584,7 +583,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
         val signature: String = jwtSigner.sign(signingInput, KPSigner(privateKey))
         val token = listOf(signingInput, signature).joinToString(".")
         Log.d(TAG, token)
-        return wrapProfileToken(token)
+        return@withContext wrapProfileToken(token)
     }
 
     companion object {
