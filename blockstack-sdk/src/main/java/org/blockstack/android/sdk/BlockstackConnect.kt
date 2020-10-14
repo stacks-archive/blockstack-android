@@ -5,10 +5,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.blockstack.android.sdk.model.BlockstackConfig
 import org.blockstack.android.sdk.model.UserData
 import org.blockstack.android.sdk.ui.BlockstackConnectActivity
@@ -20,11 +17,13 @@ object BlockstackConnect {
 
     private var blockstackSession: BlockstackSession? = null
     private var blockstackSignIn: BlockstackSignIn? = null
+    private var dispatcher: CoroutineDispatcher = Dispatchers.IO
 
     @JvmOverloads
-    fun config(blockstackConfig: BlockstackConfig, sessionStore: ISessionStore, appDetails: AppDetails? = null): BlockstackConnect {
+    fun config(blockstackConfig: BlockstackConfig, sessionStore: ISessionStore, appDetails: AppDetails? = null, dispatcher: CoroutineDispatcher = Dispatchers.IO): BlockstackConnect {
         blockstackSession = BlockstackSession(sessionStore, blockstackConfig)
         blockstackSignIn = BlockstackSignIn(sessionStore, blockstackConfig, appDetails)
+        this.dispatcher = dispatcher
         return this
     }
 
@@ -63,7 +62,7 @@ object BlockstackConnect {
             if (authResponseTokens.size > 1) {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "AuthResponse token: $authResponse")
-                withContext(Dispatchers.IO) {
+                withContext(dispatcher) {
                     val userDataResult = blockstackSession?.handlePendingSignIn(authResponse)
                             ?: errorResult
                     result = if (userDataResult.hasValue) {

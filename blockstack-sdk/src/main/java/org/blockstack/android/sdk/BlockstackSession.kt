@@ -3,6 +3,7 @@ package org.blockstack.android.sdk
 import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.uport.sdk.core.hexToByteArray
@@ -31,7 +32,8 @@ const val SIGNATURE_FILE_EXTENSION = ".sig"
 class BlockstackSession(private val sessionStore: ISessionStore, private val appConfig: BlockstackConfig? = null,
                         private val callFactory: Call.Factory = OkHttpClient(),
                         val blockstack: Blockstack = Blockstack(),
-                        val hub: Hub = Hub(callFactory)) {
+                        val hub: Hub = Hub(callFactory),
+                        val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
 
     private var appPrivateKey: String?
     var gaiaHubConfig: GaiaHubConfig? = null
@@ -127,7 +129,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     private suspend fun extractProfile(tokenPayload: JSONObject, nameLookupUrl: String): JSONObject {
         val profileUrl = tokenPayload.optStringOrNull("profile_url")
         if (profileUrl != null && profileUrl.isNotBlank()) {
-            return withContext(Dispatchers.IO) {
+            return withContext(dispatcher) {
                 val request = Request.Builder().url(profileUrl)
                         .build()
                 val response = callFactory.newCall(request).execute()
@@ -219,7 +221,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun getFile(path: String, options: GetFileOptions): Result<out Any> {
         Log.d(TAG, "getFile: path: $path options: $options")
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatcher) {
             val urlResult = getFileUrl(path, options)
             val getRequest = hub.buildGetRequest(urlResult.value!!)
 
@@ -307,12 +309,10 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     }
 
     suspend fun getGaiaAddress(appDomain: String, username: String): String {
-        val fileUrl = blockstack.getUserAppFileUrl("/", username, appDomain, null)
-        val address = Regex("([13][a-km-zA-HJ-NP-Z0-9]{26,35})").find(fileUrl)?.value
-        if (address != null) {
-            return address
-        } else {
-            return ""
+        return withContext(dispatcher) {
+            val fileUrl = blockstack.getUserAppFileUrl("/", username, appDomain, null)
+            val address = Regex("([13][a-km-zA-HJ-NP-Z0-9]{26,35})").find(fileUrl)?.value
+            return@withContext address ?: ""
         }
     }
 
@@ -327,7 +327,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      * @property a result object wiht a `String` representation of a url from
      * which you can read the file that was just put.
      */
-    suspend fun putFile(path: String, content: Any, options: PutFileOptions): Result<out String> {
+    suspend fun putFile(path: String, content: Any, options: PutFileOptions): Result<out String> = withContext(dispatcher){
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
         val gaiaHubConfiguration = getOrSetLocalGaiaHubConnection()
         val valid = content is String || content is ByteArray
@@ -372,7 +372,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
             }
         }
 
-        return withContext(Dispatchers.IO) {
+
             try {
                 val response = hub.uploadToGaiaHub(path, requestContent, gaiaHubConfiguration, contentType)
                 if (!response.isSuccessful) {
@@ -403,7 +403,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                         ?: e.toString()))
             }
 
-        }
+
     }
 
     private fun getSignKey(options: PutFileOptions): String {
@@ -434,21 +434,21 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     }
 
 
-    suspend fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions()): Result<out Unit> {
+    suspend fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions()): Result<out Unit> = withContext(dispatcher){
         try {
             val response = hub.deleteFromGaiaHub(path, options.gaiaHubConfig ?: gaiaHubConfig!!)
             if (response != null) {
                 if (response.isSuccessful) {
-                    return Result(Unit)
+                    return@withContext Result(Unit)
                 } else {
-                    return Result(null, ResultError(ErrorCode.NetworkError,
+                    return@withContext Result(null, ResultError(ErrorCode.NetworkError,
                             "failed to delete $path", response.code().toString()))
                 }
             } else {
-                return Result(null, ResultError(ErrorCode.UnknownError, "failed to delete $path"))
+                return@withContext Result(null, ResultError(ErrorCode.UnknownError, "failed to delete $path"))
             }
         } catch (e: Exception) {
-            return Result(null, ResultError(ErrorCode.UnknownError,
+            return@withContext Result(null, ResultError(ErrorCode.UnknownError,
                     "failed to delete $path: ${e.message ?: e.toString()}"))
         }
     }
@@ -496,7 +496,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         }
 
         val request = buildListFilesRequest(page, gaiaHubConfig ?: getHubConfig())
-        val response = withContext(Dispatchers.IO) {
+        val response = withContext(dispatcher) {
             callFactory.newCall(request).execute()
         }
         if (!response.isSuccessful) {

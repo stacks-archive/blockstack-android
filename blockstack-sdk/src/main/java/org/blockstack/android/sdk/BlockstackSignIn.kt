@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.uport.sdk.jwt.JWTTools
@@ -22,7 +23,10 @@ import java.util.*
 
 data class AppDetails(val name: String, val icon: String)
 
-class BlockstackSignIn(private val sessionStore: ISessionStore, private val appConfig: BlockstackConfig, private val appDetails: AppDetails? = null) {
+class BlockstackSignIn(private val sessionStore: ISessionStore,
+                       private val appConfig: BlockstackConfig,
+                       private val appDetails: AppDetails? = null,
+                       val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
 
 
     /**
@@ -38,8 +42,7 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
      * @param extraParams key, value pairs that are transferred with the auth request,
      * only Boolean and String values are supported
      */
-    suspend fun makeAuthRequest(transitPrivateKey: String, expiresAt: Long = Date().time + 3600 * 24 * 7, sendToSignIn: Boolean = false, extraParams: Map<String, Any>? = null): String {
-
+    suspend fun makeAuthRequest(transitPrivateKey: String, expiresAt: Long = Date().time + 3600 * 24 * 7, sendToSignIn: Boolean = false, extraParams: Map<String, Any>? = null): String = withContext(dispatcher) {
         val domainName = appConfig.appDomain.getOrigin()
         val manifestUrl = "${domainName}${appConfig.manifestPath}"
         val redirectUrl = "${domainName}${appConfig.redirectPath}"
@@ -68,7 +71,7 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
         if (extraParams != null) {
             payload.putAll(extraParams)
         }
-        return JWTTools().createJWT(payload, issuerDID, KPSigner(transitPrivateKey), algorithm = JwtHeader.ES256K)
+        return@withContext JWTTools().createJWT(payload, issuerDID, KPSigner(transitPrivateKey), algorithm = JwtHeader.ES256K)
     }
 
     suspend fun redirectUserToSignIn(context: Context, sendToSignIn: Boolean = false) {
@@ -87,13 +90,12 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
      * @param blockstackIDHost The ID of the Blockstack Browser application.
      *
      */
-    suspend fun redirectToSignInWithAuthRequest(context: Context, authRequest: String, blockstackIDHost: String? = null, sendToSignIn: Boolean = false) {
+    suspend fun redirectToSignInWithAuthRequest(context: Context, authRequest: String, blockstackIDHost: String? = null, sendToSignIn: Boolean = false) = withContext(Dispatchers.Main){
         val hostUrl = blockstackIDHost ?: DEFAULT_BLOCKSTACK_ID_HOST
         val path = if (sendToSignIn) "sign-in" else "sign-up"
         val httpsURI = "${hostUrl}/#/${path}?authRequest=${authRequest}"
         openUrl(context, httpsURI)
     }
-
     fun generateAndStoreTransitKey(): String {
         val keyPair = CryptoAPI.keyPairGenerator.generate()
         val transitPrivateKey = keyPair.privateKey.key.toHexStringNoPrefix()
@@ -103,27 +105,26 @@ class BlockstackSignIn(private val sessionStore: ISessionStore, private val appC
     }
 
 
-    suspend fun openUrl(context: Context, location: String) {
-        withContext(Dispatchers.Main) {
-            val locationUri = Uri.parse(location)
-            if (shouldLaunchInCustomTabs) {
-                val builder = CustomTabsIntent.Builder()
-                val options = BitmapFactory.Options()
-                options.outWidth = 24
-                options.outHeight = 24
-                options.inScaled = true
-                val backButton = BitmapFactory.decodeResource(context.resources, R.drawable.ic_arrow_back, options)
-                builder.setCloseButtonIcon(backButton)
-                builder.setToolbarColor(ContextCompat.getColor(context, R.color.org_blockstack_purple_50_logos_types))
-                builder.setToolbarColor(ContextCompat.getColor(context, R.color.org_blockstack_purple_85_lines))
-                builder.setShowTitle(true)
-                val customTabsIntent = builder.build()
-                customTabsIntent.launchUrl(context, locationUri)
-            } else {
-                context.startActivity(Intent(Intent.ACTION_VIEW, locationUri).addCategory(Intent.CATEGORY_BROWSABLE))
-            }
+    suspend fun openUrl(context: Context, location: String) = withContext(Dispatchers.Main) {
+        val locationUri = Uri.parse(location)
+        if (shouldLaunchInCustomTabs) {
+            val builder = CustomTabsIntent.Builder()
+            val options = BitmapFactory.Options()
+            options.outWidth = 24
+            options.outHeight = 24
+            options.inScaled = true
+            val backButton = BitmapFactory.decodeResource(context.resources, R.drawable.ic_arrow_back, options)
+            builder.setCloseButtonIcon(backButton)
+            builder.setToolbarColor(ContextCompat.getColor(context, R.color.org_blockstack_purple_50_logos_types))
+            builder.setToolbarColor(ContextCompat.getColor(context, R.color.org_blockstack_purple_85_lines))
+            builder.setShowTitle(true)
+            val customTabsIntent = builder.build()
+            customTabsIntent.launchUrl(context, locationUri)
+        } else {
+            context.startActivity(Intent(Intent.ACTION_VIEW, locationUri).addCategory(Intent.CATEGORY_BROWSABLE))
         }
     }
+
 
     companion object {
         val TAG = BlockstackSignIn::class.java.simpleName
