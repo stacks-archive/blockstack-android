@@ -21,8 +21,8 @@ object BlockstackConnect {
 
     @JvmOverloads
     fun config(blockstackConfig: BlockstackConfig, sessionStore: ISessionStore, appDetails: AppDetails? = null, dispatcher: CoroutineDispatcher = Dispatchers.IO): BlockstackConnect {
-        blockstackSession = BlockstackSession(sessionStore, blockstackConfig)
-        blockstackSignIn = BlockstackSignIn(sessionStore, blockstackConfig, appDetails)
+        blockstackSession = BlockstackSession(sessionStore, blockstackConfig, dispatcher = dispatcher)
+        blockstackSignIn = BlockstackSignIn(sessionStore, blockstackConfig, appDetails, dispatcher = dispatcher)
         this.dispatcher = dispatcher
         return this
     }

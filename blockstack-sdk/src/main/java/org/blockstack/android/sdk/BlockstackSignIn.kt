@@ -88,9 +88,11 @@ class BlockstackSignIn(private val sessionStore: ISessionStore,
      *
      * @param authRequest A request string built by the [[makeAuthRequest]] function
      * @param blockstackIDHost The ID of the Blockstack Browser application.
+     * @param sendToSignIn Whether the user should go straight to the 'sign in' flow (false) or be presented with the 'sign up' flow (true) instead.
+     * @param dispatcher Context for where to run the method, default is Dispatchers.Main
      *
      */
-    suspend fun redirectToSignInWithAuthRequest(context: Context, authRequest: String, blockstackIDHost: String? = null, sendToSignIn: Boolean = false) = withContext(Dispatchers.Main){
+    suspend fun redirectToSignInWithAuthRequest(context: Context, authRequest: String, blockstackIDHost: String? = null, sendToSignIn: Boolean = false, dispatcher: CoroutineDispatcher = Dispatchers.Main) = withContext(dispatcher){
         val hostUrl = blockstackIDHost ?: DEFAULT_BLOCKSTACK_ID_HOST
         val path = if (sendToSignIn) "sign-in" else "sign-up"
         val httpsURI = "${hostUrl}/#/${path}?authRequest=${authRequest}"
