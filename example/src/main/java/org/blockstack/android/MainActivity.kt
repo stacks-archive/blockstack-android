@@ -212,7 +212,7 @@ class MainActivity : AppCompatActivity() {
         getAppBucketUrlButton.setOnClickListener {
             getAppBucketUrlText.text = "Getting url ..."
             val userData = blockstackSession().loadUserData()
-            lifecycleScope.launch() {
+            lifecycleScope.launch {
                 getAppBucketUrlText.text =
                         blockstack.getAppBucketUrl(userData.hubUrl, userData.appPrivateKey)
                                 ?: "error"
@@ -223,7 +223,7 @@ class MainActivity : AppCompatActivity() {
         getUserAppFileUrlButton.setOnClickListener { _ ->
             getUserAppFileUrlText.text = "Getting url ..."
             val zoneFileLookupUrl = "https://core.blockstack.org/v1/names"
-            lifecycleScope.launch() {
+            lifecycleScope.launch {
                 val it = blockstack.getUserAppFileUrl(textFileName, username, "https://flamboyant-darwin-d11c17.netlify.app", zoneFileLookupUrl)
                     getUserAppFileUrlText.text = it
 
@@ -233,7 +233,7 @@ class MainActivity : AppCompatActivity() {
 
         listFilesButton.setOnClickListener {
             listFilesText.text = "...."
-            lifecycleScope.launch() {
+            lifecycleScope.launch {
                 val countResult = blockstackSession().listFiles { urlResult ->
                     if (urlResult.hasValue) {
                         if (listFilesText.text === "....") {
@@ -257,7 +257,7 @@ class MainActivity : AppCompatActivity() {
 
         getNameInfoButton.setOnClickListener { _ ->
             getNameInfoText.text = "Getting info ..."
-            lifecycleScope.launch() {
+            lifecycleScope.launch {
                 val it = network.getNameInfo(username)
 
                 Log.d(TAG, it.value?.json.toString())
@@ -270,7 +270,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (intent?.action == Intent.ACTION_VIEW) {
-            lifecycleScope.launch() {
+            lifecycleScope.launch {
                 handleAuthResponse(intent)
             }
         }
