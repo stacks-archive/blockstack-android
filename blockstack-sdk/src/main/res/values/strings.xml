@@ -1,4 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="blockstack" translatable="false">Blockstack</string>
     <string name="org_blockstack_login">Get your Secret Key</string>
     <string name="org_blockstack_get_started" tools:ignore="MissingTranslation">Get Started</string>
     <string name="connect_dialog_title" tools:ignore="MissingTranslation">%1$s guarantees your privacy by encrypting everything</string>

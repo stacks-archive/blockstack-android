@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:orientation="vertical">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -15,20 +13,19 @@
         <TextView
             android:id="@+id/textview_help"
             style="?textAppearanceBody1"
+            android:padding="16dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/connect_help" />
 
-
     </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.button.MaterialButton
-        style="?blockstackMainButtonStyle"
         android:id="@+id/button_get_started"
+        style="?blockstackMainButtonStyle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_height="56dp"
+        android:layout_marginHorizontal="16dp"
         android:text="@string/org_blockstack_get_started"
         android:textAllCaps="false" />
 
@@ -37,6 +34,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
+        android:padding="16dp"
         android:orientation="horizontal">
 
         <TextView
@@ -49,15 +47,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="4dp"
-            android:src="@drawable/org_blockstack_black_logo" />
+            android:src="@drawable/org_blockstack_black_logo"
+            android:importantForAccessibility="no"
+            />
 
         <TextView
             style="?textAppearanceSubtitle2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Blockstack"
+            android:text="@string/blockstack"
             tools:ignore="HardcodedText" />
 
     </LinearLayout>
-
 </LinearLayout>

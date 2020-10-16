@@ -14,8 +14,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="8dp"
-            android:paddingBottom="8dp">
+            android:paddingBottom="16dp">
 
             <LinearLayout
                 android:id="@+id/connect_icons"
@@ -43,7 +42,8 @@
                     android:layout_marginTop="8dp"
                     android:layout_marginRight="-8dp"
                     android:importantForAccessibility="no"
-                    android:src="@drawable/ic_link" />
+                    android:src="@drawable/ic_link"
+                    android:elevation="1dp"/>
 
                 <ImageView
                     android:id="@+id/connect_connect_icon"
@@ -83,19 +83,19 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:importantForAccessibility="no"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
+                android:paddingStart="24dp"
                 android:src="@drawable/ic_lock"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@id/connect_secret_key_desc_title"
-                app:tint="?colorPrimary" />
+                app:tint="?colorPrimary"
+                tools:ignore="RtlSymmetry"/>
 
             <TextView
                 android:id="@+id/connect_secret_key_desc_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:layout_marginRight="16dp"
+                android:layout_marginHorizontal="16dp"
                 android:gravity="top"
                 android:text="@string/connect_activity_encryption_desc"
                 android:textAppearance="?textAppearanceBody1"
@@ -117,19 +117,19 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:importantForAccessibility="no"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
+                android:paddingStart="24dp"
                 android:src="@drawable/ic_track"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@id/connect_tracking_desc_title"
-                app:tint="?colorPrimary" />
+                app:tint="?colorPrimary"
+                tools:ignore="RtlSymmetry"/>
 
             <TextView
                 android:id="@+id/connect_tracking_desc_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginHorizontal="16dp"
                 android:gravity="top"
                 android:text="@string/connect_activity_tracking_desc"
                 android:textAppearance="?textAppearanceBody1"
@@ -143,8 +143,8 @@
 
 
     <com.google.android.material.button.MaterialButton
-        style="?blockstackMainButtonStyle"
         android:id="@+id/connect_get_secret_key"
+        style="?blockstackMainButtonStyle"
         android:layout_height="56dp"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
@@ -156,9 +156,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
+
     <com.google.android.material.button.MaterialButton
-        style="?blockstackBottomButtonStyle"
         android:id="@+id/connect_sign_in"
+        style="?blockstackBottomButtonStyle"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:layout_weight="1"
@@ -167,8 +168,8 @@
         android:text="@string/connect_dialog_restore" />
 
     <com.google.android.material.button.MaterialButton
-        style="?blockstackBottomButtonStyle"
         android:id="@+id/connect_how_it_works"
+        style="?blockstackBottomButtonStyle"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:layout_weight="1"
@@ -177,5 +178,4 @@
         android:text="@string/connect_dialog_help" />
 
     </LinearLayout>
-
 </LinearLayout>
