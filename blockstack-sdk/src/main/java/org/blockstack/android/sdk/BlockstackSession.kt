@@ -52,14 +52,14 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      * @return result object with the user data after sign-in or with an error
      *
      */
-    suspend fun handlePendingSignIn(authResponse: String): Result<UserData> {
+    suspend fun handlePendingSignIn(authResponse: String): Result<out UserData> = withContext(dispatcher) {
         val transitKey = sessionStore.getTransitPrivateKey()
         val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "https://core.blockstack.org")
 
         val tokenTriple = try {
             blockstack.decodeToken(authResponse)
         } catch (e: IllegalArgumentException) {
-            return Result(null, ResultError(ErrorCode.LoginFailedError, "The authResponse parameter is an invalid base64 encoded token\n" +
+            return@withContext Result(null, ResultError(ErrorCode.LoginFailedError, "The authResponse parameter is an invalid base64 encoded token\n" +
                     "2 dots requires\n" +
                     "Auth response: $authResponse"))
         }
@@ -67,22 +67,22 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         val isValidToken = blockstack.verifyToken(authResponse)
 
         if (!isValidToken) {
-            return Result(null, ResultError(ErrorCode.LoginFailedError, "invalid auth response"))
+            return@withContext Result(null, ResultError(ErrorCode.LoginFailedError, "invalid auth response"))
         }
         val appPrivateKey = decrypt(tokenPayload.getString("private_key"), transitKey)
 
         if (appPrivateKey == null) {
-            return Result(null, ResultError(ErrorCode.LoginFailedError, "auth response used different transient key"))
+            return@withContext Result(null, ResultError(ErrorCode.LoginFailedError, "auth response used different transient key"))
         }
 
         val coreSessionToken = decrypt(tokenPayload.optString("core_token"), transitKey)
 
         val userData = authResponseToUserData(tokenPayload, nameLookupUrl, appPrivateKey, coreSessionToken, authResponse)
 
-        this.appPrivateKey = appPrivateKey
+        this@BlockstackSession.appPrivateKey  = appPrivateKey
         sessionStore.updateUserData(userData)
 
-        return Result(userData)
+        return@withContext Result(userData)
     }
 
     suspend fun handleUnencryptedSignIn(authResponse: String): Result<UserData> {

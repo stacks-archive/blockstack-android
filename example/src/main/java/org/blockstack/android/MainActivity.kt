@@ -70,7 +70,7 @@ class MainActivity : AppCompatActivity() {
 
 
         signInButton.setOnClickListener {
-                BlockstackConnect
+            BlockstackConnect
                     .config(config, sessionStore, appDetails)
                     .connect(this@MainActivity)
         }
@@ -131,9 +131,8 @@ class MainActivity : AppCompatActivity() {
                 if (readURLResult.hasValue) {
                     val readURL = readURLResult.value!!
                     Log.d(TAG, "File stored at: $readURL")
-                    runOnUiThread {
-                        readURLTextView.text = "File stored at: $readURL"
-                    }
+                    readURLTextView.text = "File stored at: $readURL"
+
                 } else {
                     Toast.makeText(this@MainActivity, "error: ${readURLResult.error}", Toast.LENGTH_SHORT).show()
                 }
@@ -158,9 +157,8 @@ class MainActivity : AppCompatActivity() {
                 if (readURLResult.hasValue) {
                     val readURL = readURLResult.value!!
                     Log.d(TAG, "File stored at: $readURL")
-                    runOnUiThread {
-                        imageFileTextView.text = "File stored at: $readURL"
-                    }
+                    imageFileTextView.text = "File stored at: $readURL"
+
                 } else {
                     Toast.makeText(this@MainActivity, "error: ${readURLResult.error}", Toast.LENGTH_SHORT).show()
                 }
@@ -176,9 +174,7 @@ class MainActivity : AppCompatActivity() {
                     val contents = contentsResult.value!!
                     val imageByteArray = contents as ByteArray
                     val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
-                    runOnUiThread {
-                        imageView.setImageBitmap(bitmap)
-                    }
+                    imageView.setImageBitmap(bitmap)
                 } else {
                     Toast.makeText(this@MainActivity, "error: ${contentsResult.error}", Toast.LENGTH_SHORT).show()
                 }
@@ -347,21 +343,17 @@ class MainActivity : AppCompatActivity() {
             if (authResponseTokens.size > 1) {
                 val authResponse = authResponseTokens[1]
                 Log.d(TAG, "authResponse: $authResponse")
-                withContext(Dispatchers.IO) {
-                    val userDataResult = blockstackSession().handlePendingSignIn(authResponse)
-                    if (userDataResult.hasValue) {
-                        val userData = userDataResult.value!!
-                        Log.d(TAG, "signed in!")
-                        runOnUiThread {
-                            onSignIn(userData)
-                        }
-                    } else {
-                        runOnUiThread {
-                            Toast.makeText(this@MainActivity, "error: ${userDataResult.error}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                val userDataResult = blockstackSession().handlePendingSignIn(authResponse)
+                if (userDataResult.hasValue) {
+                    val userData = userDataResult.value!!
+                    Log.d(TAG, "signed in!")
+                    onSignIn(userData)
+
+                } else {
+                    Toast.makeText(this@MainActivity, "error: ${userDataResult.error}", Toast.LENGTH_SHORT).show()
                 }
             }
+
         }
     }
 
