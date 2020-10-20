@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
 import kotlinx.coroutines.runBlocking
 import okio.ByteString
+import okio.ByteString.Companion.encode
 import org.blockstack.android.sdk.model.CryptoOptions
 import org.blockstack.android.sdk.model.GaiaHubConfig
 import org.blockstack.android.sdk.model.Hub
@@ -38,11 +39,11 @@ class HubTest {
 
         val response = runBlocking {
             val hubConfig = hub.connectToGaia("https://hub.blockstack.org", PRIVATE_KEY, null)
-            hub.uploadToGaiaHub("testGetFromGaiaHub.txt", ByteString.encodeString("message", Charsets.UTF_8), hubConfig)
+            hub.uploadToGaiaHub("testGetFromGaiaHub.txt", "message".encode(Charsets.UTF_8), hubConfig)
 
             hub.getFromGaiaHub(hub.getFullReadUrl("testGetFromGaiaHub.txt", hubConfig))
         }
-        assertThat(response.body()?.string(), `is`("message"))
+        assertThat(response.body?.string(), `is`("message"))
     }
 
 }

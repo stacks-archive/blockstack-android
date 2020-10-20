@@ -133,7 +133,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
             callFactory.newCall(request).execute()
         }
         if (response.isSuccessful) {
-            val nameInfo = JSONObject(response.body()!!.string())
+            val nameInfo = JSONObject(response.body!!.string())
             if (nameInfo.has("address") && nameInfo.has("zonefile")) {
                 return resolveZoneFileToProfile(nameInfo) ?: return Profile(JSONObject())
 
@@ -141,7 +141,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                 throw InvalidParameterException("name info does not contain address or zonefile property")
             }
         } else {
-            throw InvalidParameterException("could not fetch name info ${response.code()}")
+            throw InvalidParameterException("could not fetch name info ${response.code}")
         }
     }
 
@@ -158,7 +158,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
                     .build()
             val result = callFactory.newCall(request).execute()
             if (result.isSuccessful) {
-                val tokenFile = result.body()!!.string()
+                val tokenFile = result.body!!.string()
                 val tokenRecords = JSONArray(tokenFile)
                 return extractProfile(tokenRecords.getJSONObject(0).getString("token"),
                         address)
@@ -297,7 +297,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient()) {
         val request = buildLookupNameInfoRequest(username, nameLookupURL)
         val response = callFactory.newCall(request).execute()
         if (response.isSuccessful) {
-            val body = response.body()!!.string()
+            val body = response.body!!.string()
             val nameInfo = JSONObject(body)
             val nameOwningAddress = nameInfo.optString("address")
             val addressFromIssuer = DIDs.getAddressFromDID(payload.optString("iss"))
@@ -624,7 +624,7 @@ private fun Date.toZuluTime(): String {
 
 private fun Response.json(): JSONObject? {
     if (this.isSuccessful) {
-        return this.body()?.string().let {
+        return this.body?.string().let {
             if (it != null) {
                 JSONObject(it)
             } else {

@@ -6,11 +6,11 @@ apply plugin: 'org.jetbrains.dokka-android'
 group = 'com.github.blockstack'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 2
         versionName "0.2.0"
 
@@ -90,7 +90,7 @@ dependencies {
     implementation "com.github.komputing.khash:sha256:$khash_version"
     implementation "com.github.komputing.khash:ripemd160:$khash_version"
 
-    api 'com.squareup.okhttp3:okhttp:3.14.2'
+    api 'com.squareup.okhttp3:okhttp:4.9.0'
 
     api("com.github.komputing.kethereum:bip32:$kethereum_version") {
         exclude group: 'com.github.komputing.KHash'

@@ -1,6 +1,7 @@
 package org.blockstack.android.sdk.model
 
 import okio.ByteString
+import okio.ByteString.Companion.toByteString
 import org.json.JSONObject
 
 data class SignatureObject(val signature: String, val publicKey: String) {
@@ -9,7 +10,7 @@ data class SignatureObject(val signature: String, val publicKey: String) {
                 .put("signature", signature)
                 .put("publicKey", publicKey).toString()
         val bytes = jsonString.toByteArray()
-        return ByteString.of(bytes, 0, bytes.size)
+        return bytes.toByteString(0, bytes.size)
     }
 
     companion object {
@@ -27,7 +28,7 @@ data class SignedCipherObject(val signature: String, val publicKey: String, val 
                 .put("publicKey", publicKey)
                 .put("cipherText", cipherText).toString()
         val bytes = jsonString.toByteArray()
-        return ByteString.of(bytes, 0, bytes.size)
+        return bytes.toByteString(0, bytes.size)
     }
 
     companion object {

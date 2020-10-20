@@ -11,6 +11,7 @@ import me.uport.sdk.jwt.model.ArbitraryMapSerializer
 import me.uport.sdk.jwt.model.JwtHeader
 import me.uport.sdk.signer.KPSigner
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
 import okio.ByteString
 import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.toBtcAddress
@@ -47,7 +48,7 @@ class Hub(val callFactory: Call.Factory = OkHttpClient()) {
 
         val response = callFactory.newCall(builder.build()).execute()
 
-        val hubInfo = JSONObject(response.body()!!.string())
+        val hubInfo = JSONObject(response.body!!.string())
 
         val readURL = hubInfo.getString("read_url_prefix")
         val token = makeV1GaiaAuthToken(hubInfo, challengeSignerHex, gaiaHubUrl, associationToken, scopes)
@@ -124,7 +125,7 @@ class Hub(val callFactory: Call.Factory = OkHttpClient()) {
 
         val builder = Request.Builder()
                 .url(url)
-        builder.method("POST", RequestBody.create(MediaType.get(contentType), content))
+        builder.method("POST", RequestBody.create(contentType.toMediaType(), content))
         builder.addHeader("Content-Type", contentType)
         builder.addHeader("Authorization", "bearer ${hubConfig.token}")
         builder.addHeader("Referrer-Policy", "no-referrer")

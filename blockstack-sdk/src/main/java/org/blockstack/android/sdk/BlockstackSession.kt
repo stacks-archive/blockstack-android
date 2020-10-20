@@ -7,7 +7,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.uport.sdk.core.hexToByteArray
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
 import okio.ByteString
+import okio.ByteString.Companion.encodeUtf8
+import okio.ByteString.Companion.toByteString
 import org.blockstack.android.sdk.ecies.signContent
 import org.blockstack.android.sdk.ecies.signEncryptedContent
 import org.blockstack.android.sdk.ecies.verify
@@ -132,14 +135,14 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                         .build()
                 val response = callFactory.newCall(request).execute()
                 if (response.isSuccessful) {
-                    val profiles = JSONArray(response.body()!!.string())
+                    val profiles = JSONArray(response.body!!.string())
                     if (profiles.length() > 0) {
                         profiles.getJSONObject(0)
                     } else {
                         JSONObject()
                     }
                 } else {
-                    Log.d(TAG, "invalid profile url $profileUrl: ${response.code()}")
+                    Log.d(TAG, "invalid profile url $profileUrl: ${response.code}")
                     JSONObject()
                 }
             }
@@ -227,13 +230,13 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 val response = callFactory.newCall(getRequest).execute()
 
                 if (!response.isSuccessful) {
-                    return@withContext Result(null, ResultError(ErrorCode.NetworkError, "Error when loading from Gaia hub, status:" + response.code(), response.code().toString()))
+                    return@withContext Result(null, ResultError(ErrorCode.NetworkError, "Error when loading from Gaia hub, status:" + response.code, response.code.toString()))
                 }
                 val contentType = response.header("Content-Type")
 
                 val result: Any?
                 if (options.decrypt) {
-                    val responseContent = response.body()!!.string()
+                    val responseContent = response.body!!.string()
 
                     val cipherObject = if (options.verify) {
                         val expectedAddress = if (options.username != null) {
@@ -258,16 +261,16 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                     result = if (contentType === null
                             || contentType.startsWith("text")
                             || contentType == "application/json") {
-                        response.body()?.string()
+                        response.body?.string()
                     } else {
-                        response.body()?.bytes()
+                        response.body?.bytes()
                     }
 
                     if (options.verify) {
                         val signatureRequest = hub.buildGetRequest(hub.getFullReadUrl("$path$SIGNATURE_FILE_EXTENSION", gaiaHubConfig!!))
                         val signatureResponse = callFactory.newCall(signatureRequest).execute()
                         if (signatureResponse.isSuccessful) {
-                            val signatureObject = SignatureObject.fromJSONString(signatureResponse.body()!!.string())
+                            val signatureObject = SignatureObject.fromJSONString(signatureResponse.body!!.string())
                             val resultHash = if (result is String) {
                                 result.toByteArray()
                             } else {
@@ -357,7 +360,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 val signedCipherObject = signEncryptedContent(jsonString, getSignKey(options))
                 signedCipherObject.toJSONByteString()
             } else {
-                ByteString.encodeUtf8(jsonString)
+                jsonString.encodeUtf8()
             }
         } else {
             contentType = options.contentType ?: if (content is String) {
@@ -366,9 +369,9 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 "application/octet-stream"
             }
             if (content is String) {
-                ByteString.encodeUtf8(content)
+                content.encodeUtf8()
             } else {
-                ByteString.of(content as ByteArray, 0, content.size)
+                (content as ByteArray).toByteString(0, content.size)
             }
         }
 
@@ -376,16 +379,16 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
             try {
                 val response = hub.uploadToGaiaHub(path, requestContent, gaiaHubConfiguration, contentType)
                 if (!response.isSuccessful) {
-                    return@withContext Result(null, ResultError(ErrorCode.NetworkError, "upload to gaia failed: ${response.code()}", response.code().toString()))
+                    return@withContext Result(null, ResultError(ErrorCode.NetworkError, "upload to gaia failed: ${response.code}", response.code.toString()))
                 }
-                val responseText = response.body()?.string()
+                val responseText = response.body?.string()
                 if (responseText !== null) {
                     if (!options.shouldEncrypt() && options.shouldSign()) {
                         val signedContent = signContent(requestContent.toByteArray(), getSignKey(options))
                         try {
                             val sigResponse = hub.uploadToGaiaHub("$path$SIGNATURE_FILE_EXTENSION", signedContent.toJSONByteString(), gaiaHubConfig!!, "application/json")
                             if (!sigResponse.isSuccessful) {
-                                return@withContext Result(null, ResultError(ErrorCode.NetworkError, "failed to upload putFile signature $responseText", sigResponse.code().toString()))
+                                return@withContext Result(null, ResultError(ErrorCode.NetworkError, "failed to upload putFile signature $responseText", sigResponse.code.toString()))
                             }
                         } catch (e: Exception) {
                             return@withContext Result(null, ResultError(ErrorCode.UnknownError, "invalid response from putFile signature $responseText"))
@@ -442,7 +445,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                     return Result(Unit)
                 } else {
                     return Result(null, ResultError(ErrorCode.NetworkError,
-                            "failed to delete $path", response.code().toString()))
+                            "failed to delete $path", response.code.toString()))
                 }
             } else {
                 return Result(null, ResultError(ErrorCode.UnknownError, "failed to delete $path"))
@@ -502,12 +505,12 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         if (!response.isSuccessful) {
             if (callCount == 0) {
                 // TODO reconnect
-                throw NotImplementedError("reconnect to gaia ${response.code()}")
+                throw NotImplementedError("reconnect to gaia ${response.code}")
             } else {
-                throw IOException("call to list-files failed ${response.code()}")
+                throw IOException("call to list-files failed ${response.code}")
             }
         } else {
-            val responseJson = JSONObject(response.body()!!.string())
+            val responseJson = JSONObject(response.body!!.string())
             val fileEntries = responseJson.optJSONArray("entries")
             val nextPage = if (responseJson.isNull("page")) {
                 null
@@ -550,7 +553,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 .addHeader("Authorization", "bearer ${hubConfig.token}")
                 .addHeader("Referrer-Policy", "no-referrer")
 
-                .method("POST", RequestBody.create(MediaType.get(CONTENT_TYPE_JSON), pageRequest))
+                .method("POST", RequestBody.create(CONTENT_TYPE_JSON.toMediaType(), pageRequest))
                 .build()
     }
 
