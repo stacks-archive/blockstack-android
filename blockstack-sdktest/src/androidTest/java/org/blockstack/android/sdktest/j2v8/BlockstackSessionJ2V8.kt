@@ -1132,12 +1132,12 @@ class AndroidScriptRepo(private val context: Context) : ScriptRepo {
 
 private fun Response.toJSONString(): String {
     val headersJson = JSONObject()
-    headers().names().forEach { headersJson.put(it.toLowerCase(), header(it)) }
+    headers.names().forEach { headersJson.put(it.toLowerCase(), header(it)) }
     val bodyEncoded: Boolean
     val bodyJson: String
     if (headersJson.optString("content-type").contentEquals("application/octet-stream") == true) {
         bodyEncoded = true
-        val bytes = body()?.bytes()
+        val bytes = body?.bytes()
         if (bytes != null) {
             bodyJson = Base64.encodeToString(bytes, Base64.NO_WRAP)
         } else {
@@ -1145,12 +1145,12 @@ private fun Response.toJSONString(): String {
         }
     } else {
         bodyEncoded = false
-        bodyJson = body()?.string() ?: ""
+        bodyJson = body?.string() ?: ""
     }
 
 
     return JSONObject()
-            .put("status", code())
+            .put("status", code)
             .put("body", bodyJson)
             .put("bodyEncoded", bodyEncoded)
             .put("headers", headersJson)

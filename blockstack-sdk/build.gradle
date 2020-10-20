@@ -90,7 +90,7 @@ dependencies {
     implementation "com.github.komputing.khash:sha256:$khash_version"
     implementation "com.github.komputing.khash:ripemd160:$khash_version"
 
-    api 'com.squareup.okhttp3:okhttp:3.14.2'
+    api 'com.squareup.okhttp3:okhttp:4.9.0'
 
     api("com.github.komputing.kethereum:bip32:$kethereum_version") {
         exclude group: 'com.github.komputing.KHash'

@@ -32,7 +32,7 @@ class Network(private val blockstackAPIUrl: String,
     suspend fun getNamePrice(fullyQualifiedName: String): Result<Denomination> {
         val response = fetchPrivate("${this.blockstackAPIUrl}/v2/prices/names/${fullyQualifiedName}")
         if (response.isSuccessful) {
-            val result = JSONObject(response.body()!!.string())
+            val result = JSONObject(response.body!!.string())
             val namePrice = result.getJSONObject("name_price")
             val denomination = Denomination(namePrice)
             if ("BTC" == denomination.units) {
@@ -58,7 +58,7 @@ class Network(private val blockstackAPIUrl: String,
     suspend fun getNamespacePrice(namespaceID: String): Result<Denomination> {
         val response = fetchPrivate("${this.blockstackAPIUrl}/v2/prices/namespaces/${namespaceID}")
         if (response.isSuccessful) {
-            val namespacePrice = JSONObject(response.body()!!.string())
+            val namespacePrice = JSONObject(response.body!!.string())
             val denomination = Denomination(namespacePrice)
             if ("BTC" == denomination.units) {
                 val amount = denomination.amount
@@ -91,7 +91,7 @@ class Network(private val blockstackAPIUrl: String,
     suspend fun getNamesOwned(address: String): Result<List<String>> {
         val networkAddress = this.coerceAddress(address)
         val response = fetchPrivate("${this.blockstackAPIUrl}/v1/addresses/bitcoin/${networkAddress}")
-        val result = JSONObject(response.body()!!.string())
+        val result = JSONObject(response.body!!.string())
         if (result.has("error")) {
             return Result(null, ResultError(ErrorCode.UnknownError, result.getString("error")))
         } else {
@@ -111,10 +111,10 @@ class Network(private val blockstackAPIUrl: String,
         val blockHeight = this.getBlockHeight()
 
 
-        val namespaceInfo = if (response.code() == 404) {
+        val namespaceInfo = if (response.code == 404) {
             return Result(null, ResultError(ErrorCode.UnknownError, "No such namespace '${namespace}'"))
         } else {
-            JSONObject(response.body()!!.string())
+            JSONObject(response.body!!.string())
         }
 
         var address = this.getDefaultBurnAddress()
@@ -146,7 +146,7 @@ class Network(private val blockstackAPIUrl: String,
     suspend fun getNameInfo(fullyQualifiedName: String): Result<NameInfo> {
         val response = fetchPrivate("${this.blockstackAPIUrl}/v1/names/${fullyQualifiedName}")
 
-        if (response.code() == 404) {
+        if (response.code == 404) {
             return Result(null, ResultError(ErrorCode.UnknownError, "Name not found"))
         } else {
             return response.resumeWithJsonObject {
@@ -172,7 +172,7 @@ class Network(private val blockstackAPIUrl: String,
      */
     suspend fun getNamespaceInfo(namespaceId: String): Result<NamespaceInfo> {
         val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/namespaces/${namespaceId}")
-        if (resp.code() == 404) {
+        if (resp.code == 404) {
             return Result(null, ResultError(ErrorCode.UnknownError, "Namespace not found"))
         } else {
             return resp.resumeWithJsonObject {
@@ -201,8 +201,8 @@ class Network(private val blockstackAPIUrl: String,
      */
     suspend fun getZonefile(zonefileHash: String): Result<String> {
         val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/zonefiles/${zonefileHash}")
-        if (resp.code() == 200) {
-            val body = resp.body()!!.string()
+        if (resp.code == 200) {
+            val body = resp.body!!.string()
 
             val sha256 = Sha256.digest(body.toByteArray())
             val h = sha256.digestRipemd160().toNoPrefixHexString()
@@ -211,7 +211,7 @@ class Network(private val blockstackAPIUrl: String,
             }
             return Result(body)
         } else {
-            return Result(null, ResultError(ErrorCode.UnknownError, "Bad response status: ${resp.code()}"))
+            return Result(null, ResultError(ErrorCode.UnknownError, "Bad response status: ${resp.code}"))
         }
 
     }
@@ -227,7 +227,7 @@ class Network(private val blockstackAPIUrl: String,
     suspend fun getAccountStatus(accountAddress: String, tokenType: String): Result<AccountStatus> {
         val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${accountAddress}/${tokenType}/status")
 
-        if (resp.code() == 404) {
+        if (resp.code == 404) {
             return Result(null, ResultError(ErrorCode.UnknownError, "Account not found"))
         } else {
             return resp.resumeWithJsonObject {
@@ -257,12 +257,12 @@ class Network(private val blockstackAPIUrl: String,
     suspend fun getAccountHistoryPage(address: String, page: Int): Result<List<AccountStatus>> {
         val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/history?page=${page}")
 
-        val historyList = if (resp.code() == 404) {
+        val historyList = if (resp.code == 404) {
             throw  Error("Account not found")
-        } else if (!resp.isSuccessful()) {
-            return Result(null, ResultError(ErrorCode.NetworkError, "Unable to get account history page: ${resp.code()}", resp.code().toString()))
+        } else if (!resp.isSuccessful) {
+            return Result(null, ResultError(ErrorCode.NetworkError, "Unable to get account history page: ${resp.code}", resp.code.toString()))
         } else {
-            val jsonString = resp.body()!!.string()
+            val jsonString = resp.body!!.string()
             if (jsonString.startsWith("{")) {
                 val error = JSONObject(jsonString)
                 val historyListError = error.optStringOrNull("error")
@@ -295,19 +295,19 @@ class Network(private val blockstackAPIUrl: String,
     suspend fun getAccountAt(address: String, blockHeight: Int): Result<ArrayList<AccountStatus>> {
         val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/history/${blockHeight}")
 
-        val historyList = if (resp.code() == 404) {
+        val historyList = if (resp.code == 404) {
             throw  Error("Account not found")
-        } else if (resp.code() != 200) {
-            var msg = "Bad response status: ${resp.code()}"
-            if (resp.body() != null) {
-                val errorObject = JSONObject(resp.body()!!.string())
+        } else if (resp.code != 200) {
+            var msg = "Bad response status: ${resp.code}"
+            if (resp.body != null) {
+                val errorObject = JSONObject(resp.body!!.string())
                 if (errorObject.has("error")) {
                     msg = "$msg - ${errorObject.getString("error")}"
                 }
             }
-            return Result(null, ResultError(ErrorCode.NetworkError, msg, resp.code().toString()))
+            return Result(null, ResultError(ErrorCode.NetworkError, msg, resp.code.toString()))
         } else {
-            val jsonString = resp.body()!!.string()
+            val jsonString = resp.body!!.string()
             if (jsonString.startsWith("{")) {
                 val error = JSONObject(jsonString)
                 val historyListError = error.optStringOrNull("error")
@@ -337,7 +337,7 @@ class Network(private val blockstackAPIUrl: String,
     suspend fun getAccountTokens(address: String): Result<ArrayList<String>> {
         val resp = fetchPrivate("${this.blockstackAPIUrl}/v1/accounts/${address}/tokens")
 
-        if (resp.code() == 404) {
+        if (resp.code == 404) {
             return Result(null, ResultError(ErrorCode.UnknownError, "Account not found"))
         } else {
             return resp.resumeWithJsonObject { it: kotlin.Result<JSONObject> ->
@@ -372,7 +372,7 @@ class Network(private val blockstackAPIUrl: String,
             return resp.resumeWithJsonObject {
                 val error = it.exceptionOrNull()
                 Result(null, ResultError(ErrorCode.NetworkError, "failed to fetch account balance for ${address}/${tokenType}: ${error?.message
-                        ?: "Invalid request"}", resp.code().toString()))
+                        ?: "Invalid request"}", resp.code.toString()))
             }
         }
         return resp.resumeWithJsonObject {
@@ -411,7 +411,7 @@ class Network(private val blockstackAPIUrl: String,
 }
 
 private fun <T> Response.resumeWithJsonObject(handleJsonObject: (kotlin.Result<JSONObject>) -> T): T {
-    val jsonString = this.body()!!.string()
+    val jsonString = this.body!!.string()
     val result = JSONObject(jsonString)
     val requestError = result.optStringOrNull("error")
     if (requestError != null) {
@@ -422,7 +422,7 @@ private fun <T> Response.resumeWithJsonObject(handleJsonObject: (kotlin.Result<J
 }
 
 private fun Response.json(): JSONObject {
-    return this.body()!!.string().let {
+    return this.body!!.string().let {
         JSONObject(it)
     }
 }
