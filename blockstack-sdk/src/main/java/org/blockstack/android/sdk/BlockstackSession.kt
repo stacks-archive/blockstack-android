@@ -7,9 +7,12 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.uport.sdk.core.hexToByteArray
-import okhttp3.*
+import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType
-import okio.ByteString
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okio.ByteString.Companion.encodeUtf8
 import okio.ByteString.Companion.toByteString
 import org.blockstack.android.sdk.ecies.signContent
@@ -23,7 +26,6 @@ import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PrivateKey
 import org.kethereum.model.PublicKey
 import org.komputing.khash.sha256.extensions.sha256
-import org.komputing.khex.extensions.hexToByteArray
 import org.komputing.khex.model.HexString
 import java.io.IOException
 import java.math.BigInteger
@@ -82,7 +84,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
 
         val userData = authResponseToUserData(tokenPayload, nameLookupUrl, appPrivateKey, coreSessionToken, authResponse)
 
-        this@BlockstackSession.appPrivateKey  = appPrivateKey
+        this@BlockstackSession.appPrivateKey = appPrivateKey
         sessionStore.updateUserData(userData)
 
         return@withContext Result(userData)
@@ -333,7 +335,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      * @property a result object wiht a `String` representation of a url from
      * which you can read the file that was just put.
      */
-    suspend fun putFile(path: String, content: Any, options: PutFileOptions): Result<out String> = withContext(dispatcher){
+    suspend fun putFile(path: String, content: Any, options: PutFileOptions): Result<out String> = withContext(dispatcher) {
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
         val gaiaHubConfiguration = getOrSetLocalGaiaHubConnection()
         val valid = content is String || content is ByteArray
@@ -379,35 +381,35 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         }
 
 
-            try {
-                val response = hub.uploadToGaiaHub(path, requestContent, gaiaHubConfiguration, contentType)
-                if (!response.isSuccessful) {
-                    return@withContext Result(null, ResultError(ErrorCode.NetworkError, "upload to gaia failed: ${response.code}", response.code.toString()))
-                }
-                val responseText = response.body?.string()
-                if (responseText !== null) {
-                    if (!options.shouldEncrypt() && options.shouldSign()) {
-                        val signedContent = signContent(requestContent.toByteArray(), getSignKey(options))
-                        try {
-                            val sigResponse = hub.uploadToGaiaHub("$path$SIGNATURE_FILE_EXTENSION", signedContent.toJSONByteString(), gaiaHubConfig!!, "application/json")
-                            if (!sigResponse.isSuccessful) {
-                                return@withContext Result(null, ResultError(ErrorCode.NetworkError, "failed to upload putFile signature $responseText", sigResponse.code.toString()))
-                            }
-                        } catch (e: Exception) {
-                            return@withContext Result(null, ResultError(ErrorCode.UnknownError, "invalid response from putFile signature $responseText"))
-                        }
-                    }
-
-                    val responseJSON = JSONObject(responseText)
-                    return@withContext Result(responseJSON.getString("publicURL"))
-                } else {
-                    return@withContext Result(null, ResultError(ErrorCode.UnknownError, "invalid response from putFile $responseText"))
-                }
-            } catch (e: Exception) {
-                Log.d(TAG, e.message, e)
-                return@withContext Result(null, ResultError(ErrorCode.UnknownError, e.message
-                        ?: e.toString()))
+        try {
+            val response = hub.uploadToGaiaHub(path, requestContent, gaiaHubConfiguration, contentType)
+            if (!response.isSuccessful) {
+                return@withContext Result(null, ResultError(ErrorCode.NetworkError, "upload to gaia failed: ${response.code}", response.code.toString()))
             }
+            val responseText = response.body?.string()
+            if (responseText !== null) {
+                if (!options.shouldEncrypt() && options.shouldSign()) {
+                    val signedContent = signContent(requestContent.toByteArray(), getSignKey(options))
+                    try {
+                        val sigResponse = hub.uploadToGaiaHub("$path$SIGNATURE_FILE_EXTENSION", signedContent.toJSONByteString(), gaiaHubConfig!!, "application/json")
+                        if (!sigResponse.isSuccessful) {
+                            return@withContext Result(null, ResultError(ErrorCode.NetworkError, "failed to upload putFile signature $responseText", sigResponse.code.toString()))
+                        }
+                    } catch (e: Exception) {
+                        return@withContext Result(null, ResultError(ErrorCode.UnknownError, "invalid response from putFile signature $responseText"))
+                    }
+                }
+
+                val responseJSON = JSONObject(responseText)
+                return@withContext Result(responseJSON.getString("publicURL"))
+            } else {
+                return@withContext Result(null, ResultError(ErrorCode.UnknownError, "invalid response from putFile $responseText"))
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, e.message, e)
+            return@withContext Result(null, ResultError(ErrorCode.UnknownError, e.message
+                    ?: e.toString()))
+        }
 
 
     }
@@ -440,7 +442,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     }
 
 
-    suspend fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions()): Result<out Unit> = withContext(dispatcher){
+    suspend fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions()): Result<out Unit> = withContext(dispatcher) {
         try {
             val response = hub.deleteFromGaiaHub(path, options.gaiaHubConfig ?: gaiaHubConfig!!)
             if (response != null) {
@@ -492,7 +494,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
             hub.getFullReadUrl(path, gaiaHubConfig)
         }
 
-        return if (readUrl == Blockstack.NO_URL){
+        return if (readUrl == Blockstack.NO_URL) {
             Result(value = null, error = ResultError(ErrorCode.MissingReadUrl, "${options.username} has not yet used the app"))
         } else {
             Result(readUrl)
@@ -559,7 +561,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 .addHeader("Authorization", "bearer ${hubConfig.token}")
                 .addHeader("Referrer-Policy", "no-referrer")
 
-                .method("POST", RequestBody.create(CONTENT_TYPE_JSON.toMediaType(), pageRequest))
+                .method("POST", pageRequest.toRequestBody(CONTENT_TYPE_JSON.toMediaType()))
                 .build()
     }
 
