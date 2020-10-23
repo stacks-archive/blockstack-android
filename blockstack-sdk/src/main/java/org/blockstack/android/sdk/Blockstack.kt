@@ -642,7 +642,6 @@ private fun JSONObject.toMap(): Map<String, Any> {
     this.keys().forEach {
         val value = this.get(it)
         result.put(it, when (value) {
-            null -> value
             is Number -> value
             is String -> value
             is Boolean -> value
