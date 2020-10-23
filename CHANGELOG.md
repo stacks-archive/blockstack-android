@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unrelease
 ### Added
+- dynamic context in the main suspend methods
 - error code for missing read url
 
 ## [0.6.0] - 2020-10-13
