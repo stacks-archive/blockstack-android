@@ -1,5 +1,6 @@
 package org.blockstack.android.sdk
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Call
@@ -21,7 +22,8 @@ import java.math.BigInteger
  * Object giving access to information about the blockstack network.
  */
 class Network(private val blockstackAPIUrl: String,
-              private val callFactory: Call.Factory = OkHttpClient()) {
+              private val callFactory: Call.Factory = OkHttpClient(),
+              val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
 
     /**
      * Get the price to pay for registering a name.
@@ -393,7 +395,7 @@ class Network(private val blockstackAPIUrl: String,
         val request = Builder().url(url)
                 .addHeader("Referrer-Policy", "no-referrer")
                 .build()
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatcher) {
             callFactory.newCall(request).execute()
         }
     }
