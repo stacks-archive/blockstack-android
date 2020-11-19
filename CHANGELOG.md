@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unrelease
 
+## [0.6.2] - 2020-11-19
+### Added
+- ability to decrypt using the EncryptedResult and a BigInteger Private Key
+
 ## [0.6.1] - 2020-10-23
 ### Added
 - dynamic context in the main suspend methods
