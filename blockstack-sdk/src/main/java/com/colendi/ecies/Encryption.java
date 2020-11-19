@@ -58,6 +58,10 @@ public class Encryption {
         return decrypt(privateKey, formData.getIv(), formData.getEphemPublicKey(), formData.getCiphertext(), formData.getMac());
     }
 
+    public byte[] decryptWithPrivateKey(EncryptedResult formData, BigInteger privateKey) {
+        return decrypt(privateKey, formData.getIv(), formData.getEphemPublicKey(), formData.getCiphertext(), formData.getMac());
+    }
+
     private static void curveInit() {
         try {
             Class.forName("org.bouncycastle.asn1.sec.SECNamedCurves");
