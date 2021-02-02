@@ -101,8 +101,7 @@ class BlockstackSignIn(private val sessionStore: ISessionStore,
     fun generateAndStoreTransitKey(): String {
         val keyPair = CryptoAPI.keyPairGenerator.generate()
         val transitPrivateKey = keyPair.privateKey.key.toHexStringNoPrefix()
-        sessionStore.sessionData = SessionData(sessionStore.sessionData.json
-                .put("transitKey", transitPrivateKey))
+        sessionStore.setTransitPrivateKey(transitPrivateKey)
         return transitPrivateKey
     }
 
