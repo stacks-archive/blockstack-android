@@ -1,0 +1,132 @@
+/*
+ * Shared file to manage dependencies in all modules so that all modules use the same version.
+ */
+
+ext.deps = [:]
+def versions = [:]
+versions.android_gradle_plugin = '4.1.0'
+versions.appcompat = "1.2.0"
+versions.atsl_core = "1.2.0"
+versions.atsl_junit = "1.1.2"
+versions.atsl_rules = "1.3.0"
+versions.atsl_runner = "1.2.0"
+versions.uiautomator = "1.2.0"
+versions.constraint_layout = "2.0.4"
+versions.core_ktx = "1.1.0"
+versions.coroutines = "1.3.9"
+versions.espresso = "3.3.0"
+versions.junit = "4.13.1"
+versions.kethereum = "0.83.0"
+versions.khash = ' 1.0.0-RC5'
+versions.kbase58 = '0.1'
+versions.kbip44 = '0.1'
+versions.browser = "1.3.0"
+versions.kotlin = "1.4.21"
+versions.lifecycle = "2.3.0-beta01"
+versions.material = "1.2.1"
+versions.mockito = "2.25.0"
+versions.mockito_all = "1.10.19"
+versions.mockito_android = "3.6.0"
+versions.okhttp = "4.9.0"
+versions.did_jwt = "0.4.0"
+ext.versions = versions
+
+def build_versions = [:]
+build_versions.min_sdk = 21
+build_versions.compile_sdk = 30
+build_versions.target_sdk = 30
+ext.build_versions = build_versions
+
+def deps = [:]
+
+deps.android_gradle_plugin = "com.android.tools.build:gradle:$versions.android_gradle_plugin"
+
+deps.app_compat = "androidx.appcompat:appcompat:$versions.appcompat"
+
+def atsl = [:]
+atsl.core = "androidx.test:core:$versions.atsl_core"
+atsl.ext_junit = "androidx.test.ext:junit:$versions.atsl_junit"
+atsl.runner = "androidx.test:runner:$versions.atsl_runner"
+atsl.rules = "androidx.test:rules:$versions.atsl_rules"
+atsl.uiautomator = "androidx.test.uiautomator:uiautomator:$versions.uiautomator"
+deps.atsl = atsl
+
+deps.constraint_layout = "androidx.constraintlayout:constraintlayout:$versions.constraint_layout"
+
+def androidx = [:]
+androidx.core_ktx = "androidx.core:core-ktx:$versions.core_ktx"
+androidx.browser = "androidx.browser:browser:$versions.browser"
+androidx.prefs = 'androidx.preference:preference-ktx:1.1.1'
+androidx.legacy = 'androidx.legacy:legacy-support-v4:1.0.0'
+androidx.localbroadcastmanager = 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+deps.androidx = androidx
+
+def kethereum = [:]
+kethereum.crypto_api = "com.github.komputing.kethereum:crypto_api:$versions.kethereum"
+kethereum.bip39_wordlist_en = "com.github.komputing.kethereum:bip39_wordlist_en:$versions.kethereum"
+kethereum.bip32 = "com.github.komputing.kethereum:bip32:$versions.kethereum"
+kethereum.bip39 = "com.github.komputing.kethereum:bip39:$versions.kethereum"
+deps.kethereum = kethereum
+
+def khash = [:]
+khash.sha256 = "com.github.komputing.khash:sha256:$versions.khash"
+khash.ripemd160 = "com.github.komputing.khash:ripemd160:$versions.khash"
+deps.khash = khash
+
+def crypto = [:]
+crypto.kbase58 = "com.github.komputing:kbase58:$versions.kbase58"
+crypto.kbip44 = "com.github.komputing:kbip44:$versions.kbip44"
+crypto.bouncycastle = "org.bouncycastle:bcprov-jdk15on:1.65"
+deps.crypto = crypto
+
+def network = [:]
+network.okhttp = "com.squareup.okhttp3:okhttp:$versions.okhttp"
+network.did_jwt = "com.github.uport-project.kotlin-did-jwt:jwt:$versions.did_jwt"
+deps.network = network
+
+def coroutines = [:]
+coroutines.android = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$versions.coroutines"
+coroutines.test = "org.jetbrains.kotlinx:kotlinx-coroutines-test:$versions.coroutines"
+deps.coroutines = coroutines
+
+def espresso = [:]
+espresso.core = "androidx.test.espresso:espresso-core:$versions.espresso"
+espresso.contrib = "androidx.test.espresso:espresso-contrib:$versions.espresso"
+espresso.intents = "androidx.test.espresso:espresso-intents:$versions.espresso"
+deps.espresso = espresso
+
+deps.junit = "junit:junit:$versions.junit"
+
+def kotlin = [:]
+kotlin.stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
+kotlin.test = "org.jetbrains.kotlin:kotlin-test-junit:$versions.kotlin"
+kotlin.plugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
+kotlin.reflect = "org.jetbrains.kotlin:kotlin-reflect:$versions.kotlin"
+kotlin.allopen = "org.jetbrains.kotlin:kotlin-allopen:$versions.kotlin"
+deps.kotlin = kotlin
+
+def lifecycle = [:]
+lifecycle.runtime_ktx = "androidx.lifecycle:lifecycle-runtime-ktx:$versions.lifecycle"
+lifecycle.java8 = "androidx.lifecycle:lifecycle-common-java8:$versions.lifecycle"
+lifecycle.compiler = "androidx.lifecycle:lifecycle-compiler:$versions.lifecycle"
+lifecycle.viewmodel_ktx = "androidx.lifecycle:lifecycle-viewmodel-ktx:$versions.lifecycle"
+lifecycle.livedata_ktx = "androidx.lifecycle:lifecycle-livedata-ktx:$versions.lifecycle"
+deps.lifecycle = lifecycle
+
+deps.material = "com.google.android.material:material:$versions.material"
+
+def mockito = [:]
+mockito.core = "org.mockito:mockito-core:$versions.mockito"
+mockito.all = "org.mockito:mockito-all:$versions.mockito_all"
+mockito.android = "org.mockito:mockito-android:$versions.mockito_android"
+deps.mockito = mockito
+
+ext.deps = deps
+
+def addRepos(RepositoryHandler handler) {
+    handler.google()
+    handler.jcenter()
+    handler.maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+}
+
+ext.addRepos = this.&addRepos

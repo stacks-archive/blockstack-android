@@ -3,7 +3,7 @@ apply plugin: 'java-library'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'org.bouncycastle:bcprov-jdk15on:1.62'
-    testImplementation 'junit:junit:4.12'
+    testImplementation deps.junit
 
 }
 

@@ -1,16 +1,17 @@
-
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'org.jetbrains.dokka-android'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 group = 'com.github.blockstack'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion build_versions.compile_sdk
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 30
+        minSdkVersion build_versions.min_sdk
+        targetSdkVersion build_versions.target_sdk
         versionCode 2
         versionName "0.6.2"
 
@@ -67,55 +68,47 @@ dokka {
 
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation deps.material
 
-    implementation 'com.google.android.material:material:1.2.1'
+    implementation deps.app_compat
+    implementation deps.androidx.legacy
+    implementation deps.androidx.prefs
+    implementation deps.constraint_layout
+    implementation deps.androidx.browser
 
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.preference:preference-ktx:1.1.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
-    implementation 'androidx.browser:browser:1.2.0'
+    implementation deps.kotlin.stdlib
+    implementation deps.kotlin.reflect
+    implementation deps.coroutines.android
+    implementation deps.lifecycle.runtime_ktx
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9'
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-beta01"
+    api deps.crypto.kbip44
+    implementation deps.crypto.kbase58
+    implementation deps.crypto.bouncycastle
 
-    implementation 'org.bouncycastle:bcprov-jdk15on:1.65'
+    implementation deps.kethereum.crypto_api
+    implementation deps.kethereum.bip39_wordlist_en
+    api(deps.kethereum.bip32) { exclude group: 'com.github.komputing.KHash' }
+    api(deps.kethereum.bip39) { exclude group: 'com.github.komputing.KHash' }
 
-    implementation "com.github.komputing.kethereum:crypto_api:$kethereum_version"
-    implementation "com.github.komputing.kethereum:bip39_wordlist_en:$kethereum_version"
-    implementation "com.github.komputing:kbase58:$kbase58_version"
-    implementation "com.github.komputing.khash:sha256:$khash_version"
-    implementation "com.github.komputing.khash:ripemd160:$khash_version"
 
-    api 'com.squareup.okhttp3:okhttp:4.9.0'
+    implementation deps.khash.sha256
+    implementation deps.khash.ripemd160
 
-    api("com.github.komputing.kethereum:bip32:$kethereum_version") {
-        exclude group: 'com.github.komputing.KHash'
-    }
-    api "com.github.komputing:kbip44:$kbip44_version"
-    api("com.github.komputing.kethereum:bip39:$kethereum_version") {
-        exclude group: 'com.github.komputing.KHash'
-    }
-    api("com.github.uport-project.kotlin-did-jwt:jwt:$did_jwt_version") {
+    api deps.network.okhttp
+    api(deps.network.did_jwt) {
         exclude group: 'com.github.komputing.KHash'
         exclude group: 'com.squareup.okhttp3'
     }
 
-    testImplementation 'junit:junit:4.13.1'
+    testImplementation deps.junit
     testImplementation 'org.json:json:20190722'
 
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test:rules:1.3.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.3.0'
-    androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'
+    androidTestImplementation deps.atsl.rules
+    androidTestImplementation deps.atsl.ext_junit
+    androidTestImplementation deps.atsl.uiautomator
+    androidTestImplementation deps.espresso.core
+    androidTestImplementation deps.espresso.intents
 }
-
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 
 /**
