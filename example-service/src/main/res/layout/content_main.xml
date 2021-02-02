@@ -41,5 +41,6 @@
         android:text="@string/try_me_while_uploading"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/startServiceButton" />
+        app:layout_constraintTop_toBottomOf="@id/startServiceButton"
+        tools:ignore="UseSwitchCompatOrMaterialXml" />
 </androidx.constraintlayout.widget.ConstraintLayout>

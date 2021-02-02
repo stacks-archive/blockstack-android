@@ -55,6 +55,10 @@ public class Encryption {
     public byte[] decryptWithPrivateKey(EncryptedResultForm formData) {
         BigInteger privateKey = new BigInteger(formData.getPrivateKey(), 16);
 
+        return decryptWithPrivateKey(formData, privateKey);
+    }
+
+    public byte[] decryptWithPrivateKey(EncryptedResult formData, BigInteger privateKey) {
         return decrypt(privateKey, formData.getIv(), formData.getEphemPublicKey(), formData.getCiphertext(), formData.getMac());
     }
 
