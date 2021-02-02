@@ -167,6 +167,9 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      *  @ignore
      */
     suspend fun getOrSetLocalGaiaHubConnection(): GaiaHubConfig {
+
+        if (gaiaHubConfig != null) return gaiaHubConfig!!
+
         val sessionData = sessionStore.sessionData
         val userData = sessionData.json.optJSONObject("userData")
                 ?: throw IllegalStateException("Missing userData")
@@ -180,7 +183,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         }
         val config = userData.opt("gaiaHubConfig")
         if (config is GaiaHubConfig) {
-            this.gaiaHubConfig = config
+            gaiaHubConfig = config
             return config
         }
         return this.setLocalGaiaHubConnection()
@@ -337,7 +340,6 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun putFile(path: String, content: Any, options: PutFileOptions): Result<out String> = withContext(dispatcher) {
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
-        val gaiaHubConfiguration = getOrSetLocalGaiaHubConnection()
         val valid = content is String || content is ByteArray
         if (!valid) {
             throw IllegalArgumentException("putFile content only supports String or ByteArray")
@@ -382,7 +384,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
 
 
         try {
-            val response = hub.uploadToGaiaHub(path, requestContent, gaiaHubConfiguration, contentType)
+            val response = hub.uploadToGaiaHub(path, requestContent, getOrSetLocalGaiaHubConnection(), contentType)
             if (!response.isSuccessful) {
                 return@withContext Result(null, ResultError(ErrorCode.NetworkError, "upload to gaia failed: ${response.code}", response.code.toString()))
             }
@@ -444,7 +446,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
 
     suspend fun deleteFile(path: String, options: DeleteFileOptions = DeleteFileOptions()): Result<out Unit> = withContext(dispatcher) {
         try {
-            val response = hub.deleteFromGaiaHub(path, options.gaiaHubConfig ?: gaiaHubConfig!!)
+            val response = hub.deleteFromGaiaHub(path, options.gaiaHubConfig ?: getOrSetLocalGaiaHubConnection())
             if (response != null) {
                 if (response.isSuccessful) {
                     return@withContext Result(Unit)
@@ -490,8 +492,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                     options.app ?: appConfig!!.appDomain.getOrigin(),
                     options.zoneFileLookupURL?.toString())
         } else {
-            val gaiaHubConfig = getOrSetLocalGaiaHubConnection()
-            hub.getFullReadUrl(path, gaiaHubConfig)
+            hub.getFullReadUrl(path, getOrSetLocalGaiaHubConnection())
         }
 
         return if (readUrl == Blockstack.NO_URL) {
@@ -506,7 +507,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
             throw RuntimeException("Too many entries to list")
         }
 
-        val request = buildListFilesRequest(page, gaiaHubConfig ?: getHubConfig())
+        val request = buildListFilesRequest(page, gaiaHubConfig ?: getOrSetLocalGaiaHubConnection())
         val response = withContext(dispatcher) {
             callFactory.newCall(request).execute()
         }
@@ -544,10 +545,6 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 return fileCount + fileEntries.length()
             }
         }
-    }
-
-    private fun getHubConfig(): GaiaHubConfig {
-        return gaiaHubConfig ?: throw RuntimeException("not connected to gaia")
     }
 
 
