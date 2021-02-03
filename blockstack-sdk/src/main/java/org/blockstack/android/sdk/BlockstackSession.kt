@@ -578,6 +578,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     fun signUserOut() {
         sessionStore.deleteSessionData()
         appPrivateKey = null
+        gaiaHubConfig = null
     }
 
     fun validateProofs(profile: Profile, ownerAddress: String, optString: String?): Result<ArrayList<Proof>> {
