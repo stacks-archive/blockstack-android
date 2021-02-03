@@ -196,7 +196,11 @@ public class Encryption {
 
     public static MacAesPair sharedSecretToKeys(MessageDigest mda, byte[] derivedKeyInBytes) {
         byte[] digestKey = new byte[32];
-        System.arraycopy(derivedKeyInBytes, 0, digestKey, 0, 32);
+        if (derivedKeyInBytes.length < 32) {
+            System.arraycopy(derivedKeyInBytes, 0, digestKey, 32 - derivedKeyInBytes.length, derivedKeyInBytes.length);
+        } else {
+            System.arraycopy(derivedKeyInBytes, 0, digestKey, 0, 32);
+        }
 
         byte[] digested = mda.digest(digestKey);
 
