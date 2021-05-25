@@ -513,8 +513,8 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         }
         if (!response.isSuccessful) {
             if (callCount == 0) {
-                // TODO reconnect
-                throw NotImplementedError("reconnect to gaia ${response.code}")
+                // Try again one more time
+                return listFilesLoop(gaiaHubConfig, callback, page, callCount + 1, fileCount)
             } else {
                 throw IOException("call to list-files failed ${response.code}")
             }
