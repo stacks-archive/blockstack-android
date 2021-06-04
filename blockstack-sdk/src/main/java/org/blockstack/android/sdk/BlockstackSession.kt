@@ -471,7 +471,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun listFiles(callback: (Result<String>) -> Boolean): Result<Int> {
         try {
-            val fileCount = listFilesLoop(null, callback, null, 0, 0)
+            val fileCount = listFilesLoop(callback, null, 0, 0)
             return Result(fileCount)
         } catch (e: Exception) {
             return Result(null, ResultError(ErrorCode.UnknownError, e.message ?: e.toString()))
@@ -501,22 +501,21 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         }
     }
 
-    suspend fun listFilesLoop(gaiaHubConfig: GaiaHubConfig? = null, callback: (Result<String>) -> Boolean, page: String?, callCount: Int, fileCount: Int): Int {
+    suspend fun listFilesLoop(callback: (Result<String>) -> Boolean, page: String?, callCount: Int, fileCount: Int): Int {
         if (callCount > 65536) {
             throw RuntimeException("Too many entries to list")
         }
 
-        val request = buildListFilesRequest(page, gaiaHubConfig ?: getOrSetLocalGaiaHubConnection())
+        val request = buildListFilesRequest(page, getOrSetLocalGaiaHubConnection())
         val response = withContext(dispatcher) {
             callFactory.newCall(request).execute()
         }
         if (!response.isSuccessful) {
             if (callCount == 0) {
                 // Try again one more time
-                return listFilesLoop(gaiaHubConfig, callback, page, callCount + 1, fileCount)
+                return listFilesLoop(callback, page, callCount + 1, fileCount)
             } else {
-                Log.d(TAG, "Gaia's list-files failed ${response.code}")
-                Log.d(TAG, response.body!!.string())
+                Log.d(TAG, "Gaia's list-files error ${response.code}: ${response.body?.string()}")
                 throw IOException("call to list-files failed ${response.code}")
             }
         } else {
@@ -541,7 +540,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 }
             }
             if (nextPage != null && nextPage.isNotEmpty() && fileEntries.length() > 0) {
-                return listFilesLoop(gaiaHubConfig, callback, nextPage, callCount + 1, fileCount + fileEntries.length())
+                return listFilesLoop(callback, nextPage, callCount + 1, fileCount + fileEntries.length())
             } else {
                 return fileCount + fileEntries.length()
             }
