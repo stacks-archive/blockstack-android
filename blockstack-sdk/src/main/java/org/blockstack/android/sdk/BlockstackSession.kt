@@ -516,6 +516,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 // Try again one more time
                 return listFilesLoop(gaiaHubConfig, callback, page, callCount + 1, fileCount)
             } else {
+                Log.d(TAG, "call to list-files failed ${response.code}: ${response.message}")
                 throw IOException("call to list-files failed ${response.code}")
             }
         } else {
