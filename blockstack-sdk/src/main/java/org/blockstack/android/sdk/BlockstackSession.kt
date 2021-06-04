@@ -11,7 +11,6 @@ import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.ByteString.Companion.encodeUtf8
 import okio.ByteString.Companion.toByteString
@@ -516,7 +515,8 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 // Try again one more time
                 return listFilesLoop(gaiaHubConfig, callback, page, callCount + 1, fileCount)
             } else {
-                Log.d(TAG, "call to list-files failed ${response.code}: ${response.body?.string()}")
+                Log.d(TAG, "Gaia's list-files failed ${response.code}")
+                Log.d(TAG, response.body!!.string())
                 throw IOException("call to list-files failed ${response.code}")
             }
         } else {
