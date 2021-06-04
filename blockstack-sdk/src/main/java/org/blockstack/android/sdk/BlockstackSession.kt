@@ -4,9 +4,7 @@ import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.uport.sdk.core.hexToByteArray
 import okhttp3.Call
@@ -47,15 +45,6 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     init {
         val appPrivateKey = sessionStore.sessionData.json.optJSONObject("userData")?.optString("appPrivateKey")
         this.appPrivateKey = appPrivateKey
-
-        CoroutineScope(dispatcher).launch {
-            try {
-                Log.d(TAG, "Call setLocalGaiaHubConnection in init")
-                setLocalGaiaHubConnection()
-            } catch (e: Exception) {
-                Log.d(TAG, "Call setLocalGaiaHubConnection in init error")
-            }
-        }
     }
 
 
@@ -481,6 +470,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      * @return {Promise} that resolves to the number of files listed
      */
     suspend fun listFiles(callback: (Result<String>) -> Boolean): Result<Int> {
+        Log.d(TAG, "BlockstackSession listFiles called")
         try {
             val fileCount = listFilesLoop(callback, null, 0, 0)
             return Result(fileCount)
