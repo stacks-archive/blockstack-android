@@ -506,7 +506,10 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
             throw RuntimeException("Too many entries to list")
         }
 
-        val request = buildListFilesRequest(page, getOrSetLocalGaiaHubConnection())
+        Log.d(TAG, "listFilesLoop count: ${callCount}")
+        val config = getOrSetLocalGaiaHubConnection()
+        Log.d(TAG, "listFilesLoop config: ${config}")
+        val request = buildListFilesRequest(page, config)
         val response = withContext(dispatcher) {
             callFactory.newCall(request).execute()
         }
