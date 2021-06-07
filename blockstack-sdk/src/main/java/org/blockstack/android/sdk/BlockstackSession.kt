@@ -470,7 +470,6 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      * @return {Promise} that resolves to the number of files listed
      */
     suspend fun listFiles(callback: (Result<String>) -> Boolean): Result<Int> {
-        Log.d(TAG, "BlockstackSession listFiles called")
         try {
             val fileCount = listFilesLoop(callback, null, 0, 0)
             return Result(fileCount)
@@ -507,7 +506,6 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
             throw RuntimeException("Too many entries to list")
         }
 
-        Log.d(TAG, "listFilesLoop count: ${callCount}")
         val response = withContext(dispatcher) {
             val request = buildListFilesRequest(page, getOrSetLocalGaiaHubConnection())
             callFactory.newCall(request).execute()
