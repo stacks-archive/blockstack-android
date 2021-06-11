@@ -166,25 +166,21 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      *  @ignore
      */
     suspend fun getOrSetLocalGaiaHubConnection(): GaiaHubConfig {
-
         if (gaiaHubConfig != null) return gaiaHubConfig!!
 
-        val sessionData = sessionStore.sessionData
-        val userData = sessionData.json.optJSONObject("userData")
-                ?: throw IllegalStateException("Missing userData")
-        val hubConfig = userData.optJSONObject("gaiaHubConfig")
+        val userData = this.loadUserData()
+        val hubConfig = userData.json.optJSONObject("gaiaHubConfig")
         if (hubConfig != null) {
-            val config = GaiaHubConfig(hubConfig.getString("url_prefix"), hubConfig.getString("address"),
-                    hubConfig.getString("token"),
-                    hubConfig.getString("server"))
+            val config = GaiaHubConfig(
+                hubConfig.getString("url_prefix"),
+                hubConfig.getString("address"),
+                hubConfig.getString("token"),
+                hubConfig.getString("server")
+            )
             gaiaHubConfig = config
             return config
         }
-        val config = userData.opt("gaiaHubConfig")
-        if (config is GaiaHubConfig) {
-            gaiaHubConfig = config
-            return config
-        }
+
         return this.setLocalGaiaHubConnection()
     }
 
@@ -197,25 +193,25 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun setLocalGaiaHubConnection(): GaiaHubConfig {
         val userData = this.loadUserData()
-
         if (userData.json.optStringOrNull("hubUrl") == null) {
             userData.json.put("hubUrl", BLOCKSTACK_DEFAULT_GAIA_HUB_URL)
         }
 
         val gaiaConfig = hub.connectToGaia(
-                userData.hubUrl,
-                userData.appPrivateKey,
-                userData.json.optStringOrNull("gaiaAssociationToken")
+            userData.hubUrl,
+            userData.appPrivateKey,
+            userData.json.optStringOrNull("gaiaAssociationToken")
         )
 
-        userData.json.put("gaiaHubConfig", gaiaConfig)
+        userData.json.put("gaiaHubConfig", gaiaConfig.toJSON())
+
         val sessionData = sessionStore.sessionData.json
         sessionData.put("userData", userData.json)
         sessionStore.sessionData = SessionData(sessionData)
+
         gaiaHubConfig = gaiaConfig
         return gaiaConfig
     }
-
 
     /**
      * Retrieves the specified file from the app's data store.
