@@ -12,6 +12,8 @@ import kotlinx.coroutines.withContext
 import me.uport.sdk.jwt.JWTTools
 import me.uport.sdk.jwt.model.JwtHeader
 import me.uport.sdk.signer.KPSigner
+import org.blockstack.android.sdk.extensions.toBtcAddress
+import org.blockstack.android.sdk.extensions.toHexPublicKey64
 import org.blockstack.android.sdk.model.BlockstackConfig
 import org.blockstack.android.sdk.model.SessionData
 import org.kethereum.crypto.CryptoAPI

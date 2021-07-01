@@ -1,7 +1,7 @@
 package org.blockstack.android.sdk.model
 
+import org.blockstack.android.sdk.extensions.toBtcAddress
 import org.blockstack.android.sdk.getOrigin
-import org.blockstack.android.sdk.toBtcAddress
 import org.json.JSONObject
 import org.kethereum.bip32.generateChildKey
 import org.kethereum.bip32.model.ExtendedKey

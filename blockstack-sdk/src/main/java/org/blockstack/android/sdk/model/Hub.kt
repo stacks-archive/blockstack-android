@@ -15,8 +15,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.ByteString
 import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.toBtcAddress
-import org.blockstack.android.sdk.toHexPublicKey64
+import org.blockstack.android.sdk.extensions.toBtcAddress
+import org.blockstack.android.sdk.extensions.toHexPublicKey64
 import org.json.JSONObject
 import org.kethereum.crypto.SecureRandomUtils
 import org.kethereum.crypto.toECKeyPair
