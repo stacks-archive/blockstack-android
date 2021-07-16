@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unrelease
 
+## [0.6.4] - 2021-07-16
+### Changed
+- Default Core API endpoint (https://stacks-node-api.stacks.co)
+
 ## [0.6.3] - 2021-07-01
 ### Added
 - ability to generate Stacks Addresses

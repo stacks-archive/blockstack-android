@@ -2,8 +2,6 @@ package org.blockstack.android.sdk
 
 import me.uport.sdk.universaldid.*
 import okhttp3.Call
-import okhttp3.Request
-import org.json.JSONObject
 import java.util.*
 
 class DIDs {
@@ -19,8 +17,10 @@ class DIDs {
 
             if (didType == "btc-addr") {
                 return did.split(':')[2]
+            }else if (didType == "stx-addr") {
+                return did.split(':')[2]
             } else {
-                return null
+                return  null
             }
         }
 

@@ -60,7 +60,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun handlePendingSignIn(authResponse: String): Result<out UserData> = withContext(dispatcher) {
         val transitKey = sessionStore.getTransitPrivateKey()
-        val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "https://core.blockstack.org")
+        val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "stacks-node-api.stacks.co")
 
         val tokenTriple = try {
             blockstack.decodeToken(authResponse)
@@ -92,7 +92,8 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     }
 
     suspend fun handleUnencryptedSignIn(authResponse: String): Result<UserData> {
-        val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "https://core.blockstack.org")
+        //TODO: change here
+        val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "stacks-node-api.stacks.co")
 
         val tokenTriple = blockstack.decodeToken(authResponse)
         val tokenPayload = tokenTriple.second

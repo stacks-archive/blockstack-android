@@ -15,20 +15,32 @@ fun ECKeyPair.toHexPublicKey64(): String {
     return this.getCompressedPublicKey().toNoPrefixHexString()
 }
 
-fun ECKeyPair.toStxAddress(): String {
+fun String.toStxAddress(sPrefix: Boolean = false): String {
+    val sha256 = hexToByteArray().sha256()
+    val hash160 = sha256.digestRipemd160()
+    val extended = "b0${hash160.toNoPrefixHexString()}"
+    val cs = checksum("16${hash160.toNoPrefixHexString()}")
+
+    val prefix = if(sPrefix) "S" else ""
+    return prefix + (extended + cs).hexToByteArray().encodeCrockford32()
+}
+
+fun ECKeyPair.toStxAddress(sPrefix: Boolean = false): String {
     val sha256 = toHexPublicKey64().hexToByteArray().sha256()
     val hash160 = sha256.digestRipemd160()
     val extended = "b0${hash160.toNoPrefixHexString()}"
     val cs = checksum("16${hash160.toNoPrefixHexString()}")
-    return (extended + cs).hexToByteArray().encodeCrockford32()
+    val prefix = if(sPrefix) "S" else ""
+    return prefix + (extended + cs).hexToByteArray().encodeCrockford32()
 }
 
-fun ECKeyPair.toTestNetStxAddress() : String {
+fun ECKeyPair.toTestNetStxAddress(sPrefix: Boolean = false) : String {
     val sha256 = toHexPublicKey64().hexToByteArray().sha256()
     val hash160 = sha256.digestRipemd160()
     val extended = "d0${hash160.toNoPrefixHexString()}"
     val cs = checksum("1a${hash160.toNoPrefixHexString()}")
-    return (extended + cs).hexToByteArray().encodeCrockford32()
+    val prefix = if(sPrefix) "S" else ""
+    return prefix + (extended + cs).hexToByteArray().encodeCrockford32()
 }
 
 fun String.toBtcAddress(): String {

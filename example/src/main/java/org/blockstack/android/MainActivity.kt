@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity() {
         blockstack = Blockstack()
         _blockstackSession = BlockstackSession(sessionStore, config, blockstack = blockstack)
         blockstackSignIn = BlockstackSignIn(sessionStore, config, appDetails)
+        //TODO: change here
         network = Network("https://core.blockstack.org")
         signInButton.isEnabled = true
         getUserAppFileUrlButton.isEnabled = true
@@ -186,8 +187,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         getStringFileFromUserButton.setOnClickListener {
-
-            val zoneFileLookupUrl = URL("https://core.blockstack.org/v1/names")
+            //TODO: change here
+            val zoneFileLookupUrl = URL("https://stacks-node-api.stacks.co/v1/names")
             fileFromUserContentsTextView.text = "Downloading file from other user..."
             lifecycleScope.launch {
                 val profile = blockstack.lookupProfile(username, zoneFileLookupURL = zoneFileLookupUrl)
@@ -225,6 +226,7 @@ class MainActivity : AppCompatActivity() {
 
         getUserAppFileUrlButton.setOnClickListener { _ ->
             getUserAppFileUrlText.text = "Getting url ..."
+            //TODO: change here
             val zoneFileLookupUrl = "https://core.blockstack.org/v1/names"
             lifecycleScope.launch {
                 val it = blockstack.getUserAppFileUrl(textFileName, username, "https://flamboyant-darwin-d11c17.netlify.app", zoneFileLookupUrl)

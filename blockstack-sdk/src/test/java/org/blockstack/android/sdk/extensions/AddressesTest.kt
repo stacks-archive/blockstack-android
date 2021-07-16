@@ -37,6 +37,7 @@ class AddressesTest {
         Assert.assertEquals(PRIVATE_KEY, keys.keyPair.privateKey.key.toHexStringNoPrefix())
         Assert.assertEquals(BTC_ADDRESS_MAINNET, keys.keyPair.toBtcAddress())
         Assert.assertEquals(STX_ADDRESS_MAINNET, "S${keys.keyPair.toStxAddress()}")
+        Assert.assertEquals(STX_ADDRESS_MAINNET, keys.keyPair.toStxAddress(true))
     }
 
     @Test
@@ -46,6 +47,7 @@ class AddressesTest {
 
         // Act Assert
         Assert.assertEquals(STX_ADDRESS_TESTNET, "S${keys.keyPair.toTestNetStxAddress()}")
+        Assert.assertEquals(STX_ADDRESS_TESTNET, keys.keyPair.toTestNetStxAddress(true))
     }
 
 
