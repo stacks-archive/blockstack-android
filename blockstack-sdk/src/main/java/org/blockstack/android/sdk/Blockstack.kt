@@ -99,8 +99,8 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient(),
                     ""
                 },
                 "profile_url" to null,
-                "hubUrl" to "https://hub.blockstack.org", //TODO: here is what?
-                "blockstackAPIUrl" to "https://core.blockstack.org", //TODO: here is what?
+                "hubUrl" to "https://hub.blockstack.org",
+                "blockstackAPIUrl" to DEFAULT_CORE_API_ENDPOINT,
                 "associationToken" to null,
                 "version" to VERSION
         )
@@ -536,21 +536,13 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient(),
         val uncompressedBtcAddress = issuerPublicKey.toBtcAddress()
         val uncompressedStxAddress = issuerPublicKey.toStxAddress(true)
 
-            if (publicKeyOrAddress == issuerPublicKey) {
-                // pass
-            } else {
-                when (publicKeyOrAddress) {
-                    uncompressedBtcAddress -> { /* Pass */}
-                    uncompressedStxAddress -> { /* Pass */}
-                    else -> {
-                        throw Error("Token issuer public key does not match the verifying value")
-                    }
-                }
-            }
-
+        if (publicKeyOrAddress == issuerPublicKey) {
+            // pass
+        } else if (publicKeyOrAddress != uncompressedBtcAddress && publicKeyOrAddress != uncompressedStxAddress) {
+            throw Error("Token issuer public key does not match the verifying value")
+        }
 
         return ProfileToken(tokenTripleToJSON(decodedToken))
-
     }
 
     private fun tokenTripleToJSON(decodedToken: Triple<JwtHeader, JSONObject, ByteArray>): JSONObject {

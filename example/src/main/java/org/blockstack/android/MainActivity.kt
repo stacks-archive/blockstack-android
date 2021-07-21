@@ -187,7 +187,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         getStringFileFromUserButton.setOnClickListener {
-            //TODO: change here
             val zoneFileLookupUrl = URL("https://stacks-node-api.stacks.co/v1/names")
             fileFromUserContentsTextView.text = "Downloading file from other user..."
             lifecycleScope.launch {
@@ -226,8 +225,7 @@ class MainActivity : AppCompatActivity() {
 
         getUserAppFileUrlButton.setOnClickListener { _ ->
             getUserAppFileUrlText.text = "Getting url ..."
-            //TODO: change here
-            val zoneFileLookupUrl = "https://core.blockstack.org/v1/names"
+            val zoneFileLookupUrl = DEFAULT_CORE_API_ENDPOINT + "v1/names"
             lifecycleScope.launch {
                 val it = blockstack.getUserAppFileUrl(textFileName, username, "https://flamboyant-darwin-d11c17.netlify.app", zoneFileLookupUrl)
                 withContext(Dispatchers.Main) {

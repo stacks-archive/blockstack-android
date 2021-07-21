@@ -92,8 +92,11 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     }
 
     suspend fun handleUnencryptedSignIn(authResponse: String): Result<UserData> {
-        //TODO: change here
-        val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "stacks-node-api.stacks.co")
+
+        val nameLookupUrl = sessionStore.sessionData.json.optString(
+            "core-node",
+            DEFAULT_CORE_API_ENDPOINT.replace("https://", "")
+        )
 
         val tokenTriple = blockstack.decodeToken(authResponse)
         val tokenPayload = tokenTriple.second

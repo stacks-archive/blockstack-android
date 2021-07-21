@@ -20,7 +20,7 @@ class DIDs {
             }else if (didType == "stx-addr") {
                 return did.split(':')[2]
             } else {
-                return  null
+                return null
             }
         }
 
