@@ -57,7 +57,6 @@ class MainActivity : AppCompatActivity() {
         blockstack = Blockstack()
         _blockstackSession = BlockstackSession(sessionStore, config, blockstack = blockstack)
         blockstackSignIn = BlockstackSignIn(sessionStore, config, appDetails)
-        //TODO: change here
         network = Network("https://core.blockstack.org")
         signInButton.isEnabled = true
         getUserAppFileUrlButton.isEnabled = true
