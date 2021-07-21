@@ -1,9 +1,8 @@
-package org.blockstack.android.sdk
+package org.blockstack.android.sdk.extensions
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.blockstack.android.sdk.extensions.*
 import org.blockstack.android.sdk.model.BlockstackIdentity
 import org.junit.Assert
 import org.junit.Test
@@ -14,13 +13,14 @@ import org.kethereum.bip39.toSeed
 import org.kethereum.extensions.toHexStringNoPrefix
 import org.komputing.kbip44.BIP44Element
 
-class AddressesExtensionTest {
+class AddressesTest {
 
     private val SEED_PHRASE =
         "float myth tuna chuckle estate recipe canoe equal sport matter zebra vanish pyramid this veteran oppose festival lava economy uniform open zoo shrug fade"
     private val PRIVATE_KEY =
         "9f6da87aa7a214d484517394ca0689a38faa8b3497bb9bf491bd82c31b5af796" //01
-    private val PUBLIC_KEY = "023064b1fa3c279cd7c8eca2f41c3aa33dc48741819f38b740975af1e8fef61fe4"
+    private val PUBLIC_KEY =
+        "023064b1fa3c279cd7c8eca2f41c3aa33dc48741819f38b740975af1e8fef61fe4"
     private val BTC_ADDRESS_MAINNET = "1Hu5PUAGWqaokbusF7ZUTpfnejwKbAeGUd"
     private val STX_ADDRESS_MAINNET = "SP2WNPKGHNM1PKE1D95KGADR1X5MWXTJHD8EJ1HHK"
 
@@ -46,12 +46,6 @@ class AddressesExtensionTest {
 
         // Act Assert
         Assert.assertEquals(STX_ADDRESS_TESTNET, "S${keys.keyPair.toTestNetStxAddress()}")
-    }
-
-    @Test
-    fun crockford32Test() {
-        val encoded = "something very very big and complex".encodeCrockford32()
-        Assert.assertEquals("something very very big and complex", encoded.decodeCrockford32())
     }
 
 

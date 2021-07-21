@@ -20,7 +20,7 @@ class EncryptionColendiKotlinTest {
     val rule = ActivityTestRule(TestActivity::class.java)
 
     @Test
-    @Ignore("Test not passing on 0.6.2, no changes made here in 0.6.3 marked as ignored until fixes are made")
+    @Ignore("Test not passing on 0.6.2, no changes made here in 0.6.3, marked as ignored until fixes are made")
     fun testEncryptDecryptWorks() {
         val encryption = EncryptionColendi()
 

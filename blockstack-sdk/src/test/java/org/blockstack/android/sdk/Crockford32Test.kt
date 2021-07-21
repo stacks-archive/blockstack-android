@@ -70,4 +70,10 @@ class Crockford32Test {
             Assert.assertEquals(strings[index], string.decodeCrockford32())
         }
     }
+
+    @Test
+    fun crockford32Test() {
+        val encoded = "something very very big and complex".encodeCrockford32()
+        Assert.assertEquals("something very very big and complex", encoded.decodeCrockford32())
+    }
 }
