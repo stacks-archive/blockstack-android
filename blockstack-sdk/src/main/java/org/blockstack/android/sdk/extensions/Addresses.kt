@@ -32,6 +32,8 @@ fun ECKeyPair.toStxAddress(sPrefix: Boolean = false): String {
     val cs = checksum("16${hash160.toNoPrefixHexString()}")
     val prefix = if(sPrefix) "S" else ""
     return prefix + (extended + cs).hexToByteArray().encodeCrockford32()
+    // current       b0 3c8045956db97437913676c6adc770e0ccb927fc 2b371f2d
+    // should be    cd bc8045956db97437913676c6adc770e0ccb927fc 2b371f2d
 }
 
 fun ECKeyPair.toTestNetStxAddress(sPrefix: Boolean = false) : String {

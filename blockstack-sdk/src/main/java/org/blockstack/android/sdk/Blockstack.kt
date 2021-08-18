@@ -100,7 +100,7 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient(),
                 },
                 "profile_url" to null,
                 "hubUrl" to "https://hub.blockstack.org",
-                "blockstackAPIUrl" to DEFAULT_CORE_API_ENDPOINT,
+                "blockstackAPIUrl" to "https://core.blockstack.org",
                 "associationToken" to null,
                 "version" to VERSION
         )
