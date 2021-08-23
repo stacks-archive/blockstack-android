@@ -103,7 +103,7 @@ class BlockstackConnectActivity : AppCompatActivity() {
     companion object {
         private val REQUEST_HOW_IT_WORKS = 1
         val EXTRA_CUSTOM_THEME = "styleResCustomTheme"
-        val EXTRA_REGISTER_SUBDOMAIN = "styleResCustomTheme"
+        val EXTRA_REGISTER_SUBDOMAIN = "registerSubdomain"
 
         fun getIntent(
             context: Context,
