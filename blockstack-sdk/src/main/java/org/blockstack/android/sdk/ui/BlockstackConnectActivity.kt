@@ -27,7 +27,7 @@ class BlockstackConnectActivity : AppCompatActivity() {
 
         //Check if BlockstackConnect Config has a custom theme
         setTheme(
-            savedInstanceState?.getInt(
+            intent?.getIntExtra(
                 EXTRA_CUSTOM_THEME,
                 R.style.Theme_Blockstack
             ) ?: R.style.Theme_Blockstack
@@ -46,7 +46,7 @@ class BlockstackConnectActivity : AppCompatActivity() {
 
 
         //Button Listeners
-        val registerSubdomain = savedInstanceState?.getBoolean(EXTRA_REGISTER_SUBDOMAIN) ?: false
+        val registerSubdomain = intent.getBooleanExtra(EXTRA_REGISTER_SUBDOMAIN, false)
 
         connect_get_secret_key.setOnClickListener {
             lifecycle.coroutineScope.launch(Dispatchers.IO) {
