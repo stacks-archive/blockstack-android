@@ -26,9 +26,12 @@ class BlockstackConnectActivity : AppCompatActivity() {
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_close)
 
         //Check if BlockstackConnect Config has a custom theme
-        setTheme(savedInstanceState?.getInt(
+        setTheme(
+            savedInstanceState?.getInt(
                 EXTRA_CUSTOM_THEME,
-                R.style.Theme_Blockstack) ?: R.style.Theme_Blockstack)
+                R.style.Theme_Blockstack
+            ) ?: R.style.Theme_Blockstack
+        )
 
         setContentView(R.layout.activity_connect)
 
@@ -36,27 +39,42 @@ class BlockstackConnectActivity : AppCompatActivity() {
         // Icon
         connect_app_icon.setImageResource(applicationInfo.icon)
         //Replace Strings with the APP name
-        connect_title.text = getString(R.string.connect_dialog_title, getString(applicationInfo.labelRes))
-        connect_tracking_desc_title.text = getString(R.string.connect_activity_tracking_desc, getString(applicationInfo.labelRes))
+        connect_title.text =
+            getString(R.string.connect_dialog_title, getString(applicationInfo.labelRes))
+        connect_tracking_desc_title.text =
+            getString(R.string.connect_activity_tracking_desc, getString(applicationInfo.labelRes))
 
 
         //Button Listeners
+        val registerSubdomain = savedInstanceState?.getBoolean(EXTRA_REGISTER_SUBDOMAIN) ?: false
+
         connect_get_secret_key.setOnClickListener {
             lifecycle.coroutineScope.launch(Dispatchers.IO) {
-                BlockstackConnect.redirectUserToSignIn(this@BlockstackConnectActivity, sendToSignIn = false)
+                BlockstackConnect.redirectUserToSignIn(
+                    this@BlockstackConnectActivity,
+                    sendToSignIn = false,
+                    registerSubdomain = registerSubdomain
+                )
                 this@BlockstackConnectActivity.finish()
             }
         }
 
         connect_sign_in.setOnClickListener {
             lifecycle.coroutineScope.launch(Dispatchers.IO) {
-                BlockstackConnect.redirectUserToSignIn(this@BlockstackConnectActivity, sendToSignIn = true)
+                BlockstackConnect.redirectUserToSignIn(
+                    this@BlockstackConnectActivity,
+                    sendToSignIn = true,
+                    registerSubdomain = registerSubdomain
+                )
                 this@BlockstackConnectActivity.finish()
             }
         }
 
         connect_how_it_works.setOnClickListener {
-            startActivityForResult(Intent(this, ConnectHowItWorksActivity::class.java), REQUEST_HOW_IT_WORKS)
+            startActivityForResult(
+                Intent(this, ConnectHowItWorksActivity::class.java),
+                REQUEST_HOW_IT_WORKS
+            )
         }
 
     }
@@ -68,7 +86,10 @@ class BlockstackConnectActivity : AppCompatActivity() {
         //Intercept Get Started click from ConnectHowItWorks
         if (resultCode == RESULT_OK && requestCode == REQUEST_HOW_IT_WORKS) {
             lifecycle.coroutineScope.launch {
-                BlockstackConnect.redirectUserToSignIn(this@BlockstackConnectActivity, sendToSignIn = false)
+                BlockstackConnect.redirectUserToSignIn(
+                    this@BlockstackConnectActivity,
+                    sendToSignIn = false
+                )
                 this@BlockstackConnectActivity.finish()
             }
         }
@@ -82,10 +103,16 @@ class BlockstackConnectActivity : AppCompatActivity() {
     companion object {
         private val REQUEST_HOW_IT_WORKS = 1
         val EXTRA_CUSTOM_THEME = "styleResCustomTheme"
+        val EXTRA_REGISTER_SUBDOMAIN = "styleResCustomTheme"
 
-        fun getIntent(context : Context, @StyleRes theme : Int? = null) : Intent{
-            val intent = Intent(context, BlockstackConnectActivity::class.java)
-            return intent.putExtra(EXTRA_CUSTOM_THEME, theme)
+        fun getIntent(
+            context: Context,
+            registerSubdomain: Boolean = false,
+            @StyleRes theme: Int? = null
+        ): Intent {
+            return Intent(context, BlockstackConnectActivity::class.java)
+                .putExtra(EXTRA_CUSTOM_THEME, theme)
+                .putExtra(EXTRA_REGISTER_SUBDOMAIN, registerSubdomain)
         }
     }
 
