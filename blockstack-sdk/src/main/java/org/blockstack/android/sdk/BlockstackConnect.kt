@@ -5,11 +5,12 @@ import android.content.Intent
 import android.util.Log
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.model.BlockstackConfig
 import org.blockstack.android.sdk.model.UserData
 import org.blockstack.android.sdk.ui.BlockstackConnectActivity
-import java.lang.Exception
 
 object BlockstackConnect {
 
@@ -83,13 +84,13 @@ object BlockstackConnect {
                 ErrorCode.UnknownError,
                 "Unable to process response "))
 
-    suspend fun redirectUserToSignIn(context: AppCompatActivity, sendToSignIn: Boolean) {
+    suspend fun redirectUserToSignIn(context: AppCompatActivity, sendToSignIn: Boolean, registerSubdomain: Boolean = false) {
         if (blockstackSignIn == null) {
             throw BlockstackConnectInvalidConfiguration(
                     "Cannot establish connection without a valid configuration"
             )
         }
-        blockstackSignIn?.redirectUserToSignIn(context, sendToSignIn)
+        blockstackSignIn?.redirectUserToSignIn(context, sendToSignIn, registerSubdomain)
     }
 
     class BlockstackConnectInvalidConfiguration(message: String) : Exception(message) {}
