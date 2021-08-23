@@ -100,7 +100,7 @@ class BlockstackSignIn(
         val authRequest = makeAuthRequest(
             transitPrivateKey,
             sendToSignIn = sendToSignIn,
-            registerSubdomain = false
+            registerSubdomain = registerSubdomain
         )
         redirectToSignInWithAuthRequest(
             context,

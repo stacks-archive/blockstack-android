@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity() {
                 .config(config, sessionStore, appDetails)
 
         signInButton.setOnClickListener {
-            BlockstackConnect.connect(this@MainActivity)
+            BlockstackConnect.connect(this@MainActivity, true)
         }
 
         signInButtonWithGaia.setOnClickListener {
