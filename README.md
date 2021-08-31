@@ -1,14 +1,14 @@
-# Blockstack Android SDK (Pre-release)
+# Stacks Android SDK (Pre-release)
 
 [![](https://jitpack.io/v/blockstack/blockstack-android.svg)](https://jitpack.io/#blockstack/blockstack-android)
 
-Blockstack is a platform for developing a new, decentralized internet, where
+Stacks is a platform for developing a new, decentralized internet, where
 users control and manage their own information. Interested developers can create
 applications for this new internet using the Blockstack platform.
 
 This repository contains a pre-release for Android developers:
 
-- the Blockstack Android SDK ([`/blockstack-sdk`](blockstack-sdk/))
+- the Stacks Android SDK ([`/blockstack-sdk`](blockstack-sdk/))
 - tools that assist development ([`/tools`](tools/))
 
 
@@ -29,7 +29,7 @@ For a complete list of changes with the 0.5.0 upgrade, see [this commit](https:/
 
 ## Get started
 
-Use the [detailed tutorial](https://docs.blockstack.org/android/tutorial.html) and to build your first Blockstack
+Use the [detailed tutorial](https://docs.blockstack.org/android/tutorial.html) and to build your first Stacks
 Android application with React. You can also work through three example apps in
 module ([`/example`](examples/)),
 ([`/example-multi-activity`](example-multi-activity/)) and ([`/example-service`](example-service/)).
@@ -45,7 +45,7 @@ module ([`/example`](examples/)),
     }
 ```
 
-## Handling Blockstack sessions
+## Handling Stacks sessions
 `BlockstackSession`s use a session store to persist their state. 
 
 The default implementation of `ISessionStore` uses the default shared preferences. If an apps needs 
@@ -83,7 +83,7 @@ All you need to host is a `manifest.json` file for the app details and the asset
 The Android SDK uses Kotlin's Coroutines. Network requests are using the [`Dispatchers.IO` dispatcher](https://developer.android.com/kotlin/coroutines#main-safety).
 
 ### Sign-In Flow
-To sign-in a user with Blockstack your app should use `BlockstackSignIn.redirectUserToSignIn` and 
+To sign-in a user with Stacks your app should use `BlockstackSignIn.redirectUserToSignIn` and 
 `BlockstackSession.handlePendingAuthResponse`. After the auth response is handled, 
 use `BlockstackSession` to manage the user's data.  
 
@@ -116,12 +116,12 @@ Please see [generated documenatation](https://blockstack.github.io/blockstack-an
 ## Regulatory Notes
 
 ### Export Compliance
-The Blockstack Android SDK includes methods to encrypt data. 
+The Stacks Android SDK includes methods to encrypt data. 
 Please consider whether you have to be compliant with US export law 
 when you distribute your app via Google Play. See for example [Export Compliance](https://support.google.com/googleplay/android-developer/answer/113770?hl=en)
 
 ### Privacy and Data Protection
-Blockstack helps you to create privacy-by-design apps as for example 
+Stacks helps you to create privacy-by-design apps as for example 
 required by GDPR. 
 
 In the context of GDPR, you should consider features 
