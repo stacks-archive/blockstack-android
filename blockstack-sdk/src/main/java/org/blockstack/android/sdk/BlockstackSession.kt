@@ -17,6 +17,7 @@ import okio.ByteString.Companion.toByteString
 import org.blockstack.android.sdk.ecies.signContent
 import org.blockstack.android.sdk.ecies.signEncryptedContent
 import org.blockstack.android.sdk.ecies.verify
+import org.blockstack.android.sdk.extensions.getStringOrNull
 import org.blockstack.android.sdk.extensions.toBtcAddress
 import org.blockstack.android.sdk.extensions.toHexPublicKey64
 import org.blockstack.android.sdk.model.*
@@ -60,7 +61,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun handlePendingSignIn(authResponse: String): Result<out UserData> = withContext(dispatcher) {
         val transitKey = sessionStore.getTransitPrivateKey()
-        val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "https://core.blockstack.org")
+        val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "stacks-node-api.stacks.co")
 
         val tokenTriple = try {
             blockstack.decodeToken(authResponse)
@@ -92,7 +93,11 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     }
 
     suspend fun handleUnencryptedSignIn(authResponse: String): Result<UserData> {
-        val nameLookupUrl = sessionStore.sessionData.json.optString("core-node", "https://core.blockstack.org")
+
+        val nameLookupUrl = sessionStore.sessionData.json.optString(
+            "core-node",
+            DEFAULT_CORE_API_ENDPOINT.replace("https://", "")
+        )
 
         val tokenTriple = blockstack.decodeToken(authResponse)
         val tokenPayload = tokenTriple.second
@@ -113,11 +118,18 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     }
 
 
-    suspend fun authResponseToUserData(tokenPayload: JSONObject, nameLookupUrl: String, appPrivateKey: String?, coreSessionToken: String?, authResponse: String): UserData {
+    suspend fun authResponseToUserData(
+        tokenPayload: JSONObject,
+        nameLookupUrl: String,
+        appPrivateKey: String?,
+        coreSessionToken: String?,
+        authResponse: String
+    ): UserData {
         val iss = tokenPayload.getString("iss")
 
         val identityAddress = DIDs.getAddressFromDID(iss)
-        val userData = UserData(JSONObject()
+        return UserData(
+            JSONObject()
                 .put("username", tokenPayload.getString("username"))
                 .put("profile", extractProfile(tokenPayload, nameLookupUrl))
                 .put("email", tokenPayload.optString("email"))
@@ -127,8 +139,8 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 .put("coreSessionToken", coreSessionToken)
                 .put("authResponseToken", authResponse)
                 .put("hubUrl", tokenPayload.optString("hubUrl", BLOCKSTACK_DEFAULT_GAIA_HUB_URL))
-                .put("gaiaAssociationToken", tokenPayload.optString("associationToken")))
-        return userData
+                .put("gaiaAssociationToken", tokenPayload.getStringOrNull("associationToken"))
+        )
     }
 
 

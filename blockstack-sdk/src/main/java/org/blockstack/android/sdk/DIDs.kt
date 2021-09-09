@@ -2,8 +2,6 @@ package org.blockstack.android.sdk
 
 import me.uport.sdk.universaldid.*
 import okhttp3.Call
-import okhttp3.Request
-import org.json.JSONObject
 import java.util.*
 
 class DIDs {
@@ -15,21 +13,16 @@ class DIDs {
                 return null
             }
 
-            val didType = getDIDType(did)
-
-            if (didType == "btc-addr") {
-                return did.split(':')[2]
-            } else {
-                return null
-            }
+            validateDid(did)
+            return did.split(':').last()
         }
 
 
-        private fun getDIDType(decentralizedID: String): String {
+        private fun validateDid(decentralizedID: String): String {
             val didParts = decentralizedID.split(':')
 
-            if (didParts.size != 3) {
-                throw InvalidDIDError("Decentralized IDs must have 3 parts")
+            if (didParts.size >= 3) {
+                throw InvalidDIDError("Decentralized IDs must have at least 3 parts")
             }
 
             if (didParts[0].toLowerCase(Locale.US) != "did") {
