@@ -25,10 +25,12 @@ import java.util.*
 
 data class AppDetails(val name: String, val icon: String)
 
-class BlockstackSignIn(private val sessionStore: ISessionStore,
-                       private val appConfig: BlockstackConfig,
-                       private val appDetails: AppDetails? = null,
-                       val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
+class BlockstackSignIn(
+    private val sessionStore: ISessionStore,
+    private val appConfig: BlockstackConfig,
+    private val appDetails: AppDetails? = null,
+    val dispatcher: CoroutineDispatcher = Dispatchers.IO
+) {
 
 
     /**
@@ -44,7 +46,13 @@ class BlockstackSignIn(private val sessionStore: ISessionStore,
      * @param extraParams key, value pairs that are transferred with the auth request,
      * only Boolean and String values are supported
      */
-    suspend fun makeAuthRequest(transitPrivateKey: String, expiresAt: Long = Date().time + 3600 * 24 * 7, sendToSignIn: Boolean = false, extraParams: Map<String, Any>? = null): String = withContext(dispatcher) {
+    suspend fun makeAuthRequest(
+        transitPrivateKey: String,
+        expiresAt: Long = Date().time + 3600 * 24 * 7,
+        sendToSignIn: Boolean = false,
+        extraParams: Map<String, Any>? = null,
+        registerSubdomain: Boolean = false
+    ): String = withContext(dispatcher) {
         val domainName = appConfig.appDomain.getOrigin()
         val manifestUrl = "${domainName}${appConfig.manifestPath}"
         val redirectUrl = "${domainName}${appConfig.redirectPath}"
@@ -52,20 +60,22 @@ class BlockstackSignIn(private val sessionStore: ISessionStore,
         val btcAddress = transitKeyPair.toBtcAddress()
         val issuerDID = "did:btc-addr:${btcAddress}"
         val payload = mutableMapOf(
-                "jti" to UUID.randomUUID().toString(),
-                "iat" to Date().time / 1000,
-                "exp" to expiresAt / 1000,
-                "iss" to issuerDID,
-                "public_keys" to arrayOf(transitKeyPair.toHexPublicKey64()),
-                "domain_name" to domainName,
-                "manifest_uri" to manifestUrl,
-                "redirect_uri" to redirectUrl,
-                "version" to "1.3.1",
-                "do_not_include_profile" to true,
-                "supports_hub_url" to true,
-                "scopes" to appConfig.scopes.map { it.name },
-                "sendToSignIn" to sendToSignIn,
-                "client" to "android"
+            "jti" to UUID.randomUUID().toString(),
+            "iat" to Date().time / 1000,
+            "connectVersion" to CONNECT_VERSION,
+            "registerSubdomain" to registerSubdomain,
+            "exp" to expiresAt / 1000,
+            "iss" to issuerDID,
+            "public_keys" to arrayOf(transitKeyPair.toHexPublicKey64()),
+            "domain_name" to domainName,
+            "manifest_uri" to manifestUrl,
+            "redirect_uri" to redirectUrl,
+            "version" to VERSION,
+            "do_not_include_profile" to true,
+            "supports_hub_url" to true,
+            "scopes" to appConfig.scopes.map { it.name },
+            "sendToSignIn" to sendToSignIn,
+            "client" to "android"
         )
         if (appDetails != null) {
             payload["appDetails"] = mapOf("name" to appDetails.name, "icon" to appDetails.icon)
@@ -73,13 +83,31 @@ class BlockstackSignIn(private val sessionStore: ISessionStore,
         if (extraParams != null) {
             payload.putAll(extraParams)
         }
-        return@withContext JWTTools().createJWT(payload, issuerDID, KPSigner(transitPrivateKey), algorithm = JwtHeader.ES256K)
+        return@withContext JWTTools().createJWT(
+            payload,
+            issuerDID,
+            KPSigner(transitPrivateKey),
+            algorithm = JwtHeader.ES256K
+        )
     }
 
-    suspend fun redirectUserToSignIn(context: Context, sendToSignIn: Boolean = false) {
+    suspend fun redirectUserToSignIn(
+        context: Context,
+        sendToSignIn: Boolean = false,
+        registerSubdomain: Boolean = false
+    ) {
         val transitPrivateKey = generateAndStoreTransitKey()
-        val authRequest = makeAuthRequest(transitPrivateKey, sendToSignIn = sendToSignIn)
-        redirectToSignInWithAuthRequest(context, authRequest, this.appConfig.authenticatorUrl, sendToSignIn = sendToSignIn)
+        val authRequest = makeAuthRequest(
+            transitPrivateKey,
+            sendToSignIn = sendToSignIn,
+            registerSubdomain = registerSubdomain
+        )
+        redirectToSignInWithAuthRequest(
+            context,
+            authRequest,
+            this.appConfig.authenticatorUrl,
+            sendToSignIn = sendToSignIn
+        )
     }
 
     /**
@@ -94,17 +122,26 @@ class BlockstackSignIn(private val sessionStore: ISessionStore,
      * @param dispatcher Context for where to run the method, default is Dispatchers.Main
      *
      */
-    suspend fun redirectToSignInWithAuthRequest(context: Context, authRequest: String, blockstackIDHost: String? = null, sendToSignIn: Boolean = false, dispatcher: CoroutineDispatcher = Dispatchers.Main) = withContext(dispatcher){
+    suspend fun redirectToSignInWithAuthRequest(
+        context: Context,
+        authRequest: String,
+        blockstackIDHost: String? = null,
+        sendToSignIn: Boolean = false,
+        dispatcher: CoroutineDispatcher = Dispatchers.Main
+    ) = withContext(dispatcher) {
         val hostUrl = blockstackIDHost ?: DEFAULT_BLOCKSTACK_ID_HOST
         val path = if (sendToSignIn) "sign-in" else "sign-up"
         val httpsURI = "${hostUrl}/#/${path}?authRequest=${authRequest}"
         openUrl(context, httpsURI)
     }
+
     fun generateAndStoreTransitKey(): String {
         val keyPair = CryptoAPI.keyPairGenerator.generate()
         val transitPrivateKey = keyPair.privateKey.key.toHexStringNoPrefix()
-        sessionStore.sessionData = SessionData(sessionStore.sessionData.json
-                .put("transitKey", transitPrivateKey))
+        sessionStore.sessionData = SessionData(
+            sessionStore.sessionData.json
+                .put("transitKey", transitPrivateKey)
+        )
         return transitPrivateKey
     }
 
@@ -117,15 +154,31 @@ class BlockstackSignIn(private val sessionStore: ISessionStore,
             options.outWidth = 24
             options.outHeight = 24
             options.inScaled = true
-            val backButton = BitmapFactory.decodeResource(context.resources, R.drawable.ic_arrow_back, options)
+            val backButton =
+                BitmapFactory.decodeResource(context.resources, R.drawable.ic_arrow_back, options)
             builder.setCloseButtonIcon(backButton)
-            builder.setToolbarColor(ContextCompat.getColor(context, R.color.org_blockstack_purple_50_logos_types))
-            builder.setToolbarColor(ContextCompat.getColor(context, R.color.org_blockstack_purple_85_lines))
+            builder.setToolbarColor(
+                ContextCompat.getColor(
+                    context,
+                    R.color.org_blockstack_purple_50_logos_types
+                )
+            )
+            builder.setToolbarColor(
+                ContextCompat.getColor(
+                    context,
+                    R.color.org_blockstack_purple_85_lines
+                )
+            )
             builder.setShowTitle(true)
             val customTabsIntent = builder.build()
             customTabsIntent.launchUrl(context, locationUri)
         } else {
-            context.startActivity(Intent(Intent.ACTION_VIEW, locationUri).addCategory(Intent.CATEGORY_BROWSABLE))
+            context.startActivity(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    locationUri
+                ).addCategory(Intent.CATEGORY_BROWSABLE)
+            )
         }
     }
 

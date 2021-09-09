@@ -22,6 +22,7 @@ import okhttp3.Request
 import okhttp3.Response
 import org.blockstack.android.sdk.extensions.toBtcAddress
 import org.blockstack.android.sdk.extensions.toHexPublicKey64
+import org.blockstack.android.sdk.extensions.toStxAddress
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONException
@@ -296,8 +297,21 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient(),
             val body = response.body!!.string()
             val nameInfo = JSONObject(body)
             val nameOwningAddress = nameInfo.optString("address")
-            val addressFromIssuer = DIDs.getAddressFromDID(payload.optString("iss"))
-            return nameOwningAddress.isNotEmpty() && nameOwningAddress == addressFromIssuer
+            val addressFromIssuer = DIDs.getAddressFromDID(payload.optString("iss")) ?: ""
+
+            //Check if the address is a stx address
+            return if (nameOwningAddress.startsWith("S")) {
+                if (nameOwningAddress.isNotEmpty() && nameOwningAddress == addressFromIssuer) {
+                    true
+                } else {
+                    // Backward Compatibility (Address STX with BTC issuer)
+                    // if the address is not the same, check if the profile belongs to the owner
+                    nameInfo.optString("zonefile").contains(addressFromIssuer)
+                }
+            } else {
+                // legacy
+                nameOwningAddress.isNotEmpty() && nameOwningAddress == addressFromIssuer
+            }
         } else {
             return false
         }
@@ -519,20 +533,16 @@ class Blockstack(private val callFactory: Call.Factory = OkHttpClient(),
         }
 
         val issuerPublicKey = payload.getJSONObject("issuer").getString("publicKey")
-        val uncompressedAddress = issuerPublicKey.toBtcAddress()
+        val uncompressedBtcAddress = issuerPublicKey.toBtcAddress()
+        val uncompressedStxAddress = issuerPublicKey.toStxAddress(true)
 
         if (publicKeyOrAddress == issuerPublicKey) {
             // pass
-        } else {
-            if (publicKeyOrAddress == uncompressedAddress) {
-                // pass
-            } else {
-                throw Error("Token issuer public key does not match the verifying value")
-            }
+        } else if (publicKeyOrAddress != uncompressedBtcAddress && publicKeyOrAddress != uncompressedStxAddress) {
+            throw Error("Token issuer public key does not match the verifying value")
         }
 
         return ProfileToken(tokenTripleToJSON(decodedToken))
-
     }
 
     private fun tokenTripleToJSON(decodedToken: Triple<JwtHeader, JSONObject, ByteArray>): JSONObject {

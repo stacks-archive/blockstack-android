@@ -5,11 +5,12 @@ import android.content.Intent
 import android.util.Log
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.model.BlockstackConfig
 import org.blockstack.android.sdk.model.UserData
 import org.blockstack.android.sdk.ui.BlockstackConnectActivity
-import java.lang.Exception
 
 object BlockstackConnect {
 
@@ -20,9 +21,16 @@ object BlockstackConnect {
     private var dispatcher: CoroutineDispatcher = Dispatchers.IO
 
     @JvmOverloads
-    fun config(blockstackConfig: BlockstackConfig, sessionStore: ISessionStore, appDetails: AppDetails? = null, dispatcher: CoroutineDispatcher = Dispatchers.IO): BlockstackConnect {
-        blockstackSession = BlockstackSession(sessionStore, blockstackConfig, dispatcher = dispatcher)
-        blockstackSignIn = BlockstackSignIn(sessionStore, blockstackConfig, appDetails, dispatcher = dispatcher)
+    fun config(
+        blockstackConfig: BlockstackConfig,
+        sessionStore: ISessionStore,
+        appDetails: AppDetails? = null,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): BlockstackConnect {
+        blockstackSession =
+            BlockstackSession(sessionStore, blockstackConfig, dispatcher = dispatcher)
+        blockstackSignIn =
+            BlockstackSignIn(sessionStore, blockstackConfig, appDetails, dispatcher = dispatcher)
         this.dispatcher = dispatcher
         return this
     }
@@ -33,19 +41,29 @@ object BlockstackConnect {
      * @param connectScreenTheme (optional) @StyleRes to customize the Blockstack Connect Screen, by default it uses the Blockstack theme
      */
     @JvmOverloads
-    fun connect(context: Context,  @StyleRes connectScreenTheme: Int? = null) {
+    fun connect(
+        context: Context,
+        registerSubdomain: Boolean = false,
+        @StyleRes connectScreenTheme: Int? = null
+    ) {
         if (blockstackSignIn == null) {
             throw BlockstackConnectInvalidConfiguration(
-                    "Cannot establish connection without a valid configuration"
+                "Cannot establish connection without a valid configuration"
             )
         }
-        context.startActivity(BlockstackConnectActivity.getIntent(context, connectScreenTheme))
+        context.startActivity(
+            BlockstackConnectActivity.getIntent(
+                context,
+                registerSubdomain,
+                connectScreenTheme
+            )
+        )
     }
 
     suspend fun handleAuthResponse(intent: Intent): Result<UserData> {
         if (blockstackSession == null) {
             throw BlockstackConnectInvalidConfiguration(
-                    "Cannot establish connection without a valid configuration"
+                "Cannot establish connection without a valid configuration"
             )
         }
 
@@ -64,7 +82,7 @@ object BlockstackConnect {
                 Log.d(TAG, "AuthResponse token: $authResponse")
                 withContext(dispatcher) {
                     val userDataResult = blockstackSession?.handlePendingSignIn(authResponse)
-                            ?: errorResult
+                        ?: errorResult
                     result = if (userDataResult.hasValue) {
                         val userData = userDataResult.value!!
                         Log.d(TAG, "Blockstack user Auth successful")
@@ -79,17 +97,24 @@ object BlockstackConnect {
     }
 
     private inline val errorResult: Result<UserData>
-        get() = Result(null, ResultError(
+        get() = Result(
+            null, ResultError(
                 ErrorCode.UnknownError,
-                "Unable to process response "))
+                "Unable to process response "
+            )
+        )
 
-    suspend fun redirectUserToSignIn(context: AppCompatActivity, sendToSignIn: Boolean) {
+    suspend fun redirectUserToSignIn(
+        context: AppCompatActivity,
+        sendToSignIn: Boolean,
+        registerSubdomain: Boolean = false
+    ) {
         if (blockstackSignIn == null) {
             throw BlockstackConnectInvalidConfiguration(
-                    "Cannot establish connection without a valid configuration"
+                "Cannot establish connection without a valid configuration"
             )
         }
-        blockstackSignIn?.redirectUserToSignIn(context, sendToSignIn)
+        blockstackSignIn?.redirectUserToSignIn(context, sendToSignIn, registerSubdomain)
     }
 
     class BlockstackConnectInvalidConfiguration(message: String) : Exception(message) {}
