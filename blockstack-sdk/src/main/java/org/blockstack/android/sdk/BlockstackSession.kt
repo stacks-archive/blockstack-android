@@ -11,13 +11,14 @@ import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.ByteString.Companion.encodeUtf8
 import okio.ByteString.Companion.toByteString
 import org.blockstack.android.sdk.ecies.signContent
 import org.blockstack.android.sdk.ecies.signEncryptedContent
 import org.blockstack.android.sdk.ecies.verify
+import org.blockstack.android.sdk.extensions.toBtcAddress
+import org.blockstack.android.sdk.extensions.toHexPublicKey64
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONObject

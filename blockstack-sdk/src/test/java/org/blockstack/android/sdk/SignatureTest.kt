@@ -6,6 +6,7 @@ import org.blockstack.android.sdk.ecies.fromDER
 import org.blockstack.android.sdk.ecies.signContent
 import org.blockstack.android.sdk.ecies.toDER
 import org.blockstack.android.sdk.ecies.verify
+import org.blockstack.android.sdk.extensions.toHexPublicKey64
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test

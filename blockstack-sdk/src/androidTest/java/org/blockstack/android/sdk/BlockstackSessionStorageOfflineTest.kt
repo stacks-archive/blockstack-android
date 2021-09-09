@@ -15,7 +15,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
-import java.util.concurrent.CountDownLatch
 
 
 @RunWith(AndroidJUnit4::class)
@@ -29,7 +28,7 @@ class BlockstackSessionStorageOfflineTest {
     fun setup() {
         val realCallFactory = OkHttpClient()
         val callFactory = Call.Factory {
-            if (it.url().encodedPath().contains("/hub_info")) {
+            if (it.url.encodedPath.contains("/hub_info")) {
                 realCallFactory.newCall(it)
             } else {
                 throw IOException("offline")

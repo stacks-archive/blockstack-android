@@ -4,7 +4,7 @@ buildscript {
     ext {
         kotlin_version = '1.4.10'
         khex_version = '1.0.0'
-        khash_version = ' 1.0.0-RC5'
+        khash_version = '1.1.1'
         kethereum_version = '0.83.0'
         did_jwt_version = '0.4.0'
         kbase58_version = '0.1'
@@ -13,7 +13,7 @@ buildscript {
 
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -33,7 +33,7 @@ plugins {
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
         maven { url 'https://jitpack.io' }
     }
 }

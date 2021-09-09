@@ -1,6 +1,6 @@
 package org.blockstack.android.sdk.model
 
-import org.blockstack.android.sdk.toHexPublicKey64
+import org.blockstack.android.sdk.extensions.toHexPublicKey64
 import org.kethereum.bip32.model.ExtendedKey
 import org.komputing.khash.sha256.Sha256
 import org.komputing.khex.extensions.toNoPrefixHexString

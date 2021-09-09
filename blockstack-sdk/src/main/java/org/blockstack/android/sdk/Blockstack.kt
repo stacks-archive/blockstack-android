@@ -11,7 +11,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import kotlinx.serialization.json.JsonException
 import me.uport.sdk.core.decodeBase64
-import me.uport.sdk.core.hexToByteArray
 import me.uport.sdk.core.toBase64UrlSafe
 import me.uport.sdk.jwt.*
 import me.uport.sdk.jwt.model.ArbitraryMapSerializer
@@ -21,22 +20,18 @@ import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import org.blockstack.android.sdk.extensions.toBtcAddress
+import org.blockstack.android.sdk.extensions.toHexPublicKey64
 import org.blockstack.android.sdk.model.*
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.kethereum.crypto.CryptoAPI
-import org.kethereum.crypto.getCompressedPublicKey
 import org.kethereum.crypto.toECKeyPair
-import org.kethereum.extensions.toBytesPadded
 import org.kethereum.extensions.toHexStringNoPrefix
 import org.kethereum.model.ECKeyPair
-import org.kethereum.model.PUBLIC_KEY_SIZE
 import org.kethereum.model.PrivateKey
 import org.kethereum.model.PublicKey
-import org.komputing.kbase58.encodeToBase58String
-import org.komputing.khash.ripemd160.extensions.digestRipemd160
-import org.komputing.khash.sha256.extensions.sha256
 import org.komputing.khex.extensions.toNoPrefixHexString
 import org.komputing.khex.model.HexString
 import java.net.URI
@@ -662,44 +657,49 @@ private fun JSONArray.toMap(): Array<Any?> {
     return array
 }
 
+@Deprecated(
+    "Import the extention from extensions.Addresses",
+    ReplaceWith(
+    "org.blockstack.android.sdk.toBtcAddress()",
+    "org.blockstack.android.sdk.extensions.toBtcAddress()"
+    )
+)
 fun String.toBtcAddress(): String {
-    val sha256 = this.hexToByteArray().sha256()
-    val hash160 = sha256.digestRipemd160()
-    val extended = "00${hash160.toNoPrefixHexString()}"
-    val checksum = checksum(extended)
-    val address = (extended + checksum).hexToByteArray().encodeToBase58String()
-    return address
+    return toBtcAddress()
 }
 
-private fun checksum(extended: String): String {
-    val checksum = extended.hexToByteArray().sha256().sha256()
-    val shortPrefix = checksum.slice(0..3)
-    return shortPrefix.toNoPrefixHexString()
-}
-
-
+@Deprecated(
+    "Import the extention from extensions.Addresses",
+    ReplaceWith(
+        "org.blockstack.android.sdk.toHexPublicKey64()",
+        "org.blockstack.android.sdk.extensions.toHexPublicKey64()"
+    )
+)
 fun ECKeyPair.toHexPublicKey64(): String {
-    return this.getCompressedPublicKey().toNoPrefixHexString()
+    return toHexPublicKey64()
 }
 
+@Deprecated(
+    "Import the extention from extensions.Addresses",
+    ReplaceWith(
+        "org.blockstack.android.sdk.toBtcAddress()",
+        "org.blockstack.android.sdk.extensions.toBtcAddress()"
+    )
+)
 fun ECKeyPair.toBtcAddress(): String {
-    val publicKey = toHexPublicKey64()
-    return publicKey.toBtcAddress()
+    return toBtcAddress()
 }
 
 
+@Deprecated(
+    "Import the extention from extensions.Addresses",
+    ReplaceWith(
+        "org.blockstack.android.sdk.toBtcAddress()",
+        "org.blockstack.android.sdk.extensions.toBtcAddress()"
+    )
+)
 fun PublicKey.toBtcAddress(): String {
-    //add the uncompressed prefix
-    val ret = this.key.toBytesPadded(PUBLIC_KEY_SIZE + 1)
-    ret[0] = 4
-    val point = org.kethereum.crypto.CURVE.decodePoint(ret)
-    val compressedPublicKey = point.encoded(true).toNoPrefixHexString()
-    val sha256 = compressedPublicKey.hexToByteArray().sha256()
-    val hash160 = sha256.digestRipemd160()
-    val extended = "00${hash160.toNoPrefixHexString()}"
-    val checksum = checksum(extended)
-    val address = (extended + checksum).hexToByteArray().encodeToBase58String()
-    return address
+    return toBtcAddress()
 }
 
 

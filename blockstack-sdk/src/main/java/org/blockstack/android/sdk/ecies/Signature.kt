@@ -2,9 +2,9 @@ package org.blockstack.android.sdk.ecies
 
 import me.uport.sdk.core.hexToByteArray
 import me.uport.sdk.signer.getUncompressedPublicKeyWithPrefix
+import org.blockstack.android.sdk.extensions.toHexPublicKey64
 import org.blockstack.android.sdk.model.SignatureObject
 import org.blockstack.android.sdk.model.SignedCipherObject
-import org.blockstack.android.sdk.toHexPublicKey64
 import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.ec.CustomNamedCurves
 import org.bouncycastle.crypto.params.ECDomainParameters
@@ -13,12 +13,10 @@ import org.bouncycastle.crypto.signers.ECDSASigner
 import org.bouncycastle.crypto.signers.HMacDSAKCalculator
 import org.kethereum.crypto.signMessageHash
 import org.kethereum.crypto.toECKeyPair
-import org.kethereum.extensions.hexToBigInteger
 import org.kethereum.model.ECKeyPair
 import org.kethereum.model.PrivateKey
 import org.kethereum.model.SignatureData
 import org.komputing.khash.sha256.extensions.sha256
-import org.komputing.khex.extensions.hexToByteArray
 import org.komputing.khex.extensions.toNoPrefixHexString
 import org.komputing.khex.model.HexString
 import java.math.BigInteger
