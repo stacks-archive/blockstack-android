@@ -1,5 +1,6 @@
 package org.blockstack.android.sdk
 
+import android.net.Uri
 import android.util.Log
 import com.colendi.ecies.EncryptedResultForm
 import com.colendi.ecies.Encryption
@@ -26,12 +27,14 @@ import org.kethereum.model.PrivateKey
 import org.kethereum.model.PublicKey
 import org.komputing.khash.sha256.extensions.sha256
 import org.komputing.khex.model.HexString
+import java.io.File
 import java.io.IOException
 import java.math.BigInteger
 import java.security.InvalidParameterException
 import java.util.*
 
 const val SIGNATURE_FILE_EXTENSION = ".sig"
+const val FILE_PREFIX = "file://"
 
 class BlockstackSession(private val sessionStore: ISessionStore, private val appConfig: BlockstackConfig? = null,
                         private val callFactory: Call.Factory = OkHttpClient(),
@@ -225,6 +228,17 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
     suspend fun getFile(path: String, options: GetFileOptions): Result<out Any> {
         Log.d(TAG, "getFile: path: $path options: $options")
         return withContext(dispatcher) {
+
+            @Suppress("NAME_SHADOWING") var path = path
+            var file: File? = null
+            if (path.startsWith(FILE_PREFIX)) {
+                val pathUri = Uri.parse(path.replace(FILE_PREFIX, options.dir))
+                file = File(pathUri.path!!)
+                if (file.exists()) return@withContext Result("")
+
+                path = path.substring(FILE_PREFIX.length)
+            }
+
             val urlResult = getFileUrl(path, options)
             if (urlResult.hasErrors) {
                 return@withContext urlResult
@@ -296,6 +310,11 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
                 }
 
                 if (result !== null) {
+                    if (file !== null && result is ByteArray) {
+                        file.writeBytes(result)
+                        return@withContext Result("")
+                    }
+
                     return@withContext Result(result)
                 } else {
                     return@withContext Result(null, ResultError(ErrorCode.UnknownError, "invalid response from getFile"))
@@ -335,6 +354,18 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
      */
     suspend fun putFile(path: String, content: Any, options: PutFileOptions): Result<out String> = withContext(dispatcher) {
         Log.d(TAG, "putFile: path: ${path} options: ${options}")
+
+        @Suppress("NAME_SHADOWING") var path = path
+        @Suppress("NAME_SHADOWING") var content = content
+        if (path.startsWith(FILE_PREFIX)) {
+            val pathUri = Uri.parse(path.replace(FILE_PREFIX, options.dir))
+            val file = File(pathUri.path!!)
+            if (!file.exists()) return@withContext Result("file-does-not-exist/do-nothing-just-return")
+
+            path = path.substring(FILE_PREFIX.length)
+            content = file.inputStream().use { it.readBytes() }
+        }
+
         val valid = content is String || content is ByteArray
         if (!valid) {
             throw IllegalArgumentException("putFile content only supports String or ByteArray")

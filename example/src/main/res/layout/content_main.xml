@@ -150,13 +150,22 @@
         tools:ignore="ContentDescription" />
 
     <Button
+        android:id="@+id/deleteImageFileButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Delete Image File"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageView" />
+
+    <Button
         android:id="@+id/getStringFileFromUserButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Get String File from other user"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/imageView" />
+        app:layout_constraintTop_toBottomOf="@id/deleteImageFileButton" />
 
     <TextView
         android:id="@+id/fileFromUserContentsTextView"
@@ -218,13 +227,31 @@
         app:layout_constraintTop_toBottomOf="@id/listFilesButton" />
 
     <Button
+        android:id="@+id/putLocalFileButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Put local file"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/listFilesText" />
+
+    <Button
+        android:id="@+id/getLocalFileButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get local file"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/putLocalFileButton" />
+
+    <Button
         android:id="@+id/getNameInfoButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Get name info of dev_android_sdk"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/listFilesText" />
+        app:layout_constraintTop_toBottomOf="@id/getLocalFileButton" />
 
     <TextView
         android:id="@+id/getNameInfoText"

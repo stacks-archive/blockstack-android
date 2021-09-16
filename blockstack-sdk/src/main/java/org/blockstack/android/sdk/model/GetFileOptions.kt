@@ -18,7 +18,8 @@ public class GetFileOptions(val decrypt: Boolean = true,
                             val verify: Boolean = false,
                             val username: String? = null,
                             val app: String? = null,
-                            val zoneFileLookupURL: URL? = null) {
+                            val zoneFileLookupURL: URL? = null,
+                            val dir: String = "") {
 
     /**
      * json representation of these options as used by blockstack.js

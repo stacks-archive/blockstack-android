@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -21,11 +22,13 @@ import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.net.URI
 import java.net.URL
 import java.util.*
 
 private const val username = "dev_android_sdk.id.blockstack"
+private const val FILE_PREFIX = "file://"
 
 @SuppressLint("SetTextI18n")
 class MainActivity : AppCompatActivity() {
@@ -67,9 +70,12 @@ class MainActivity : AppCompatActivity() {
         deleteStringFileButton.isEnabled = false
         getImageFileButton.isEnabled = false
         putImageFileButton.isEnabled = false
+        deleteImageFileButton.isEnabled = false
         getStringFileFromUserButton.isEnabled = false
         getAppBucketUrlButton.isEnabled = false
         listFilesButton.isEnabled = false
+        putLocalFileButton.isEnabled = false
+        getLocalFileButton.isEnabled = false
 
         BlockstackConnect
                 .config(config, sessionStore, appDetails)
@@ -154,7 +160,7 @@ class MainActivity : AppCompatActivity() {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
             val bitMapData = stream.toByteArray()
 
-            val options = PutFileOptions(false)
+            val options = PutFileOptions(true)
             lifecycleScope.launch {
                 val readURLResult = blockstackSession().putFile(imageFileName, bitMapData, options)
                 if (readURLResult.hasValue) {
@@ -170,7 +176,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         getImageFileButton.setOnClickListener {
-            val options = GetFileOptions(decrypt = false)
+            val options = GetFileOptions(decrypt = true)
             lifecycleScope.launch {
                 val contentsResult = blockstackSession().getFile(imageFileName, options)
                 if (contentsResult.hasValue) {
@@ -182,6 +188,19 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity, "error: ${contentsResult.error}", Toast.LENGTH_SHORT).show()
                 }
 
+            }
+        }
+
+        deleteImageFileButton.setOnClickListener {
+            Log.d(TAG, "Deleting...")
+            lifecycleScope.launch {
+                val deleteResult = blockstackSession().deleteFile(imageFileName, DeleteFileOptions())
+                if (deleteResult.hasErrors) {
+                    Toast.makeText(this@MainActivity, "error " + deleteResult.error, Toast.LENGTH_SHORT).show()
+                } else {
+                    imageView.setImageBitmap(null)
+                    Log.d(TAG, "File $imageFileName deleted.")
+                }
             }
         }
 
@@ -259,6 +278,58 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        putLocalFileButton.setOnClickListener {
+            val drawable: BitmapDrawable = ContextCompat.getDrawable(this, R.drawable.blockstackteam) as BitmapDrawable
+
+            val bitmap = drawable.bitmap
+            val stream = ByteArrayOutputStream()
+
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+            val bitMapData = stream.toByteArray()
+
+            val fpath = this.filesDir.absolutePath + imageFileName
+            Log.d(TAG, "Local file path: $fpath")
+            val pathUri = Uri.parse(fpath)
+            val file = File(pathUri.path!!)
+            file.writeBytes(bitMapData)
+            Log.d(TAG, "Saved the local file")
+
+            val options = PutFileOptions(true, dir = this.filesDir.absolutePath)
+            lifecycleScope.launch {
+                val readURLResult = blockstackSession().putFile(FILE_PREFIX + imageFileName, "", options)
+                if (readURLResult.hasValue) {
+                    val readURL = readURLResult.value!!
+                    Log.d(TAG, "File stored at: $readURL")
+                } else {
+                    Toast.makeText(this@MainActivity, "error: ${readURLResult.error}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        getLocalFileButton.setOnClickListener {
+            val fpath = this.filesDir.absolutePath + imageFileName
+            val pathUri = Uri.parse(fpath)
+            val file = File(pathUri.path!!)
+            if (file.exists()) file.deleteRecursively()
+            Log.d(TAG, "Is local file exist: ${file.exists()}")
+
+            val options = GetFileOptions(decrypt = true, dir = this.filesDir.absolutePath)
+            lifecycleScope.launch {
+                val contentsResult = blockstackSession().getFile(FILE_PREFIX + imageFileName, options)
+                if (contentsResult.hasValue) {
+                    val contents = contentsResult.value!!
+                    Log.d(TAG, "Saved local file with contents: ${contents}")
+
+                    val imageByteArray = file.inputStream().use { it.readBytes() }
+                    val bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+                    imageView.setImageBitmap(bitmap)
+                } else {
+                    Toast.makeText(this@MainActivity, "error: ${contentsResult.error}", Toast.LENGTH_SHORT).show()
+                }
+
+            }
+        }
+
         getNameInfoButton.setOnClickListener { _ ->
             getNameInfoText.text = "Getting info ..."
             lifecycleScope.launch {
@@ -291,9 +362,12 @@ class MainActivity : AppCompatActivity() {
         deleteStringFileButton.isEnabled = true
         putImageFileButton.isEnabled = true
         getImageFileButton.isEnabled = true
+        deleteImageFileButton.isEnabled = true
         getStringFileFromUserButton.isEnabled = true
         getAppBucketUrlButton.isEnabled = true
         listFilesButton.isEnabled = true
+        putLocalFileButton.isEnabled = true
+        getLocalFileButton.isEnabled = true
     }
 
     private fun showUserAvatar(avatarImage: String?) {
