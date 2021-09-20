@@ -287,7 +287,7 @@ class MainActivity : AppCompatActivity() {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
             val bitMapData = stream.toByteArray()
 
-            val fpath = this.filesDir.absolutePath + imageFileName
+            val fpath = this.filesDir.absolutePath + "/" + imageFileName
             Log.d(TAG, "Local file path: $fpath")
             val pathUri = Uri.parse(fpath)
             val file = File(pathUri.path!!)
@@ -307,7 +307,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         getLocalFileButton.setOnClickListener {
-            val fpath = this.filesDir.absolutePath + imageFileName
+            val fpath = this.filesDir.absolutePath + "/" + imageFileName
             val pathUri = Uri.parse(fpath)
             val file = File(pathUri.path!!)
             if (file.exists()) file.deleteRecursively()

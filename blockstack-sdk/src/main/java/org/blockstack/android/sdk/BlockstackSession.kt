@@ -232,7 +232,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
             @Suppress("NAME_SHADOWING") var path = path
             var file: File? = null
             if (path.startsWith(FILE_PREFIX)) {
-                val pathUri = Uri.parse(path.replace(FILE_PREFIX, options.dir))
+                val pathUri = Uri.parse(path.replace(FILE_PREFIX, options.dir + "/"))
                 file = File(pathUri.path!!)
                 if (file.exists()) return@withContext Result("")
 
@@ -358,7 +358,7 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         @Suppress("NAME_SHADOWING") var path = path
         @Suppress("NAME_SHADOWING") var content = content
         if (path.startsWith(FILE_PREFIX)) {
-            val pathUri = Uri.parse(path.replace(FILE_PREFIX, options.dir))
+            val pathUri = Uri.parse(path.replace(FILE_PREFIX, options.dir + "/"))
             val file = File(pathUri.path!!)
             if (!file.exists()) return@withContext Result("file-does-not-exist/do-nothing-just-return")
 
