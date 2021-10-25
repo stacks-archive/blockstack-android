@@ -132,6 +132,11 @@ class BlockstackSession(private val sessionStore: ISessionStore, private val app
         return userData
     }
 
+    suspend fun updateUserData(userData: UserData): Result<out Unit> = withContext(dispatcher) {
+        this@BlockstackSession.appPrivateKey = userData.appPrivateKey
+        sessionStore.updateUserData(userData)
+        return@withContext Result(Unit)
+    }
 
     private suspend fun extractProfile(tokenPayload: JSONObject, nameLookupUrl: String): JSONObject {
         val profileUrl = tokenPayload.optStringOrNull("profile_url")
