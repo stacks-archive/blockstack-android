@@ -261,4 +261,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/getNameInfoButton" />
 
+    <Button
+        android:id="@+id/signECDSAButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sign ECDSA"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/getNameInfoText" />
+
+    <TextView
+        android:id="@+id/signECDSAText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/signECDSAButton" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

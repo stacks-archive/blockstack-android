@@ -32,6 +32,19 @@ import kotlin.math.log10
 internal val CURVE by lazy { CustomNamedCurves.getByName("secp256k1")!! }
 internal val DOMAIN_PARAMS = CURVE.run { ECDomainParameters(curve, g, n, h) }
 
+// github.com/paulmillr/noble-secp256k1/blob/97aa518b9c12563544ea87eba471b32ecf179916/index.ts
+fun signECDSA(content: Any, privateKey: String): SignatureObject {
+    val contentBuffer = if (content is ByteArray) {
+        content
+    } else {
+        (content as String).toByteArray()
+    }
+    val keyPair = PrivateKey(HexString(privateKey)).toECKeyPair()
+    val sigData = signMessageHash(contentBuffer.sha256(), keyPair, true)
+
+    val signatureString = sigData.toDER()
+    return SignatureObject(signatureString, keyPair.toHexPublicKey64())
+}
 
 fun signContent(content: Any, privateKey: String): SignatureObject {
     val contentBuffer = if (content is ByteArray) {
