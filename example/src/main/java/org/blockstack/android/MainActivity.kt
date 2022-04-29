@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.blockstack.android.sdk.*
 import org.blockstack.android.sdk.model.*
-import org.blockstack.android.sdk.ecies.signECDSA
+import org.blockstack.android.sdk.ecies.signContent
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URI
@@ -347,7 +347,7 @@ class MainActivity : AppCompatActivity() {
 
         signECDSAButton.setOnClickListener {
             val appPrivateKey = ""
-            val obj = signECDSA("Privacy Security UX", appPrivateKey)
+            val obj = signContent("Privacy Security UX", appPrivateKey, true)
             Log.d(TAG, "Public key: ${obj.publicKey}, Signature: ${obj.signature}")
             signECDSAText.text = "Public key: ${obj.publicKey}, Signature: ${obj.signature}"
         }
